@@ -112,7 +112,7 @@ pip install -r requirements.txt
 1. **Clone the repository**
 ```bash
 git clone https://github.com/evoiz/Agentic-Design-Patterns.git
-cd Agentic-Design-Patterns.git
+cd Agentic-Design-Patterns
 ```
 
 2. **Set up virtual environment** (recommended)
