@@ -234,7 +234,7 @@ This repository is for educational purposes. Please respect the author's copyrig
 
 If you find this repository useful, please consider giving it a star ⭐
 
-[![Star History Chart](https://api.star-history.com/svg?repos=evoiz/agentic-design-patterns&type=Date)](https://star-history.com/#evoiz/agentic-design-patterns&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=evoiz/agentic-design-patterns&type=Date)](https://star-history.dera.page/#evoiz/agentic-design-patterns&Date)
 
 ## 📊 Repository Stats
 
