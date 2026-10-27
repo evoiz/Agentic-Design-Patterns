@@ -19,13 +19,13 @@ flowchart LR
 
 ## Setup
 1. Prerequisites: .NET 10 SDK, a Foundry project with a model deployment and its API key.
-2. For local runs, configure shared user-secrets once (shared by all chapters) — see [dotnet/README.md](../../README.md).
+2. For local runs, configure shared user-secrets once (shared by all chapters) — see [dotnet/README.md](../../../README.md).
 3. For cloud-agent validation, document the GitHub Actions path: the repo's `live-foundry-tests.yml` workflow uses the protected `foundry-integration` environment and `Foundry__*` environment variables sourced from GitHub environment secrets.
 4. Foundry-native variant only: <extra steps, e.g. `az login`, deploy hosted agent>.
 5. Run locally:
    ```powershell
-   dotnet run --project dotnet/src/Chapter<NN>.<PatternName>          # all variants
-   dotnet run --project dotnet/src/Chapter<NN>.<PatternName> -- A     # single variant
+   dotnet run --project dotnet/src/<Family>/Chapter<NN>.<PatternName>          # all variants
+   dotnet run --project dotnet/src/<Family>/Chapter<NN>.<PatternName> -- A     # single variant
    ```
 6. Validate in GitHub Actions when local secrets are unavailable:
    - Open **Actions** → **Live Foundry smoke tests**

@@ -13,8 +13,11 @@ dotnet/
     ├── Shared/Shared.csproj
     │   ├── FoundrySettings.cs
     │   └── FoundryChatClientFactory.cs
-    └── Chapter01.PromptChaining/...
+    └── 01-Flow/                       # one folder per pattern family (see docs/design-patterns.md)
+        └── Chapter01.PromptChaining/...
 ```
+
+Tests mirror the family folders under `dotnet/tests/<Family>/`.
 
 ## Directory.Build.props (key parts)
 ```xml
@@ -130,7 +133,7 @@ public static class FoundryChatClientFactory
 
 At the end of a chapter implementation, follow SKILL.md's hosted-companion suitability step and load `microsoft-foundry` for current scaffolding/deployment guidance. Use a separate `Chapter<NN>.<PatternName>.Hosted` project referencing shared chapter logic. Hosting a MAF workflow is distinct from a Foundry-native pattern implementation.
 
-Verify the packaging boundary: a host source folder alone does not include sibling project references or `Directory.Build.props` / `Directory.Packages.props`. Use a complete remote-build context or bundled dependencies. For .NET bundled deployment, the current azd agent extension runs `dotnet publish` locally and ZIPs its output; keep the service's `project` pointing to the source project, not an already-published DLL folder. Chapter 02 provides a bundled reference through `dotnet/src/Chapter02.Routing.Hosted/azure.yaml`; each hosted project has its own manifest. Verify this behavior against the installed extension rather than duplicating its packaging logic.
+Verify the packaging boundary: a host source folder alone does not include sibling project references or `Directory.Build.props` / `Directory.Packages.props`. Use a complete remote-build context or bundled dependencies. For .NET bundled deployment, the current azd agent extension runs `dotnet publish` locally and ZIPs its output; keep the service's `project` pointing to the source project, not an already-published DLL folder. Chapter 02 provides a bundled reference through `dotnet/src/01-Flow/Chapter02.Routing.Hosted/azure.yaml`; each hosted project has its own manifest. Verify this behavior against the installed extension rather than duplicating its packaging logic.
 
 Keep azd state and published artifacts ignored, configure the project/model explicitly, use managed identity in Azure, and document required inference/deployment permissions. Adding deployment artifacts does not authorize provisioning or deployment. After an authorized deployment, verify the active version and a remote protocol invocation; console smoke tests alone are insufficient.
 
