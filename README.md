@@ -19,6 +19,8 @@ The [hosted-agent guides](dotnet/README.md#hosted-agent-companions) describe req
 
 The [Agent Harness enterprise extension](dotnet/src/Extension01.AgentHarness/README.md) adds a researched runtime meta-pattern beyond the book chapters, with a runnable MAF harness, a [Foundry-hosted agent](dotnet/src/Extension01.AgentHarness.Hosted/README.md), and guidance on combining it with the existing patterns.
 
+The [agentic patterns backlog](ai-research/agentic-patterns-backlog.md) proposes 11 further enterprise extensions, prioritized by missing behavioral contracts rather than duplicating existing demos. Each entry includes a C#/MAF scenario, implementation todo, acceptance criteria, dependencies, sources, and hosted-companion suitability.
+
 ## 🎯 What You'll Learn
 
 This comprehensive guide covers 21 chapters and 7 appendices on building intelligent AI agent systems, including:

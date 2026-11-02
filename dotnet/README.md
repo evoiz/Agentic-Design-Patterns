@@ -119,6 +119,8 @@ These are original additions beyond the book's 21 chapters, not notebook ports o
 
 Agent Harness demonstrates the packaged MAF runtime with todos, bounded tool use, compaction, tracing, and deterministic completion checks. Its [research note](../ai-research/agent-harness-pattern.md) cites primary sources and out-of-the-box examples. Its `AgentHarnessSmokeTests` run through the existing protected live workflow after merge.
 
+For proposed additions, see the [agentic patterns backlog](../ai-research/agentic-patterns-backlog.md). It distinguishes existing coverage from 11 missing end-to-end contracts, with priorities, runnable C#/MAF scenarios, implementation todos, acceptance criteria, dependencies, and selective hosting guidance. Safe-Action Gateway, Durable Reactive Agent, and Governed Skill Packages are independent starting points; none of the backlog entries is implemented yet.
+
 ## Hosted-agent companions
 
 Most hosted projects expose the same MAF chapter logic through Microsoft Foundry Agent Service protocols. Chapter 15 exposes its MAF agent through Foundry's **A2A protocol** and publishes an agent card. Use these companions as starting points for deploying the patterns to your own Foundry project.
