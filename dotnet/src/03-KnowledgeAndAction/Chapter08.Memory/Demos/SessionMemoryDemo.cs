@@ -5,6 +5,14 @@ namespace Chapter08.Memory.Demos;
 
 public static class SessionMemoryDemo
 {
+    // Scripted turns; Fact is the explicit state update applied after the turn.
+    private static readonly (string Heading, string Input, (string Key, string Value)? Fact)[] Turns =
+    [
+        ("First turn", "My name is Sam.", ("name", "Sam")),
+        ("Explicit memory update", "I prefer window seats when I travel.", ("travel preference", "window seats")),
+        ("Recall from the same session", "What is my name, and what kind of seat do I prefer?", null)
+    ];
+
     public static async Task RunAsync(
         IChatClient chatClient,
         Action<string>? writeOutput = null,
@@ -30,32 +38,21 @@ public static class SessionMemoryDemo
             });
 
         AgentSession session = await agent.CreateSessionAsync(cancellationToken);
-        writeOutput?.Invoke("--- Explicit session-state update ---");
-        writeOutput?.Invoke(memoryProvider.LogUserLogin(session));
-        writeOutput?.Invoke($"Task status: {memoryProvider.GetState(session).TaskStatus}");
-        await RunTurnAsync(agent, session, memoryProvider, "My name is Sam.", "First turn", writeOutput, cancellationToken);
-        await RunTurnAsync(
-            agent,
-            session,
-            memoryProvider,
-            "I prefer window seats when I travel.",
-            "Explicit memory update",
-            writeOutput,
-            cancellationToken);
-
-        writeOutput?.Invoke("\n--- Recall from the same session ---");
-        await RunTurnAsync(
-            agent,
-            session,
-            memoryProvider,
-            "What is my name, and what kind of seat do I prefer?",
-            "Recall",
-            writeOutput,
-            cancellationToken);
+        foreach (var (heading, input, fact) in Turns)
+        {
+            await RunTurnAsync(agent, session, memoryProvider, input, heading, writeOutput, cancellationToken);
+            if (fact is { } update)
+            {
+                memoryProvider.Remember(session, update.Key, update.Value);
+                writeOutput?.Invoke($"Explicit state update: {update.Key} = {update.Value}");
+            }
+        }
 
         writeOutput?.Invoke("\n--- Serialize and restore the session ---");
-        var serializedSession = await agent.SerializeSessionAsync(session);
-        AgentSession restoredSession = await agent.DeserializeSessionAsync(serializedSession);
+        var serializedSession = await agent.SerializeSessionAsync(session, cancellationToken: cancellationToken);
+        AgentSession restoredSession = await agent.DeserializeSessionAsync(
+            serializedSession,
+            cancellationToken: cancellationToken);
         await RunTurnAsync(
             agent,
             restoredSession,
@@ -78,7 +75,6 @@ public static class SessionMemoryDemo
         writeOutput?.Invoke($"\n--- {heading} ---");
         writeOutput?.Invoke($"User: {input}");
         var response = await agent.RunAsync(input, session, cancellationToken: cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(response.Text))
         {
             throw new InvalidOperationException($"The memory agent returned an empty response during '{heading}'.");
@@ -86,13 +82,9 @@ public static class SessionMemoryDemo
 
         writeOutput?.Invoke($"Assistant: {response.Text}");
         var state = memoryProvider.GetState(session);
-        if (state.Facts.Count > 0)
+        foreach (var fact in state.Facts.OrderBy(fact => fact.Key, StringComparer.OrdinalIgnoreCase))
         {
-            writeOutput?.Invoke("Session facts:");
-            foreach (var fact in state.Facts.OrderBy(fact => fact.Key, StringComparer.OrdinalIgnoreCase))
-            {
-                writeOutput?.Invoke($"- {fact.Key}: {fact.Value}");
-            }
+            writeOutput?.Invoke($"Session fact: {fact.Key} = {fact.Value}");
         }
 
         if (!string.IsNullOrWhiteSpace(state.LastResponse))

@@ -156,55 +156,13 @@ public static class ParallelizationWorkflow
         IEnumerable<WorkflowEvent> workflowEvents,
         IReadOnlyList<ParallelizationWorker> workers)
     {
-        var completedResponses = new Dictionary<string, string>(StringComparer.Ordinal);
-        var streamedResponses = new Dictionary<string, System.Text.StringBuilder>(StringComparer.Ordinal);
-        var workflowCompleted = false;
-        var workflowOutputType = "not emitted";
-        var unmatchedAuthors = new HashSet<string>(StringComparer.Ordinal);
+        List<ChatMessage>? responses = null;
 
         foreach (var workflowEvent in workflowEvents)
         {
             if (workflowEvent is WorkflowOutputEvent outputEvent)
             {
-                workflowCompleted = true;
-                workflowOutputType = outputEvent.Data?.GetType().FullName ?? "null";
-                if (outputEvent.Data is IEnumerable<ChatMessage> messages)
-                {
-                    foreach (var message in messages.Where(message => message.Role == ChatRole.Assistant))
-                    {
-                        var worker = FindWorker(message.AuthorName ?? string.Empty, workers);
-                        if (worker is not null && !string.IsNullOrWhiteSpace(message.Text))
-                        {
-                            completedResponses[worker.Name] = message.Text;
-                        }
-                        else
-                        {
-                            unmatchedAuthors.Add(message.AuthorName ?? "<null>");
-                        }
-                    }
-                }
-            }
-            else if (workflowEvent is AgentResponseEvent responseEvent)
-            {
-                var worker = FindWorker(responseEvent.ExecutorId, workers);
-                if (worker is not null)
-                {
-                    completedResponses[worker.Name] = responseEvent.Response.Text;
-                }
-            }
-            else if (workflowEvent is AgentResponseUpdateEvent updateEvent)
-            {
-                var worker = FindWorker(updateEvent.ExecutorId, workers);
-                if (worker is not null)
-                {
-                    if (!streamedResponses.TryGetValue(worker.Name, out var response))
-                    {
-                        response = new System.Text.StringBuilder();
-                        streamedResponses.Add(worker.Name, response);
-                    }
-
-                    response.Append(updateEvent.Update.Text);
-                }
+                responses = outputEvent.As<List<ChatMessage>>();
             }
             else if (workflowEvent is ExecutorFailedEvent failedEvent)
             {
@@ -224,7 +182,7 @@ public static class ParallelizationWorkflow
             }
         }
 
-        if (!workflowCompleted)
+        if (responses is null)
         {
             throw new InvalidOperationException(
                 "The parallelization workflow completed without producing a fan-in output.");
@@ -233,18 +191,13 @@ public static class ParallelizationWorkflow
         var results = new List<ChatMessage>(workers.Count);
         foreach (var worker in workers)
         {
-            var response = completedResponses.GetValueOrDefault(worker.Name);
-            if (string.IsNullOrWhiteSpace(response) &&
-                streamedResponses.TryGetValue(worker.Name, out var streamedResponse))
-            {
-                response = streamedResponse.ToString();
-            }
+            var response = responses.LastOrDefault(message =>
+                FindWorker(message.AuthorName ?? string.Empty, workers) == worker)?.Text;
 
             if (string.IsNullOrWhiteSpace(response))
             {
                 throw new InvalidOperationException(
-                    $"Parallel worker '{worker.Name}' completed without an assistant response. " +
-                    $"Workflow output type: {workflowOutputType}; unmatched authors: {string.Join(", ", unmatchedAuthors)}.");
+                    $"Parallel worker '{worker.Name}' completed without an attributable assistant response.");
             }
 
             results.Add(new ChatMessage(

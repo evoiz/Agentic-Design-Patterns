@@ -1,6 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup>  <UserSecretsId>6acdd9ec-3675-4a4f-9776-5525043072c5</UserSecretsId>
+<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup>  <UserSecretsId>6acdd9ec-3675-4a4f-9776-5525043072c5</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared.Hosting\Shared.Hosting.csproj" />
     <ProjectReference Include="..\Chapter07.MultiAgent\Chapter07.MultiAgent.csproj" />
     <ProjectReference Include="..\Chapter07.MultiAgent.Hosted\Chapter07.MultiAgent.Hosted.csproj" />
     <PackageReference Include="Azure.AI.OpenAI" />

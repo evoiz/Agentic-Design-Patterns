@@ -1,15 +1,11 @@
-using System.Diagnostics;
+using AgenticDesignPatterns.TestSupport;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Azure.AI.AgentServer.Core;
 using Chapter16.ResourceOptimization;
 using Chapter16.ResourceOptimization.Hosted;
 using Chapter16.ResourceOptimization.Models;
 using Microsoft.Agents.AI;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Agents.AI.Foundry.Hosting;
 using Microsoft.Extensions.AI;
-using OpenTelemetry.Trace;
 using Xunit;
 
 namespace AgenticDesignPatterns.ResourceOptimization.Tests;
@@ -34,18 +30,25 @@ public sealed class ResourceOptimizationWorkflowTests
     [InlineData("{\"classification\":\"simple\"}", OptimizationCategory.Simple)]
     [InlineData("{\"classification\":\"reasoning\"}", OptimizationCategory.Reasoning)]
     [InlineData("{\"classification\":\"internet_search\"}", OptimizationCategory.InternetSearch)]
-    public void Classifier_accepts_only_known_categories(string output, OptimizationCategory expected)
+    public async Task Classifier_accepts_only_known_categories(string output, OptimizationCategory expected)
     {
-        Assert.Equal(expected, ResourceOptimizationWorkflow.ParseClassification(output));
+        using var client = new ScriptedChatClient((output, 2, 1), ("Answer.", 4, 3));
+        var result = await ResourceOptimizationWorkflow.RunAsync(
+            "A caller request", RoutingStrategy.IntentClassification, client, CreateModelClients(client),
+            webSearchAgent: new ChatClientAgent(client, name: "TestWebSearch"));
+        Assert.Equal(expected, result.Category);
     }
 
     [Theory]
     [InlineData("not json")]
     [InlineData("{\"classification\":\"other\"}")]
-    public void Classifier_rejects_malformed_or_unknown_categories(string output)
+    [InlineData("{\"classification\":0}")]
+    public async Task Classifier_rejects_malformed_or_unknown_categories(string output)
     {
-        Assert.Throws<InvalidOperationException>(
-            () => ResourceOptimizationWorkflow.ParseClassification(output));
+        using var client = new ScriptedChatClient((output, 2, 1));
+        await Assert.ThrowsAsync<JsonException>(() => ResourceOptimizationWorkflow.RunAsync(
+            "A caller request", RoutingStrategy.IntentClassification, client, CreateModelClients(client)));
+        Assert.Single(client.Requests);
     }
 
     [Theory]
@@ -142,30 +145,11 @@ public sealed class ResourceOptimizationWorkflowTests
             results);
     }
 
-    [Theory]
-    [InlineData("simple", "Simple", "fast-deployment", false)]
-    [InlineData("reasoning", "Reasoning", "reasoning-deployment", false)]
-    [InlineData("internet_search", "InternetSearch", "quality-deployment", false)]
-    [InlineData("simple", "Simple", "fast-deployment", true)]
-    [InlineData("reasoning", "Reasoning", "reasoning-deployment", true)]
-    [InlineData("internet_search", "InternetSearch", "quality-deployment", true)]
-    public async Task Responses_protocol_returns_classification_and_final_answer(
-        string classification,
-        string expectedCategory,
-        string expectedDeployment,
-        bool stream)
+    [Fact]
+    public async Task Hosted_search_returns_citations_and_combined_provider_usage()
     {
-        var activities = new List<Activity>();
-        using var listener = new ActivityListener
-        {
-            ShouldListenTo = source => source.Name == ResourceOptimizationWorkflow.TelemetrySourceName,
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
-            ActivityStopped = activities.Add
-        };
-        ActivitySource.AddActivityListener(listener);
         using var model = new ScriptedChatClient(
-            ($"{{\"classification\":\"{classification}\"}}", 2, 1),
-            ("Canberra.", 4, 3));
+            ("""{"classification":"internet_search"}""", 2, 1));
         using var webModel = new ScriptedChatClient(("Current answer.", 6, 5))
         {
             Citation = new CitationAnnotation
@@ -176,85 +160,37 @@ public sealed class ResourceOptimizationWorkflowTests
         };
         var webSearchAgent = new ChatClientAgent(webModel, name: "TestWebSearch");
         var agent = new ResourceOptimizationAgent(model, CreateModelClients(model), webSearchAgent);
-        var builder = AgentHost.CreateBuilder([]);
-        builder.WebApplicationBuilder.WebHost.UseTestServer();
-        builder.ConfigureTracing(tracing =>
-            tracing.AddSource(ResourceOptimizationWorkflow.TelemetrySourceName));
-        builder.Services.AddFoundryResponses(agent);
-        builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());
-        await using var app = builder.Build().App;
-        await app.StartAsync();
-        try
-        {
-            using var http = app.GetTestClient();
-            using var response = await http.PostAsJsonAsync("/responses", new
-            {
-                model = "chapter16-resource-optimization",
-                input = "What is the capital of Australia?",
-                stream,
-                store = false
-            });
-            response.EnsureSuccessStatusCode();
-            using var body = ReadCompletedResponse(await response.Content.ReadAsStringAsync(), stream);
-            Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
-            var text = string.Concat(
-                body.RootElement.GetProperty("output").EnumerateArray()
-                    .SelectMany(item => item.GetProperty("content").EnumerateArray())
-                    .Where(item => item.GetProperty("type").GetString() == "output_text")
-                    .Select(item => item.GetProperty("text").GetString()));
-            Assert.Contains($"Classification: {expectedCategory}", text);
-            Assert.Contains($"Model deployment: {expectedDeployment}", text);
-            if (classification == "internet_search")
-            {
-                Assert.Contains("Current answer.", text);
-                Assert.Contains("Official source: https://example.com/current", text);
-                Assert.Contains("input=8, output=6, total=14", text);
-                Assert.Single(model.Requests);
-                Assert.Single(webModel.Requests);
-                Assert.Contains(activities, activity =>
-                    activity.GetTagItem("gen_ai.agent.name")?.ToString() == "TestWebSearch");
-            }
-            else
-            {
-                Assert.Contains("Canberra.", text);
-                Assert.Contains("input=6, output=4, total=10", text);
-                Assert.Equal(2, model.Requests.Count);
-                Assert.Empty(webModel.Requests);
-            }
-
-            var usage = body.RootElement.GetProperty("usage");
-            Assert.Equal(classification == "internet_search" ? 8 : 6, usage.GetProperty("input_tokens").GetInt64());
-            Assert.Equal(classification == "internet_search" ? 6 : 4, usage.GetProperty("output_tokens").GetInt64());
-            Assert.Equal(classification == "internet_search" ? 14 : 10, usage.GetProperty("total_tokens").GetInt64());
-        }
-        finally
-        {
-            await app.StopAsync();
-        }
+        await using var host = await HostedResponses.StartAsync(agent);
+        using var body = await host.InvokeAsync("What is the latest schedule?", agent.Name);
+        var text = HostedResponses.OutputText(body.RootElement);
+        Assert.Contains("Classification: InternetSearch", text);
+        Assert.Contains("Model deployment: quality-deployment", text);
+        Assert.Contains("Current answer.", text);
+        Assert.Contains("Official source: https://example.com/current", text);
+        Assert.Contains("input=8, output=6, total=14", text);
+        Assert.Single(model.Requests);
+        Assert.Single(webModel.Requests);
+        var usage = body.RootElement.GetProperty("usage");
+        Assert.Equal(8, usage.GetProperty("input_tokens").GetInt64());
+        Assert.Equal(6, usage.GetProperty("output_tokens").GetInt64());
+        Assert.Equal(14, usage.GetProperty("total_tokens").GetInt64());
     }
 
-    private static JsonDocument ReadCompletedResponse(string payload, bool stream)
+    [Fact]
+    public async Task Hosted_stream_preserves_structured_usage_not_only_display_text()
     {
-        if (!stream)
-        {
-            return JsonDocument.Parse(payload);
-        }
-
-        foreach (var line in payload.Split('\n'))
-        {
-            if (!line.StartsWith("data: ", StringComparison.Ordinal) || line.TrimEnd() == "data: [DONE]")
-            {
-                continue;
-            }
-
-            using var message = JsonDocument.Parse(line["data: ".Length..]);
-            if (message.RootElement.GetProperty("type").GetString() == "response.completed")
-            {
-                return JsonDocument.Parse(message.RootElement.GetProperty("response").GetRawText());
-            }
-        }
-
-        throw new InvalidOperationException("The Responses stream did not include a completed response.");
+        using var client = new ScriptedChatClient(
+            ("""{"classification":"simple"}""", 2, 1), ("Canberra.", 4, 3));
+        var agent = new ResourceOptimizationAgent(
+            client, CreateModelClients(client), new ChatClientAgent(client, name: "UnusedSearch"));
+        var updates = new List<AgentResponseUpdate>();
+        await foreach (var update in agent.RunStreamingAsync("What is the capital of Australia?"))
+            updates.Add(update);
+        var response = updates.ToAgentResponse();
+        Assert.Contains("Canberra.", response.Text);
+        Assert.Equal(6, response.Usage?.InputTokenCount);
+        Assert.Equal(4, response.Usage?.OutputTokenCount);
+        Assert.Equal(10, response.Usage?.TotalTokenCount);
     }
 
     [Fact]

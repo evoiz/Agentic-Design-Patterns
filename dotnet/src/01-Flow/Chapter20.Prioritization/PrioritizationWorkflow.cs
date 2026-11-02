@@ -10,13 +10,14 @@ public static class PrioritizationWorkflow
 {
     public const string TelemetrySourceName = "Chapter20.Prioritization";
     public const int MaximumTasksPerRequest = 20;
+    private static readonly JsonSerializerOptions ProposalJson = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new TaskPriorityConverter() }
+    };
 
     private static readonly ActivitySource ActivitySource = new(TelemetrySourceName);
     private static readonly HashSet<string> AvailableWorkers = new(
         ["Worker A", "Worker B", "Review Team"],
-        StringComparer.OrdinalIgnoreCase);
-    private static readonly HashSet<string> ValidPriorities = new(
-        ["P0", "P1", "P2"],
         StringComparer.OrdinalIgnoreCase);
 
     public static async Task<IReadOnlyList<ProjectTask>> RunAsync(
@@ -57,7 +58,7 @@ public static class PrioritizationWorkflow
                 description,
                 writeOutput,
                 cancellationToken);
-            var priority = Enum.Parse<TaskPriority>(proposal.Priority, ignoreCase: true);
+            var priority = proposal.Priority!.Value;
             var assignedTo = string.IsNullOrWhiteSpace(proposal.AssignedTo)
                 ? "Worker A"
                 : NormalizeWorker(proposal.AssignedTo.Trim());
@@ -106,9 +107,11 @@ public static class PrioritizationWorkflow
                 Worker A, Worker B, or Review Team. Otherwise recommend Worker A.
                 {correction}
                 """,
+                serializerOptions: ProposalJson,
                 cancellationToken: cancellationToken);
 
             PriorityProposal? proposal = null;
+            validationError = null;
             try
             {
                 proposal = response.Result;
@@ -146,10 +149,7 @@ public static class PrioritizationWorkflow
             return "no structured proposal was returned";
         }
 
-        if (string.IsNullOrWhiteSpace(proposal.Priority) ||
-            !ValidPriorities.Contains(proposal.Priority) ||
-            !Enum.TryParse<TaskPriority>(proposal.Priority, ignoreCase: true, out var priority) ||
-            !Enum.IsDefined(priority))
+        if (proposal.Priority is not { } priority || !Enum.IsDefined(priority))
         {
             return "priority must be one of P0, P1, or P2";
         }

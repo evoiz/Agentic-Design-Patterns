@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using AgenticDesignPatterns.Shared.Hosting;
 using Chapter16.ResourceOptimization;
 using Chapter16.ResourceOptimization.Models;
 using Microsoft.Agents.AI;
@@ -10,7 +11,7 @@ namespace Chapter16.ResourceOptimization.Hosted;
 public sealed class ResourceOptimizationAgent(
     IChatClient classifierClient,
     IReadOnlyDictionary<OptimizationCategory, OptimizationModelClient> modelClients,
-    AIAgent webSearchAgent) : AIAgent
+    AIAgent webSearchAgent) : StatelessWorkflowAgent
 {
     private readonly AIAgent _webSearchAgent = webSearchAgent.AsBuilder()
         .UseOpenTelemetry(
@@ -22,6 +23,10 @@ public sealed class ResourceOptimizationAgent(
     public override string Description =>
         "Classifies each request and routes it to a suitable model, using Foundry web search for current information.";
 
+    protected override async Task<string> RunAsync(string input, CancellationToken cancellationToken) =>
+        (await RunCoreAsync([new ChatMessage(ChatRole.User, input)], cancellationToken: cancellationToken)).Text;
+
+    // Keep provider usage metadata in Responses as well as the human-readable resource summary.
     protected override async Task<AgentResponse> RunCoreAsync(
         IEnumerable<ChatMessage> messages,
         AgentSession? session = null,
@@ -71,21 +76,4 @@ public sealed class ResourceOptimizationAgent(
         }
     }
 
-    protected override ValueTask<AgentSession> CreateSessionCoreAsync(
-        CancellationToken cancellationToken = default) =>
-        new(new ResourceOptimizationSession());
-
-    protected override ValueTask<JsonElement> SerializeSessionCoreAsync(
-        AgentSession session,
-        JsonSerializerOptions? jsonSerializerOptions = null,
-        CancellationToken cancellationToken = default) =>
-        new(JsonSerializer.SerializeToElement(new { }, jsonSerializerOptions));
-
-    protected override ValueTask<AgentSession> DeserializeSessionCoreAsync(
-        JsonElement serializedState,
-        JsonSerializerOptions? jsonSerializerOptions = null,
-        CancellationToken cancellationToken = default) =>
-        new(new ResourceOptimizationSession());
-
-    private sealed class ResourceOptimizationSession : AgentSession;
 }

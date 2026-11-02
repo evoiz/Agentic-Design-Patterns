@@ -4,67 +4,30 @@ using Microsoft.Extensions.AI;
 
 const string defaultTopic = "Explore whether adaptive batching can reduce inference cost without harming tail latency.";
 var selection = "explore";
-string? topic = null;
-string? deploymentAlias = null;
-var researchDeploymentAlias = "deep-research";
+var options = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 var researchDomains = new List<string>();
 var selectionSeen = false;
-var deploymentSeen = false;
-var researchDeploymentSeen = false;
 var invalidArguments = false;
 
 for (var index = 0; index < args.Length; index++)
 {
-    if (string.Equals(args[index], "--topic", StringComparison.OrdinalIgnoreCase))
+    var option = args[index];
+    if (!selectionSeen && option is "explore" or "deep-research")
     {
-        if (topic is not null || index + 1 >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]))
-        {
-            invalidArguments = true;
-            break;
-        }
-
-        topic = args[++index];
-    }
-    else if (string.Equals(args[index], "--deployment", StringComparison.OrdinalIgnoreCase))
-    {
-        if (deploymentSeen || index + 1 >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]))
-        {
-            invalidArguments = true;
-            break;
-        }
-
-        deploymentSeen = true;
-        deploymentAlias = args[++index];
-    }
-    else if (string.Equals(args[index], "--research-deployment", StringComparison.OrdinalIgnoreCase))
-    {
-        if (researchDeploymentSeen ||
-            index + 1 >= args.Length ||
-            string.IsNullOrWhiteSpace(args[index + 1]))
-        {
-            invalidArguments = true;
-            break;
-        }
-
-        researchDeploymentSeen = true;
-        researchDeploymentAlias = args[++index];
-    }
-    else if (string.Equals(args[index], "--domain", StringComparison.OrdinalIgnoreCase))
-    {
-        if (index + 1 >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]))
-        {
-            invalidArguments = true;
-            break;
-        }
-
-        researchDomains.Add(args[++index]);
-    }
-    else if (!selectionSeen && args[index] is "explore" or "deep-research")
-    {
-        selection = args[index];
+        selection = option;
         selectionSeen = true;
+        continue;
     }
-    else
+    if (option.ToLowerInvariant() is not ("--topic" or "--deployment" or "--research-deployment" or "--domain") ||
+        index + 1 >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]))
+    {
+        invalidArguments = true;
+        break;
+    }
+    var value = args[++index];
+    if (option.Equals("--domain", StringComparison.OrdinalIgnoreCase))
+        researchDomains.Add(value);
+    else if (!options.TryAdd(option, value))
     {
         invalidArguments = true;
         break;
@@ -80,10 +43,13 @@ if (invalidArguments)
     return 1;
 }
 
+using var cancellation = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
 try
 {
     var settings = FoundryChatClientFactory.LoadSettings();
-    var request = topic ?? defaultTopic;
+    var request = options.GetValueOrDefault("--topic") ?? defaultTopic;
+    var deploymentAlias = options.GetValueOrDefault("--deployment");
     if (request.Length > ExplorationWorkflow.MaxTopicLength)
     {
         throw new InvalidOperationException(
@@ -94,50 +60,19 @@ try
     {
         using IChatClient chatClient = FoundryChatClientFactory.CreateChatClient(settings, deploymentAlias);
         Console.WriteLine($"Using model deployment: {settings.ResolveModelDeployment(deploymentAlias)}");
-        var result = await ExplorationWorkflow.RunAsync(chatClient, request, Console.WriteLine);
+        var result = await ExplorationWorkflow.RunAsync(
+            chatClient, request, Console.WriteLine, cancellation.Token);
         Console.WriteLine("\n--- Final exploration result ---");
         Console.WriteLine(result.Format());
     }
     else
     {
-        if (researchDomains.Count == 0)
-        {
-            throw new InvalidOperationException(
-                "Foundry Deep Research requires one or more --domain values to bound public web search.");
-        }
-
-        if (!settings.ModelDeployments.Keys.Any(alias =>
-                string.Equals(alias, researchDeploymentAlias, StringComparison.OrdinalIgnoreCase)))
-        {
-            throw new InvalidOperationException(
-                $"The Foundry Deep Research deployment alias '{researchDeploymentAlias}' is not configured. " +
-                "Add Foundry:ModelDeployments:deep-research to shared user-secrets or " +
-                "Foundry__ModelDeployments__deep-research to the environment, then use " +
-                "--research-deployment deep-research.");
-        }
-
-        Console.WriteLine("\n=== Foundry Deep Research ===");
-        await FoundryDeepResearch.RunAsync(
-            settings,
-            researchDeploymentAlias,
-            request,
-            Console.WriteLine,
-            researchInstructions: """
-                You are a research analyst exploring an open-ended question using public web sources.
-                Search within the requested topic, compare source quality, and return a concise,
-                citation-rich discovery report. Separate sourced findings from uncertainty.
-                Search only within the configured allowed domains.
-                Do not execute code, make external changes, or present hypotheses as experimental results.
-                """,
-            allowedDomains: researchDomains);
+        await DeepResearchDemo.RunAsync(
+            settings, options.GetValueOrDefault("--research-deployment") ?? "deep-research",
+            request, researchDomains, cancellation.Token);
     }
 }
-catch (InvalidOperationException exception)
-{
-    Console.Error.WriteLine(exception.Message);
-    return 1;
-}
-catch (ArgumentException exception)
+catch (Exception exception) when (exception is InvalidOperationException or ArgumentException or TimeoutException)
 {
     Console.Error.WriteLine(exception.Message);
     return 1;
@@ -147,9 +82,9 @@ catch (HttpRequestException exception)
     Console.Error.WriteLine($"Foundry request failed: {exception.Message}");
     return 1;
 }
-catch (TimeoutException exception)
+catch (OperationCanceledException)
 {
-    Console.Error.WriteLine(exception.Message);
+    Console.Error.WriteLine("Exploration canceled.");
     return 1;
 }
 

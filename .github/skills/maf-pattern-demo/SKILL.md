@@ -62,6 +62,10 @@ Chapter<NN>.<PatternName>/
 └── README.md               # from ./assets/chapter-readme-template.md
 ```
 
+For a single variant, keep its implementation at the project root rather than adding
+a one-file `Demos/` directory. Existing variants and documented input formats must
+remain available during simplification. Optimize for visible pattern code, not a LOC quota.
+
 ### 4. Implement demo variants
 
 | Variant | Required | Purpose |
@@ -81,9 +85,26 @@ Rules:
 - The MAF variant must run either with local `secrets.json` (endpoint, key, deployment) or with `Foundry__*` environment variables provided by GitHub Actions. The Foundry-native variant may require extra setup (e.g. Entra ID / `az login`, deployed hosted agent); document it in the README and fail with a clear message if not configured.
 - For hosted agents, load the `microsoft-foundry` skill for scaffolding/deploy steps rather than improvising.
 - No framework-irrelevant extras in console demos: no DI hosts, logging frameworks, or tests unless the pattern needs them. A separate hosted companion may add the web/protocol host and focused regression coverage required for hosting.
+- Reuse `Shared.Hosting.StatelessWorkflowAgent` for stateless string-in/result-out hosted
+  adapters and `HostedFoundryConfiguration` for common settings/model clients. Stateful memory,
+  HITL, request isolation and identity boundaries need their existing explicit contracts.
+- Remove compatibility streaming/event adapters only after a deterministic test proves the
+  pinned MAF APIs preserve output, concurrency and failures without them.
+- Prefer tiny typed sample tools and data to parsers, generic frameworks or presentation
+  helpers. Do not remove cancellation, authorization, approval/replay checks, bounded execution
+  or explicit errors to reduce line count. Keep intermediate pattern steps visible.
+- Reuse `tests/TestSupport` scripted clients and Responses host fixtures. Retain pattern-policy,
+  safety/isolation and one focused hosted smoke test per companion; centralize redundant
+  protocol tests in `Shared.Tests` instead of duplicating them in every chapter.
 
 ### 5. Write the chapter README
 Copy [README template](assets/chapter-readme-template.md) and fill **every** section: pattern summary + diagram (mermaid), notebook → C# mapping, setup/run, **when to use / when not**, 3–5 real-world scenarios, Foundry extensions, and design-pattern tradeoffs. Keep implementation scope and request behavior in their own sections rather than labeling them as limitations.
+
+Lead with the pattern and add stable file/method links under **Where to look in code**.
+Keep chapter guides concise; link common credentials/test setup to `dotnet/README.md`
+and deployment/RBAC/packaging/cost/cleanup to `dotnet/HOSTING.md`. Companion guides
+keep their service-specific commands and request/state/protocol contracts. Do not
+repeat operational tutorials or add abstractions solely to achieve a line-count target.
 
 Write public, reusable developer guides. Never add verification reports, deployment status/history, deployed version numbers/dates, environment-specific resource identifiers, invocation outcomes, or evaluation run results to READMEs. Use placeholders for the reader's project/model. Report execution outcomes and blockers in the task response, not repository documentation.
 

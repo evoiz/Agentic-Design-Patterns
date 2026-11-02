@@ -1,11 +1,9 @@
 using System.Collections.Concurrent;
-using System.Net.Http.Json;
+using AgenticDesignPatterns.TestSupport;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Chapter04.Reflection;
 using Chapter04.Reflection.Hosted;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Agents.AI.Foundry.Hosting;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 using OpenTelemetry.Trace;
@@ -137,6 +135,8 @@ public sealed class ReflectionAgentTests
     [InlineData("""{"decision":null,"reasoning":"Missing decision."}""")]
     [InlineData("""{"decision":"Unknown","reasoning":"Invalid decision."}""")]
     [InlineData("""{"decision":17,"reasoning":"Undefined enum."}""")]
+    [InlineData("""{"decision":0,"reasoning":"Numeric enums are not review decisions."}""")]
+    [InlineData("""{"decision":"0","reasoning":"Numeric enum strings are not review decisions."}""")]
     [InlineData("""{"decision":"Accept","reasoning":""}""")]
     [InlineData("""{"decision":"Revise","reasoning":null}""")]
     public async Task Invalid_reviews_fail_instead_of_accepting_or_retrying(string review)
@@ -326,49 +326,16 @@ public sealed class ReflectionAgentTests
     {
         using var model = new ScriptedChatClient(
             Enumerable.Repeat(ReviewJson(accepted ? ReflectionDecision.Accept : ReflectionDecision.Revise), 3));
-        using var chatClient = model.AsBuilder()
-            .UseOpenTelemetry(
-                sourceName: ReflectionWorkflow.TelemetrySourceName,
-                configure: options => options.EnableSensitiveData = true)
-            .Build();
-        var builder = AgentHost.CreateBuilder([]);
-        builder.WebApplicationBuilder.WebHost.UseTestServer();
-        builder.ConfigureTracing(tracing => tracing.AddSource(ReflectionWorkflow.TelemetrySourceName));
-        builder.Services.AddFoundryResponses(new ReflectionAgent(chatClient));
-        builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());
-        await using var app = builder.Build().App;
-        await app.StartAsync();
-
-        try
+        await using var host = await HostedResponses.StartAsync(new ReflectionAgent(model));
+        using var body = await host.InvokeAsync($"{prefix} Caller-supplied subject.", "chapter04-reflection");
+        Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
+        var responseText = HostedResponses.OutputText(body.RootElement);
+        Assert.All(model.Requests, request => Assert.Contains("Caller-supplied subject.", request.Input));
+        Assert.Contains(accepted ? "Outcome: Accepted" : "Outcome: MaxRoundsReached", responseText);
+        Assert.Equal(accepted ? 2 : 6, model.Requests.Count);
+        if (!accepted)
         {
-            using var http = app.GetTestClient();
-            using var response = await http.PostAsJsonAsync("/responses", new
-            {
-                model = "chapter04-reflection",
-                input = $"{prefix} Caller-supplied subject.",
-                stream = false,
-                store = false
-            });
-            response.EnsureSuccessStatusCode();
-            using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-
-            Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
-            var responseText = string.Concat(
-                body.RootElement.GetProperty("output").EnumerateArray()
-                    .SelectMany(item => item.GetProperty("content").EnumerateArray())
-                    .Where(item => item.GetProperty("type").GetString() == "output_text")
-                    .Select(item => item.GetProperty("text").GetString()));
-            Assert.All(model.Requests, request => Assert.Contains("Caller-supplied subject.", request.Input));
-            Assert.Contains(accepted ? "Outcome: Accepted" : "Outcome: MaxRoundsReached", responseText);
-            Assert.Equal(accepted ? 2 : 6, model.Requests.Count);
-            if (!accepted)
-            {
-                Assert.Contains("this draft was not accepted", responseText);
-            }
-        }
-        finally
-        {
-            await app.StopAsync();
+            Assert.Contains("this draft was not accepted", responseText);
         }
     }
 

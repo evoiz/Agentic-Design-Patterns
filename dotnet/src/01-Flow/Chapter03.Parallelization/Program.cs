@@ -2,11 +2,12 @@ using AgenticDesignPatterns.Shared;
 using Chapter03.Parallelization;
 using Microsoft.Extensions.AI;
 
-var demos = new Dictionary<string, (string Name, Func<IChatClient, Task> Run)>(
+var demos = new Dictionary<string, (string Name, ParallelizationScenario Scenario, string Input)>(
     StringComparer.OrdinalIgnoreCase)
 {
-    ["research"] = ("Sustainable technology research", ParallelizationDemo.RunSustainableTechnologyAsync),
-    ["topic"] = ("Topic analysis", ParallelizationDemo.RunTopicAnalysisAsync)
+    ["research"] = ("Sustainable technology research", ParallelizationScenario.SustainableTechnology,
+        "Summarize sustainable technology progress and climate solutions."),
+    ["topic"] = ("Topic analysis", ParallelizationScenario.TopicAnalysis, "The history of space exploration")
 };
 
 string? demoSelection = null;
@@ -43,7 +44,7 @@ var runAllDemos = demoSelection is null ||
 var selectedDemos = runAllDemos
     ? demos
     : demoSelection is not null && demos.TryGetValue(demoSelection, out var selected)
-        ? new Dictionary<string, (string Name, Func<IChatClient, Task> Run)>(StringComparer.OrdinalIgnoreCase)
+        ? new Dictionary<string, (string Name, ParallelizationScenario Scenario, string Input)>(StringComparer.OrdinalIgnoreCase)
         {
             [demoSelection] = selected
         }
@@ -59,13 +60,13 @@ if (invalidArguments || selectedDemos is null)
 try
 {
     var settings = FoundryChatClientFactory.LoadSettings();
-    var chatClient = FoundryChatClientFactory.CreateChatClient(settings, deploymentSelection);
+    using var chatClient = FoundryChatClientFactory.CreateChatClient(settings, deploymentSelection);
     Console.WriteLine($"Using model deployment: {settings.ResolveModelDeployment(deploymentSelection)}");
 
     foreach (var (key, demo) in selectedDemos)
     {
         Console.WriteLine($"\n=== {demo.Name} ({key}) ===");
-        await demo.Run(chatClient);
+        await ParallelizationWorkflow.RunAsync(chatClient, demo.Scenario, demo.Input, Console.WriteLine);
     }
 }
 catch (InvalidOperationException exception)

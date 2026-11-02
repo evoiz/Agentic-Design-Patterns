@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Chapter02.Routing.Models;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
@@ -8,6 +10,10 @@ namespace Chapter02.Routing;
 public static class RoutingWorkflow
 {
     public const string TelemetrySourceName = "Chapter02.Routing";
+    private static readonly JsonSerializerOptions RoutingJson = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter<RoutingDecision>(allowIntegerValues: false) }
+    };
 
     public static Workflow Create(IChatClient chatClient, Action<string>? writeOutput = null)
     {
@@ -15,10 +21,10 @@ public static class RoutingWorkflow
             chatClient,
             """
             You are the main coordinator. Your only task is to analyze incoming user requests and decide which specialist should handle them.
-            - For any requests related to booking flights or hotels, respond with BOOKER.
-            - For all other general information questions, respond with INFO.
-            - If the request is unclear or doesn't fit either category, respond with UNCLEAR.
-            After the route token, add a short rationale on the next line using the format REASON: <why>.
+            - For any requests related to booking flights or hotels, select Booker.
+            - For all other general information questions, select Info.
+            - If the request is unclear or doesn't fit either category, select Unclear.
+            Return a structured decision and a short rationale.
             Do not answer the user's request directly.
             """,
             name: "CoordinatorRouter")
@@ -97,7 +103,7 @@ public static class RoutingWorkflow
             else if (workflowEvent is ExecutorFailedEvent failedEvent)
             {
                 var details = failedEvent.Data is Exception exception
-                    ? DescribeException(exception)
+                    ? exception.Message
                     : "No exception details were provided.";
                 throw new InvalidOperationException(
                     $"Workflow executor '{failedEvent.ExecutorId}' failed: {details}",
@@ -108,7 +114,7 @@ public static class RoutingWorkflow
                 throw new InvalidOperationException(
                     errorEvent.Exception is null
                         ? "The workflow reported an error without exception details."
-                        : $"The workflow failed: {DescribeException(errorEvent.Exception)}",
+                        : $"The workflow failed: {errorEvent.Exception.Message}",
                     errorEvent.Exception);
             }
         }
@@ -116,17 +122,6 @@ public static class RoutingWorkflow
         return !string.IsNullOrWhiteSpace(finalOutput)
             ? finalOutput
             : throw new InvalidOperationException("The routing workflow completed without a final output.");
-    }
-
-    private static string DescribeException(Exception exception)
-    {
-        var messages = new List<string>();
-        for (var current = exception; current is not null; current = current.InnerException)
-        {
-            messages.Add($"{current.GetType().Name}: {current.Message}");
-        }
-
-        return string.Join(" --> ", messages);
     }
 
     private sealed class RouterExecutor(AIAgent routerAgent, Action<string>? writeOutput)
@@ -137,88 +132,56 @@ public static class RoutingWorkflow
             IWorkflowContext context,
             CancellationToken cancellationToken = default)
         {
-            var response = await routerAgent.RunAsync(message, cancellationToken: cancellationToken);
-            var (decision, rationale) = ParseDecision(response.Text);
+            var response = await routerAgent.RunAsync<RoutingAssessment>(
+                message, serializerOptions: RoutingJson, cancellationToken: cancellationToken);
+            var assessment = response.Result;
+            if (assessment?.Decision is not { } decision || !Enum.IsDefined(decision) ||
+                string.IsNullOrWhiteSpace(assessment.Rationale))
+            {
+                throw new InvalidOperationException("The router returned an incomplete or unsupported structured decision.");
+            }
 
             writeOutput?.Invoke("\n--- Coordinator router decision ---");
-            writeOutput?.Invoke($"Raw output: {response.Text}");
             writeOutput?.Invoke($"Route: {decision}");
-            writeOutput?.Invoke($"Reason: {rationale}");
-
-            return new RoutedRequest(message.Text ?? string.Empty, decision, response.Text, rationale);
-        }
-
-        private static (RoutingDecision Decision, string Rationale) ParseDecision(string rawOutput)
-        {
-            var lines = rawOutput
-                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            var routeToken = lines.FirstOrDefault() ?? string.Empty;
-            var rationale = lines
-                .Skip(1)
-                .FirstOrDefault(line => line.StartsWith("REASON:", StringComparison.OrdinalIgnoreCase));
-
-            var normalizedRoute = routeToken.Trim().TrimEnd('.', ':').ToUpperInvariant();
-            var decision = normalizedRoute switch
-            {
-                "BOOKER" => RoutingDecision.Booker,
-                "INFO" => RoutingDecision.Info,
-                _ => RoutingDecision.Unclear
-            };
-
-            var parsedRationale = rationale is null
-                ? "No rationale provided."
-                : rationale["REASON:".Length..].Trim();
-
-            return (decision, parsedRationale);
+            writeOutput?.Invoke($"Reason: {assessment.Rationale}");
+            return new RoutedRequest(message.Text ?? string.Empty, decision);
         }
     }
 
-    private sealed class SpecialistExecutor : Executor<RoutedRequest, string>
+    private sealed class SpecialistExecutor(
+        string executorId,
+        RoutingDecision expectedDecision,
+        AIAgent agent,
+        string header,
+        Action<string>? writeOutput) : Executor<RoutedRequest, string>(executorId)
     {
-        private readonly RoutingDecision _expectedDecision;
-        private readonly AIAgent _agent;
-        private readonly string _header;
-        private readonly string _executorId;
-        private readonly Action<string>? _writeOutput;
-
-        public SpecialistExecutor(
-            string executorId,
-            RoutingDecision expectedDecision,
-            AIAgent agent,
-            string header,
-            Action<string>? writeOutput) : base(executorId)
-        {
-            _expectedDecision = expectedDecision;
-            _agent = agent;
-            _header = header;
-            _executorId = executorId;
-            _writeOutput = writeOutput;
-        }
-
         public override async ValueTask<string> HandleAsync(
             RoutedRequest message,
             IWorkflowContext context,
             CancellationToken cancellationToken = default)
         {
-            if (message.Decision != _expectedDecision)
+            if (message.Decision != expectedDecision)
             {
                 throw new InvalidOperationException(
-                    $"{_executorId} cannot handle decision '{message.Decision}'.");
+                    $"{Id} cannot handle decision '{message.Decision}'.");
             }
 
-            var response = await _agent.RunAsync(message.OriginalRequest, cancellationToken: cancellationToken);
+            var response = await agent.RunAsync(message.OriginalRequest, cancellationToken: cancellationToken);
+            if (string.IsNullOrWhiteSpace(response.Text))
+            {
+                throw new InvalidOperationException($"{Id} returned an empty response.");
+            }
 
-            _writeOutput?.Invoke($"\n--- {_header} ---");
-            _writeOutput?.Invoke(response.Text);
+            writeOutput?.Invoke($"\n--- {header} ---");
+            writeOutput?.Invoke(response.Text);
 
             return response.Text;
         }
     }
 
-    [YieldsOutput(typeof(string))]
-    private sealed class ClarificationExecutor(Action<string>? writeOutput) : Executor<RoutedRequest>("ClarificationExecutor")
+    private sealed class ClarificationExecutor(Action<string>? writeOutput) : Executor<RoutedRequest, string>("ClarificationExecutor")
     {
-        public override async ValueTask HandleAsync(
+        public override ValueTask<string> HandleAsync(
             RoutedRequest message,
             IWorkflowContext context,
             CancellationToken cancellationToken = default)
@@ -228,7 +191,7 @@ public static class RoutingWorkflow
             writeOutput?.Invoke("\n--- Clarification fallback ---");
             writeOutput?.Invoke(clarification);
 
-            await context.YieldOutputAsync(clarification, cancellationToken);
+            return ValueTask.FromResult(clarification);
         }
     }
 }

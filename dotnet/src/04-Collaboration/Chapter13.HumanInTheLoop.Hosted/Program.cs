@@ -1,4 +1,5 @@
 using AgenticDesignPatterns.Shared;
+using AgenticDesignPatterns.Shared.Hosting;
 using Azure.AI.AgentServer.Invocations;
 using Azure.AI.OpenAI;
 using Azure.Identity;
@@ -6,7 +7,6 @@ using Chapter13.HumanInTheLoop;
 using Chapter13.HumanInTheLoop.Hosted;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
-using OpenTelemetry.Trace;
 
 var configuration = new ConfigurationBuilder()
     .AddUserSecrets(typeof(FoundryChatClientFactory).Assembly)
@@ -14,20 +14,17 @@ var configuration = new ConfigurationBuilder()
     .AddCommandLine(args)
     .Build();
 var settings = HostedFoundryConfiguration.LoadSettings(configuration);
-var deployment = configuration["deployment"] is { Length: > 0 } alias
-    ? settings.ResolveModelDeployment(alias)
-    : settings.ModelDeployment;
+
+// Identity-only by design: a configured API key is ignored so approvals always run under a managed/developer identity.
 var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
 {
     TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID")
 });
-
-IChatClient chatClient = new AzureOpenAIClient(
-        new Uri(settings.OpenAIEndpoint.GetLeftPart(UriPartial.Authority)),
-        credential)
-    .GetChatClient(deployment)
-    .AsIChatClient();
-using IChatClient modelClient = chatClient.AsBuilder()
+using IChatClient chatClient = new AzureOpenAIClient(
+        new Uri(settings.OpenAIEndpoint.GetLeftPart(UriPartial.Authority)), credential)
+    .GetChatClient(settings.ResolveModelDeployment(configuration["deployment"] is { Length: > 0 } alias ? alias : null))
+    .AsIChatClient()
+    .AsBuilder()
     .UseOpenTelemetry(
         sourceName: CustomerSupportAgent.TelemetrySourceName,
         configure: options => options.EnableSensitiveData = true)
@@ -35,5 +32,5 @@ using IChatClient modelClient = chatClient.AsBuilder()
 
 InvocationsServer.Run<CustomerSupportInvocationHandler>(configure: builder =>
 {
-    builder.Services.AddSingleton<IChatClient>(modelClient);
+    builder.Services.AddSingleton(chatClient);
 });

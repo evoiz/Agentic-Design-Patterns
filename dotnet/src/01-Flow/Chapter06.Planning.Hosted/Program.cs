@@ -1,6 +1,5 @@
 using AgenticDesignPatterns.Shared;
-using Azure.AI.OpenAI;
-using Azure.Identity;
+using AgenticDesignPatterns.Shared.Hosting;
 using Chapter06.Planning;
 using Chapter06.Planning.Hosted;
 using Microsoft.Agents.AI.Foundry.Hosting;
@@ -12,22 +11,8 @@ builder.WebApplicationBuilder.Configuration
     .AddUserSecrets(typeof(FoundryChatClientFactory).Assembly)
     .AddEnvironmentVariables()
     .AddCommandLine(args);
-var settings = HostedFoundryConfiguration.LoadSettings(builder.Configuration);
-var deploymentAlias = builder.Configuration["deployment"];
-var deployment = settings.ResolveModelDeployment(deploymentAlias);
-
-var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-{
-    TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID")
-});
-IChatClient chatClient = string.IsNullOrWhiteSpace(settings.ApiKey)
-    ? new AzureOpenAIClient(
-            new Uri(settings.OpenAIEndpoint.GetLeftPart(UriPartial.Authority)), credential)
-        .GetChatClient(deployment)
-        .AsIChatClient()
-    : FoundryChatClientFactory.CreateChatClient(settings, deploymentAlias);
-
-using IChatClient modelClient = chatClient;
+using IChatClient modelClient = HostedFoundryConfiguration.CreateChatClient(
+    builder.Configuration, builder.Configuration["deployment"]);
 builder.ConfigureTracing(tracing => tracing.AddSource(PlanningWorkflow.TelemetrySourceName));
 builder.Services.AddFoundryResponses(new PlanningAgent(modelClient));
 builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());

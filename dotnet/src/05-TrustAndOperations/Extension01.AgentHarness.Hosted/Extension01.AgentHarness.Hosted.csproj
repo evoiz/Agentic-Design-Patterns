@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared.Hosting\Shared.Hosting.csproj" />
     <ProjectReference Include="..\Extension01.AgentHarness\Extension01.AgentHarness.csproj" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Azure.Identity" />

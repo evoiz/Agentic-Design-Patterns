@@ -8,39 +8,22 @@ const string usage =
 
 var tasks = new List<string>();
 string? deploymentSelection = null;
-var invalidArguments = false;
 for (var index = 0; index < args.Length; index++)
 {
-    if (string.Equals(args[index], "--deployment", StringComparison.OrdinalIgnoreCase))
+    var option = args[index].ToLowerInvariant();
+    if (option is not ("--task" or "--deployment") ||
+        index + 1 >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]) ||
+        (option == "--deployment" && deploymentSelection is not null))
     {
-        if (deploymentSelection is not null ||
-            index + 1 >= args.Length ||
-            string.IsNullOrWhiteSpace(args[index + 1]))
-        {
-            invalidArguments = true;
-            break;
-        }
-
-        deploymentSelection = args[++index];
+        Console.Error.WriteLine(usage);
+        return 1;
     }
-    else if (string.Equals(args[index], "--task", StringComparison.OrdinalIgnoreCase))
-    {
-        if (index + 1 >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]))
-        {
-            invalidArguments = true;
-            break;
-        }
-
-        tasks.Add(args[++index]);
-    }
-    else
-    {
-        invalidArguments = true;
-        break;
-    }
+    var value = args[++index];
+    if (option == "--task") tasks.Add(value);
+    else deploymentSelection = value;
 }
 
-if (invalidArguments || tasks.Count > PrioritizationWorkflow.MaximumTasksPerRequest)
+if (tasks.Count > PrioritizationWorkflow.MaximumTasksPerRequest)
 {
     Console.Error.WriteLine(usage);
     return 1;

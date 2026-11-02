@@ -35,12 +35,9 @@ public static class FoundryEvaluationDemo
                 item_schema = new
                 {
                     type = "object",
-                    properties = new
-                    {
-                        query = new { type = "string" },
-                        response = new { type = "string" },
-                        ground_truth = new { type = "string" }
-                    },
+                    properties = new {
+                        query = new { type = "string" }, response = new { type = "string" },
+                        ground_truth = new { type = "string" } },
                     required = new[] { "query", "response", "ground_truth" }
                 }
             },
@@ -52,12 +49,9 @@ public static class FoundryEvaluationDemo
                     name = "similarity",
                     evaluator_name = "builtin.similarity",
                     initialization_parameters = new { deployment_name = deployment },
-                    data_mapping = new
-                    {
-                        query = "{{item.query}}",
-                        response = "{{item.response}}",
-                        ground_truth = "{{item.ground_truth}}"
-                    }
+                    data_mapping = new {
+                        query = "{{item.query}}", response = "{{item.response}}",
+                        ground_truth = "{{item.ground_truth}}" }
                 }
             }
         }));
@@ -74,18 +68,10 @@ public static class FoundryEvaluationDemo
                 source = new
                 {
                     type = "file_content",
-                    content = new[]
-                    {
-                        new
-                        {
-                            item = new
-                            {
-                                query = EvaluationSamples.CapitalQuery,
-                                response = EvaluationSamples.CapitalResponse,
-                                ground_truth = EvaluationSamples.CapitalReference
-                            }
-                        }
-                    }
+                    content = new[] { new { item = new {
+                        query = EvaluationSamples.CapitalQuery,
+                        response = EvaluationSamples.CapitalResponse,
+                        ground_truth = EvaluationSamples.CapitalReference } } }
                 }
             }
         }));
@@ -98,15 +84,17 @@ public static class FoundryEvaluationDemo
         deadline.CancelAfter(TimeSpan.FromMinutes(5));
         try
         {
-            while (ReadString(run, "status") is not ("completed" or "failed" or "canceled" or "cancelled"))
+            var status = ReadString(run, "status");
+            while (status is not ("completed" or "failed" or "canceled" or "cancelled"))
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), deadline.Token);
                 run = await client.GetEvaluationRunAsync(
                     evaluationId, runId, options: new() { CancellationToken = deadline.Token });
+                status = ReadString(run, "status");
             }
-            if (ReadString(run, "status") != "completed")
+            if (status != "completed")
             {
-                throw new InvalidOperationException($"Foundry evaluation '{runId}' ended with status '{ReadString(run, "status")}'.");
+                throw new InvalidOperationException($"Foundry evaluation '{runId}' ended with status '{status}'.");
             }
             var items = await client.GetEvaluationRunOutputItemsAsync(
                 evaluationId, runId, limit: 10, order: "asc", after: null, outputItemStatus: null,

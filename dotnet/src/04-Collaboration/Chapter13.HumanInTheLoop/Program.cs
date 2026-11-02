@@ -12,30 +12,19 @@ var customer = new SupportCustomer
     RecentPurchases = ["Wireless headphones"],
     SupportHistory = ["Previously contacted support about Bluetooth pairing."]
 };
-var deploymentAlias = (string?)null;
+string? deploymentAlias = null;
 var requestParts = new List<string>();
-
 for (var index = 0; index < args.Length; index++)
 {
-    if (string.Equals(args[index], "--deployment", StringComparison.OrdinalIgnoreCase))
+    if (args[index].Equals("--deployment", StringComparison.OrdinalIgnoreCase) && deploymentAlias is null &&
+        index + 1 < args.Length && !string.IsNullOrWhiteSpace(args[index + 1]))
     {
-        if (deploymentAlias is not null ||
-            index + 1 >= args.Length ||
-            string.IsNullOrWhiteSpace(args[index + 1]))
-        {
-            Console.Error.WriteLine(
-                "Usage: dotnet run --project dotnet/src/04-Collaboration/Chapter13.HumanInTheLoop " +
-                "[<support request>] [--deployment <name>]");
-            return 1;
-        }
-
         deploymentAlias = args[++index];
     }
     else if (args[index].StartsWith("--", StringComparison.Ordinal))
     {
         Console.Error.WriteLine(
-            "Usage: dotnet run --project dotnet/src/04-Collaboration/Chapter13.HumanInTheLoop " +
-            "[<support request>] [--deployment <name>]");
+            "Usage: dotnet run --project dotnet/src/04-Collaboration/Chapter13.HumanInTheLoop [<support request>] [--deployment <name>]");
         return 1;
     }
     else
@@ -43,7 +32,6 @@ for (var index = 0; index < args.Length; index++)
         requestParts.Add(args[index]);
     }
 }
-
 var requestText = requestParts.Count == 0 ? request : string.Join(' ', requestParts);
 
 try

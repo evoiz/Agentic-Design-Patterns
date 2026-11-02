@@ -6,6 +6,7 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\TestSupport\TestSupport.csproj" />
     <ProjectReference Include="..\..\..\src\05-TrustAndOperations\Chapter18.Guardrails\Chapter18.Guardrails.csproj" />
     <ProjectReference Include="..\..\..\src\05-TrustAndOperations\Chapter18.Guardrails.Hosted\Chapter18.Guardrails.Hosted.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

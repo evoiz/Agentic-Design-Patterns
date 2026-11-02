@@ -1,5 +1,6 @@
 using Azure.Identity;
 using AgenticDesignPatterns.Shared;
+using AgenticDesignPatterns.Shared.Hosting;
 using Azure.AI.Projects;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Foundry;
@@ -19,8 +20,8 @@ public static class FoundryNativeDemo
             .AddUserSecrets(typeof(FoundryChatClientFactory).Assembly)
             .AddEnvironmentVariables()
             .Build();
-        var settings = LoadSettings(configuration);
-        vectorStoreId ??= settings.FileSearchVectorStoreId;
+        var settings = HostedFoundryConfiguration.LoadSettings(configuration);
+        vectorStoreId ??= configuration["Foundry:FileSearchVectorStoreId"];
 
         var (instructions, query, tool) = toolName.ToLowerInvariant() switch
         {
@@ -69,26 +70,4 @@ public static class FoundryNativeDemo
         Console.WriteLine(response.Text);
     }
 
-    private static NativeFoundrySettings LoadSettings(IConfiguration configuration)
-    {
-        var projectEndpoint = configuration["Foundry:ProjectEndpoint"]
-            ?? configuration["FOUNDRY_PROJECT_ENDPOINT"];
-        var deployment = configuration["Foundry:ModelDeployment"]
-            ?? configuration["AZURE_AI_MODEL_DEPLOYMENT_NAME"];
-        var vectorStoreId = configuration["Foundry:FileSearchVectorStoreId"];
-
-        if (string.IsNullOrWhiteSpace(projectEndpoint) || string.IsNullOrWhiteSpace(deployment))
-        {
-            throw new InvalidOperationException(
-                "Configure Foundry:ProjectEndpoint and Foundry:ModelDeployment in shared user-secrets " +
-                "or Foundry__ProjectEndpoint and Foundry__ModelDeployment environment variables.");
-        }
-
-        return new NativeFoundrySettings(projectEndpoint, deployment, vectorStoreId);
-    }
-
-    private sealed record NativeFoundrySettings(
-        string ProjectEndpoint,
-        string ModelDeployment,
-        string? FileSearchVectorStoreId);
 }

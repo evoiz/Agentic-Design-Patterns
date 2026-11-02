@@ -3,96 +3,54 @@ using Chapter11.GoalSettingMonitoring;
 using Chapter11.GoalSettingMonitoring.Models;
 using Microsoft.Extensions.AI;
 
+const string Usage =
+    """
+    Usage: dotnet run --project dotnet/src/02-ReasonAndImprove/Chapter11.GoalSettingMonitoring [options]
+      --use-case <text>        Code-generation request (default: binary-gap example)
+      --goals <g1;g2;...>      Goals separated by semicolons
+      --iterations <1-5>       Maximum generation/review rounds (default: 5)
+      --output-dir <path>      Parent directory for generated-code/
+      --deployment <alias>     Optional configured Foundry deployment alias
+    """;
+
 var request = GoalSettingRequest.BinaryGapSample;
 string? outputDirectory = null;
 string? deploymentAlias = null;
-var showHelp = false;
-var invalidArguments = false;
-
 for (var index = 0; index < args.Length; index++)
 {
+    if (args[index] is "--help" or "-h")
+    {
+        Console.WriteLine(Usage);
+        return 0;
+    }
+
     var option = args[index];
-    if (option is "--help" or "-h")
-    {
-        showHelp = true;
-        break;
-    }
-
-    if (index + 1 >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]))
-    {
-        invalidArguments = true;
-        break;
-    }
-
-    var value = args[++index];
+    var value = index + 1 < args.Length && !string.IsNullOrWhiteSpace(args[index + 1]) ? args[++index] : null;
+    var valid = value is not null;
     switch (option)
     {
-        case "--use-case":
-            request = request with { UseCase = value };
+        case "--use-case" when valid:
+            request = request with { UseCase = value! };
             break;
-        case "--goals":
+        case "--goals" when valid:
             request = request with
             {
-                Goals = value.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                Goals = value!.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             };
             break;
-        case "--iterations":
-            if (!int.TryParse(value, out var iterations))
-            {
-                invalidArguments = true;
-            }
-            else
-            {
-                request = request with { MaxIterations = iterations };
-            }
-
+        case "--iterations" when int.TryParse(value, out var iterations):
+            request = request with { MaxIterations = iterations };
             break;
-        case "--output-dir":
+        case "--output-dir" when valid:
             outputDirectory = value;
             break;
-        case "--deployment":
-            if (deploymentAlias is not null)
-            {
-                invalidArguments = true;
-            }
-            else
-            {
-                deploymentAlias = value;
-            }
-
+        case "--deployment" when valid && deploymentAlias is null:
+            deploymentAlias = value;
             break;
         default:
-            invalidArguments = true;
-            break;
+            Console.Error.WriteLine(Usage);
+            return 2;
     }
-
-    if (invalidArguments)
-    {
-        break;
-    }
-}
-
-if (showHelp)
-{
-    Console.WriteLine(
-        """
-        Usage: dotnet run --project dotnet/src/02-ReasonAndImprove/Chapter11.GoalSettingMonitoring [options]
-          --use-case <text>        Code-generation request (default: binary-gap example)
-          --goals <g1;g2;...>      Goals separated by semicolons
-          --iterations <1-5>       Maximum generation/review rounds (default: 5)
-          --output-dir <path>      Parent directory for generated-code/
-          --deployment <alias>     Optional configured Foundry deployment alias
-        """);
-    return 0;
-}
-
-if (invalidArguments)
-{
-    Console.Error.WriteLine(
-        "Usage: dotnet run --project dotnet/src/02-ReasonAndImprove/Chapter11.GoalSettingMonitoring " +
-        "[--use-case <text>] [--goals <g1;g2;...>] [--iterations 1-5] " +
-        "[--output-dir <path>] [--deployment <alias>]");
-    return 2;
 }
 
 try
@@ -108,14 +66,9 @@ catch (ArgumentException exception)
     Console.Error.WriteLine(exception.Message);
     return 2;
 }
-catch (InvalidOperationException exception)
+catch (Exception exception) when (exception is InvalidOperationException or HttpRequestException)
 {
     Console.Error.WriteLine(exception.Message);
-    return 1;
-}
-catch (HttpRequestException exception)
-{
-    Console.Error.WriteLine($"Foundry request failed: {exception.Message}");
     return 1;
 }
 

@@ -26,7 +26,9 @@ public static class ToolUseAgent
             ToolUseScenario.Search =>
                 "Every answer must call search_information first; do not answer search requests from memory.",
             ToolUseScenario.Calculator =>
-                "Every arithmetic request must call calculate_expression; do not calculate in your own reasoning.",
+                "Every arithmetic request must use calculate. Chain typed operations for compound expressions: " +
+                "for (5 + 7) * 3, call Add(5, 7) then Multiply(the tool result, 3). " +
+                "For 10!, call Factorial with left=10 and right=0. Do not calculate in your own reasoning.",
             ToolUseScenario.StockPrice =>
                 "Every ticker price request must call get_stock_price; do not make up or infer a price.",
             _ => "Use a provided tool whenever the user asks for a lookup or calculation that it supports."
@@ -44,8 +46,8 @@ public static class ToolUseAgent
                 new AITool[]
                 {
                     AIFunctionFactory.Create(
-                        (Func<string, string>)functions.CalculateExpression,
-                        name: "calculate_expression")
+                        (Func<CalculatorOperation, decimal, decimal, decimal>)functions.Calculate,
+                        name: "calculate")
                 },
             ToolUseScenario.StockPrice =>
                 new AITool[]
@@ -60,8 +62,8 @@ public static class ToolUseAgent
                     (Func<string, string>)functions.SearchInformation,
                     name: "search_information"),
                 AIFunctionFactory.Create(
-                    (Func<string, string>)functions.CalculateExpression,
-                    name: "calculate_expression"),
+                    (Func<CalculatorOperation, decimal, decimal, decimal>)functions.Calculate,
+                    name: "calculate"),
                 AIFunctionFactory.Create(
                     (Func<string, decimal>)functions.GetStockPrice,
                     name: "get_stock_price")

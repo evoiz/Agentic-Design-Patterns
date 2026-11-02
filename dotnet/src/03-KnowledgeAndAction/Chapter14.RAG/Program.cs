@@ -16,11 +16,12 @@ catch (ArgumentException)
 }
 
 var (mode, deploymentAlias, question) = options;
+bool Runs(string variant) =>
+    mode.Equals(variant, StringComparison.OrdinalIgnoreCase) || mode.Equals("all", StringComparison.OrdinalIgnoreCase);
 
 try
 {
-    if (mode.Equals("rag", StringComparison.OrdinalIgnoreCase) ||
-        mode.Equals("all", StringComparison.OrdinalIgnoreCase))
+    if (Runs("rag"))
     {
         var settings = FoundryChatClientFactory.LoadSettings();
         using IChatClient chatClient = FoundryChatClientFactory.CreateChatClient(settings, deploymentAlias);
@@ -32,15 +33,13 @@ try
         Console.WriteLine(answer);
     }
 
-    if (mode.Equals("foundry-files", StringComparison.OrdinalIgnoreCase) ||
-        mode.Equals("all", StringComparison.OrdinalIgnoreCase))
+    if (Runs("foundry-files"))
     {
         Console.WriteLine("\n--- Foundry-native File Search ---");
         Console.WriteLine(await FoundryNativeDemo.RunAsync("foundry-files", question, deploymentAlias));
     }
 
-    if (mode.Equals("foundry-web", StringComparison.OrdinalIgnoreCase) ||
-        mode.Equals("all", StringComparison.OrdinalIgnoreCase))
+    if (Runs("foundry-web"))
     {
         Console.WriteLine("\n--- Foundry-native Web Search ---");
         Console.WriteLine(await FoundryNativeDemo.RunAsync("foundry-web", question, deploymentAlias));

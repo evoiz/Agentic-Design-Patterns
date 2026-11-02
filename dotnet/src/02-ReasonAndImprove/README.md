@@ -14,7 +14,7 @@ Part of the five-family taxonomy described in [Agentic design patterns and famil
 | 09 | Learning & Adaptation | Behaviour should improve from feedback or evaluation results over time. | [Chapter09.LearningAdaptation](Chapter09.LearningAdaptation/README.md) | [Chapter09.LearningAdaptation.Hosted](Chapter09.LearningAdaptation.Hosted/README.md) | [`LearningAdaptation.Tests`](../../tests/02-ReasonAndImprove/LearningAdaptation.Tests) |
 | 11 | Goal Setting & Monitoring | Work must converge on explicit, measurable goals within an iteration budget. | [Chapter11.GoalSettingMonitoring](Chapter11.GoalSettingMonitoring/README.md) | [Chapter11.GoalSettingMonitoring.Hosted](Chapter11.GoalSettingMonitoring.Hosted/README.md) | [`GoalSettingMonitoring.Tests`](../../tests/02-ReasonAndImprove/GoalSettingMonitoring.Tests) |
 | 17 | Reasoning | Multi-step problems benefit from chain-of-thought, self-correction, or ReAct-style reasoning. | [Chapter17.Reasoning](Chapter17.Reasoning/README.md) | [Chapter17.Reasoning.Hosted](Chapter17.Reasoning.Hosted/README.md) | [`Reasoning.Tests`](../../tests/02-ReasonAndImprove/Reasoning.Tests) |
-| 21 | Exploration & Discovery | The solution space is open-ended and benefits from generating and reviewing hypotheses. | [Chapter21.ExplorationDiscovery](Chapter21.ExplorationDiscovery/README.md) | [Chapter21.ExplorationDiscovery.Hosted](Chapter21.ExplorationDiscovery.Hosted/README.md) | [`Chapter21.Tests`](../../tests/02-ReasonAndImprove/Chapter21.Tests) |
+| 21 | Exploration & Discovery | The solution space is open-ended and benefits from generating and reviewing hypotheses. | [Chapter21.ExplorationDiscovery](Chapter21.ExplorationDiscovery/README.md) | [Chapter21.ExplorationDiscovery.Hosted](Chapter21.ExplorationDiscovery.Hosted/README.md) | [`ExplorationDiscovery.Tests`](../../tests/02-ReasonAndImprove/ExplorationDiscovery.Tests) |
 
 ## Design guidance
 
@@ -27,5 +27,5 @@ dotnet test dotnet/tests/02-ReasonAndImprove/Reflection.Tests
 dotnet test dotnet/tests/02-ReasonAndImprove/LearningAdaptation.Tests
 dotnet test dotnet/tests/02-ReasonAndImprove/GoalSettingMonitoring.Tests
 dotnet test dotnet/tests/02-ReasonAndImprove/Reasoning.Tests
-dotnet test dotnet/tests/02-ReasonAndImprove/Chapter21.Tests
+dotnet test dotnet/tests/02-ReasonAndImprove/ExplorationDiscovery.Tests
 ```

@@ -4,6 +4,7 @@
     <RootNamespace>Chapter15.A2A.Hosted</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared.Hosting\Shared.Hosting.csproj" />
     <ProjectReference Include="..\Chapter15.A2A\Chapter15.A2A.csproj" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Azure.Identity" />

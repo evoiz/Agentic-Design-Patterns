@@ -4,6 +4,7 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\TestSupport\TestSupport.csproj" />
     <ProjectReference Include="..\..\..\src\05-TrustAndOperations\Extension01.AgentHarness.Hosted\Extension01.AgentHarness.Hosted.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />

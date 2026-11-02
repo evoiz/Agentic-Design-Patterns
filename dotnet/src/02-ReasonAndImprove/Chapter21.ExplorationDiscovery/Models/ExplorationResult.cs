@@ -46,11 +46,6 @@ public sealed record ExplorationResult(
             output.AppendLine($"  Questions: {string.Join("; ", review.Assessment.Questions)}");
             output.AppendLine($"  Limitations: {string.Join("; ", review.Assessment.Limitations)}");
             output.AppendLine($"  Ethical concerns: {review.Assessment.EthicalConcerns}");
-            output.AppendLine(
-                $"  Scores: originality {review.Assessment.Originality}/4, " +
-                $"quality {review.Assessment.Quality}/4, clarity {review.Assessment.Clarity}/4, " +
-                $"significance {review.Assessment.Significance}/4, soundness {review.Assessment.Soundness}/4, " +
-                $"presentation {review.Assessment.Presentation}/4, contribution {review.Assessment.Contribution}/4");
         }
 
         output.AppendLine()

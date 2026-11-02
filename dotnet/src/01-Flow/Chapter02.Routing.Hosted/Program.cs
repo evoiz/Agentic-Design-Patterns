@@ -1,9 +1,7 @@
 using AgenticDesignPatterns.Shared;
 using Azure.AI.AgentServer.Core;
-using Azure.AI.OpenAI;
-using Azure.Identity;
+using AgenticDesignPatterns.Shared.Hosting;
 using Chapter02.Routing;
-using Chapter02.Routing.Hosted;
 using Microsoft.Agents.AI.Foundry.Hosting;
 using Microsoft.Extensions.AI;
 using OpenTelemetry.Trace;
@@ -13,20 +11,8 @@ builder.WebApplicationBuilder.Configuration
     .AddUserSecrets(typeof(FoundryChatClientFactory).Assembly)
     .AddEnvironmentVariables()
     .AddCommandLine(args);
-var settings = HostedFoundryConfiguration.LoadSettings(builder.Configuration);
-var deploymentAlias = builder.Configuration["deployment"];
-var deployment = settings.ResolveModelDeployment(deploymentAlias);
-
-var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-{
-    TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID")
-});
-IChatClient modelClient = string.IsNullOrWhiteSpace(settings.ApiKey)
-    ? new AzureOpenAIClient(
-            new Uri(settings.OpenAIEndpoint.GetLeftPart(UriPartial.Authority)), credential)
-        .GetChatClient(deployment)
-        .AsIChatClient()
-    : FoundryChatClientFactory.CreateChatClient(settings, deploymentAlias);
+IChatClient modelClient = HostedFoundryConfiguration.CreateChatClient(
+    builder.Configuration, builder.Configuration["deployment"]);
 using IChatClient chatClient = modelClient.AsBuilder()
     .UseOpenTelemetry(sourceName: RoutingWorkflow.TelemetrySourceName, configure: options => options.EnableSensitiveData = true)
     .Build();

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Chapter18.Guardrails.Models;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -7,6 +8,10 @@ namespace Chapter18.Guardrails;
 public static class GuardrailsAgent
 {
     public const string TelemetrySourceName = "Chapter18.Guardrails";
+    private static readonly JsonSerializerOptions PolicyJson = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new ComplianceStatusConverter() }
+    };
 
     private const string PolicyInstructions = """
         You are a request policy evaluator. Screen the caller's request before a separate assistant sees it.
@@ -50,14 +55,15 @@ public static class GuardrailsAgent
 
             var evaluationResponse = await policyEvaluator.RunAsync<PolicyEvaluation>(
                 request,
+                serializerOptions: PolicyJson,
                 cancellationToken: cancellationToken);
             var evaluation = RequireValidEvaluation(evaluationResponse.Result);
             writeEvaluation?.Invoke(
-                $"Decision: {evaluation.ComplianceStatus.ToUpperInvariant()}\n" +
+                $"Decision: {evaluation.ComplianceStatus}\n" +
                 $"Summary: {evaluation.EvaluationSummary}\n" +
                 $"Triggered policies: {(evaluation.TriggeredPolicies.Count == 0 ? "none" : string.Join(", ", evaluation.TriggeredPolicies))}");
 
-            if (evaluation.ComplianceStatus == "non-compliant")
+            if (evaluation.ComplianceStatus == ComplianceStatus.NonCompliant)
             {
                 return new AgentResponse(new ChatMessage(
                     ChatRole.Assistant,
@@ -90,32 +96,26 @@ public static class GuardrailsAgent
         var profileTool = AIFunctionFactory.Create(
             (Func<string, string>)functions.GetUserProfile,
             name: "get_user_profile");
-        return new ChatClientAgent(
+        return CreateAgent(
                 chatClient,
-                instructions: """
+                "ToolParameterGuard",
+                """
                     You demonstrate a user-scoped profile lookup.
                     Always call get_user_profile for profile requests and relay its result without changing
                     an authorization denial into a successful result.
                     """,
-                name: "ToolParameterGuard",
-                description: "Validates a tool's user identifier against the authenticated request context.",
-                tools: [profileTool])
-            .AsBuilder()
-            .UseOpenTelemetry(
-                TelemetrySourceName,
-                configure: telemetryOptions => telemetryOptions.EnableSensitiveData = true)
-            .Build();
+                profileTool);
     }
 
     public static PolicyEvaluation RequireValidEvaluation(PolicyEvaluation? evaluation)
     {
         if (evaluation is null ||
-            evaluation.ComplianceStatus is not ("compliant" or "non-compliant") ||
+            !Enum.IsDefined(evaluation.ComplianceStatus) ||
             string.IsNullOrWhiteSpace(evaluation.EvaluationSummary) ||
             evaluation.TriggeredPolicies is null ||
             evaluation.TriggeredPolicies.Any(string.IsNullOrWhiteSpace) ||
-            (evaluation.ComplianceStatus == "compliant" && evaluation.TriggeredPolicies.Count != 0) ||
-            (evaluation.ComplianceStatus == "non-compliant" && evaluation.TriggeredPolicies.Count == 0))
+            (evaluation.ComplianceStatus == ComplianceStatus.Compliant && evaluation.TriggeredPolicies.Count != 0) ||
+            (evaluation.ComplianceStatus == ComplianceStatus.NonCompliant && evaluation.TriggeredPolicies.Count == 0))
         {
             throw new InvalidOperationException(
                 "The guardrail returned an incomplete or inconsistent structured policy evaluation.");
@@ -124,8 +124,9 @@ public static class GuardrailsAgent
         return evaluation;
     }
 
-    private static AIAgent CreateAgent(IChatClient chatClient, string name, string instructions) =>
-        new ChatClientAgent(chatClient, instructions, name: name)
+    private static AIAgent CreateAgent(
+        IChatClient chatClient, string name, string instructions, params AITool[] tools) =>
+        new ChatClientAgent(chatClient, instructions, name: name, tools: tools)
             .AsBuilder()
             .UseOpenTelemetry(
                 TelemetrySourceName,

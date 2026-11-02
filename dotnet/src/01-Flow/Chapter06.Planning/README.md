@@ -1,10 +1,6 @@
 # Chapter 06 — Planning
 
-> Book: *Agentic Design Patterns* (Antonio Gulli), Chapter 06. Implemented with Microsoft Agent Framework (C#) and Microsoft Foundry.
-
-## The Pattern in One Paragraph
-
-Planning turns a goal with several possible approaches into ordered steps before execution. This demo separates planning from writing: a planner returns a validated, structured plan, then a writer follows it to produce the requested summary. For research questions that need fresh evidence, Foundry's Deep Research model can instead coordinate web searches and return a citation-rich report.
+A planner proposes ordered steps before a writer executes them. The real MAF graph has just two responsibilities: return a structured plan, validate its shape, then write a summary from that plan. A separate Deep Research variant gathers web evidence through Foundry's Responses API.
 
 ```mermaid
 flowchart LR
@@ -17,80 +13,52 @@ flowchart LR
     Search --> Report["Cited report + tool metadata"]
 ```
 
-## What This Demo Shows
+## Where to look in code
 
-| Variant | Source notebook | MAF / Foundry building blocks | What to observe |
-|---|---|---|---|
-| Plan and write (MAF) | `Chapter_06_Planning_(Code_Example).ipynb` | `WorkflowBuilder`, structured `RunAsync<PlanningPlan>`, planner and writer `ChatClientAgent`s | The bounded plan is validated and printed before the writer produces an approximately 200-word summary. |
-| Deep Research (Foundry-native) | `Chapter_06_Planning_(Deep_Research_API).ipynb` | Foundry Responses API, `o3-deep-research` deployment, built-in `web_search_preview` | A long-running research task returns its report, citation annotations, search calls, and available reasoning summaries. |
-| Hosted companion | Plan-and-write workflow | Existing MAF workflow + Foundry Responses protocol host | [Hosted companion guide](../Chapter06.Planning.Hosted/README.md). It handles each request independently and returns the completed plan and summary. |
+- [`PlanningWorkflow.RunAsync`](PlanningWorkflow.cs): two-executor `WorkflowBuilder`, with output directly from the writer rather than a pass-through completion executor.
+- `PlannerExecutor.HandleAsync`: `RunAsync<PlanningPlan>` and the 3–6 nonempty-step contract.
+- `WriterExecutor.HandleAsync`: original topic plus the same numbered plan shown in console output.
+- [`PlanningAgents.Create`](PlanningAgents.cs): planner/writer responsibilities.
+- [`DeepResearchDemo.RunAsync`](DeepResearchDemo.cs): deployment-alias check and delegation to shared `FoundryDeepResearch`.
 
-## Setup
+## Notebook → C# mapping
 
-1. Prerequisites: .NET 10 SDK and a Microsoft Foundry project with a chat model deployment and API key.
-2. Configure shared user-secrets once — see [dotnet/README.md](../../../README.md). Keep API keys out of source and `appsettings.json`.
-3. For cloud-agent validation, the `live-foundry-tests.yml` workflow uses the protected `foundry-integration` environment and maps its GitHub environment secrets to `Foundry__*` environment variables.
-4. To run Deep Research, separately deploy an `o3-deep-research` model that supports the Responses API and configure it under the `deep-research` deployment alias:
-   ```powershell
-   dotnet user-secrets set "Foundry:ModelDeployments:deep-research" "<deep-research-deployment-name>" --project dotnet/src/Shared
-   ```
-   This deployment and web search may incur additional model and search costs. The Deep Research demo is deliberately not part of the live smoke suite.
-5. Run locally:
-   ```powershell
-   dotnet run --project dotnet/src/01-Flow/Chapter06.Planning
-   dotnet run --project dotnet/src/01-Flow/Chapter06.Planning -- plan-write --task "The role of reinforcement learning in robotics"
-   dotnet run --project dotnet/src/01-Flow/Chapter06.Planning -- deep-research
-   dotnet run --project dotnet/src/01-Flow/Chapter06.Planning -- all --task "The economic impact of semaglutide on healthcare"
-   ```
-   The default command runs only the MAF plan-and-write workflow. `deep-research` and `all` require the configured `deep-research` alias. Use `--research-deployment <alias>` to select another configured alias or `--deployment <alias>` to select the chat model.
-6. Validate in GitHub Actions when local credentials are unavailable:
-   - Open **Actions** → **Live Foundry smoke tests** after this change is merged to the default branch.
-   - Run the workflow with `foundry-integration` secrets configured.
-
-## Notebook → C# Mapping
-
-| Python (CrewAI / OpenAI) | C# (MAF / Foundry) |
+| Notebook in `chapter_notebooks/` | C# behavior |
 |---|---|
-| CrewAI `Agent` + sequential `Task` produces a plan and an approximately 200-word summary about reinforcement learning | `PlanningAgents` defines planner and writer `ChatClientAgent`s; `PlanningWorkflow` validates the planner's structured result and sends it to the writer. |
-| OpenAI Responses request uses `o3-deep-research`, `web_search_preview`, and a semaglutide research question | `DeepResearchDemo` calls the Foundry-compatible Responses API using the configured Deep Research deployment and built-in web search. It polls the background response and prints citations and available intermediate events. |
+| `Chapter_06_Planning_(Code_Example).ipynb` | `plan-write`: CrewAI's sequential plan/writing tasks become MAF planner and writer agents; the sample remains reinforcement learning and an approximately 200-word summary. |
+| `Chapter_06_Planning_(Deep_Research_API).ipynb` | `deep-research`: Foundry Responses background research, web search, polling, citations, and available tool/reasoning summaries; semaglutide economics remains the sample question. |
 
-## When to Use
+The console prints the plan before execution and the resulting summary. Plan-shape validation **does not establish business correctness** or authorize any action.
 
-- The objective is clear but the sequence of work needs to be constructed before execution.
-- A deliverable benefits from an explicit outline that can be inspected before the content is written.
-- Research needs current web evidence, traceable sources, and a consolidated report.
+## Run
 
-## When NOT to Use
+Use .NET 10 and [shared Foundry configuration](../../../README.md). From the repository root:
 
-- The task is a single direct question that does not need sequencing or external evidence.
-- The plan must be an enforceable business workflow: represent mandatory rules, permissions, and state transitions deterministically instead of relying on model-generated steps.
-- A user needs a guaranteed source-verified or clinically authoritative answer; review citations and evidence, and use qualified human review.
-- The available model deployment does not support the Responses API and Deep Research tools; the MAF plan-and-write variant remains available independently.
+```powershell
+dotnet run --project .\dotnet\src\01-Flow\Chapter06.Planning
+dotnet run --project .\dotnet\src\01-Flow\Chapter06.Planning -- plan-write --task "Reinforcement learning in robotics" --deployment fast
+dotnet run --project .\dotnet\src\01-Flow\Chapter06.Planning -- deep-research
+dotnet run --project .\dotnet\src\01-Flow\Chapter06.Planning -- all --task "The economic impact of semaglutide on healthcare"
+dotnet test .\dotnet\tests\01-Flow\Planning.Tests
+```
 
-## Real-World Scenarios
+Default runs `plan-write` only. Deep Research requires a compatible Responses model (for example `o3-deep-research`) under `Foundry:ModelDeployments:deep-research`; `--research-deployment <alias>` chooses another configured research deployment. It may incur significant model/search cost and is not part of deterministic tests. Tests check plan boundaries, rejection before writing, topic/plan handoff, and one hosted smoke.
 
-1. **Technical writing** — outline a topic before drafting a concise explainer, so the structure is visible and independently revisable.
-2. **Policy or market research** — use Deep Research to gather up-to-date sources and synthesize evidence for an analyst to review.
-3. **Project discovery** — identify stages for a migration or investigation before assigning the plan to deterministic tools and approvals.
-4. **Healthcare economics** — collect claims and cited public evidence about a treatment's system-wide costs, then send the report to a qualified reviewer rather than treating it as clinical advice.
+## When to use / when not to use
 
-## Extending with Microsoft Foundry
+Use when an inspectable outline improves a multi-step deliverable or an investigation needs traceable evidence. Avoid it for a direct question, or when generated steps would replace mandatory workflows, domain validation, permissions, or clinical judgment.
 
-- Add Foundry tracing and evaluate plan completeness and summary fidelity against explicit criteria.
-- Use Deep Research with trusted web sources or a configured remote MCP server when private data is required; restrict MCP access and review tool calls.
-- Keep deterministic limits around generated plans, research budgets, external actions, and approvals. Web citations are evidence for review, not proof that claims are correct.
+## Scenarios
 
-## Hosted Deployment Companion
+- Outline a technical explanation before drafting it.
+- Propose a migration investigation for human review.
+- Research policy or market evidence with citations.
+- Produce a healthcare-economics briefing for qualified review.
 
-- Suitability: the MAF plan-and-write workflow is a bounded request/response operation. Each Responses request creates fresh agents and has no persisted conversation state. Deep Research is excluded from the host because its background operation needs a durable job, polling, and timeout design.
-- Project and deployment guide: [Chapter 06 hosted companion](../Chapter06.Planning.Hosted/README.md). The `chapter06-planning` service is deployed from the hosted project folder with its own `azure.yaml`.
-- Authentication: local runs can use shared user-secrets. Hosted Azure execution uses managed identity. Before any remote invocation, check that the deployed runtime `instance_identity.principal_id` has **Cognitive Services OpenAI User** at the actual model-hosting Foundry account scope; obtain approval before any role assignment and allow propagation.
-- Packaging: azd's bundled .NET 10 deployment publishes the host and referenced chapter/shared projects together. The host `.agentignore` excludes `.azure`, environment files, secrets, and build outputs.
-- Request contract: the protocol returns a completed plan and summary and stores no conversation history.
+## Foundry and hosting
 
-## Risks & Limitations
+Deep Research is a distinct optional Foundry extension; citations still need source review. The [hosted companion](../Chapter06.Planning.Hosted/README.md) runs plan-and-write only. Long-running research needs a durable job/polling design before being exposed through that request contract. See [common hosting guidance](../../../HOSTING.md).
 
-- A model-generated plan can omit constraints or contain unnecessary steps; structural validation does not establish domain correctness.
-- The writer can introduce factual errors. The plan is a structure, not a source of verified facts.
-- Long-running research requires explicit time and cost budgets, cancellation, and handling of failed or incomplete work.
-- Web research introduces source-quality, prompt-injection, privacy, latency, and cost risks. Review the report and citations before using it for consequential decisions.
+## Tradeoffs
+
+Planning costs a call before execution and can omit constraints or add unnecessary steps. A writer can follow a well-formed but wrong plan. Research adds source-quality, prompt-injection, privacy, time, and cost risks. Keep budgets/cancellation and domain checks separate from model judgment. Sensitive tracing may export plans and topics; restrict access and retention.

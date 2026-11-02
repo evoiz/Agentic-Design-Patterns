@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using AgenticDesignPatterns.TestSupport;
 using Azure.AI.AgentServer.Responses;
 using Azure.AI.AgentServer.Responses.Models;
 using Extension01.AgentHarness;
@@ -221,43 +222,20 @@ public sealed class HarnessTests
     public async Task Responses_endpoint_returns_actual_result_and_isolates_requests()
     {
         using var model = SuccessfulInvestigation();
-        var builder = AgentHost.CreateBuilder([]);
-        builder.WebApplicationBuilder.WebHost.UseTestServer();
-        builder.Services.AddFoundryResponses(new HarnessHostedAgent(model));
-        builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());
-        await using var app = builder.Build().App;
-        await app.StartAsync();
-        try
-        {
-            using var http = app.GetTestClient();
-            using var first = await http.PostAsJsonAsync("/responses", new
-            {
-                model = "extension01-agent-harness", input = "Investigate checkout latency.", stream = false, store = false
-            });
-            first.EnsureSuccessStatusCode();
-            using var body = JsonDocument.Parse(await first.Content.ReadAsStringAsync());
-            Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
-            using var result = JsonDocument.Parse(OutputText(body.RootElement));
-            Assert.Equal("completed", result.RootElement.GetProperty("status").GetString());
-            Assert.Equal(2, result.RootElement.GetProperty("evidence").GetArrayLength());
+        await using var host = await HostedResponses.StartAsync(new HarnessHostedAgent(model));
+        using var body = await host.InvokeAsync("Investigate checkout latency.", "extension01-agent-harness");
+        Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
+        using var result = JsonDocument.Parse(HostedResponses.OutputText(body.RootElement));
+        Assert.Equal("completed", result.RootElement.GetProperty("status").GetString());
+        Assert.Equal(2, result.RootElement.GetProperty("evidence").GetArrayLength());
 
-            model.Reset(_ => Text("identity is healthy; no evidence collected."));
-            using var second = await http.PostAsJsonAsync("/responses", new
-            {
-                model = "extension01-agent-harness", input = "Investigate identity.", stream = false, store = false
-            });
-            second.EnsureSuccessStatusCode();
-            using var secondBody = JsonDocument.Parse(await second.Content.ReadAsStringAsync());
-            using var secondResult = JsonDocument.Parse(OutputText(secondBody.RootElement));
-            Assert.Equal("incomplete", secondResult.RootElement.GetProperty("status").GetString());
-            Assert.Empty(secondResult.RootElement.GetProperty("todos").EnumerateArray());
-            Assert.Empty(secondResult.RootElement.GetProperty("evidence").EnumerateArray());
-            Assert.DoesNotContain(model.Requests[0], text => text.Contains("checkout latency", StringComparison.Ordinal));
-        }
-        finally
-        {
-            await app.StopAsync();
-        }
+        model.Reset(_ => Text("identity is healthy; no evidence collected."));
+        using var secondBody = await host.InvokeAsync("Investigate identity.", "extension01-agent-harness");
+        using var secondResult = JsonDocument.Parse(HostedResponses.OutputText(secondBody.RootElement));
+        Assert.Equal("incomplete", secondResult.RootElement.GetProperty("status").GetString());
+        Assert.Empty(secondResult.RootElement.GetProperty("todos").EnumerateArray());
+        Assert.Empty(secondResult.RootElement.GetProperty("evidence").EnumerateArray());
+        Assert.DoesNotContain(model.Requests[0], text => text.Contains("checkout latency", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -289,12 +267,6 @@ public sealed class HarnessTests
         Assert.Equal("request:second-response", second!.UserId);
 #pragma warning restore MAAI001
     }
-
-    private static string OutputText(JsonElement body) => string.Concat(
-        body.GetProperty("output").EnumerateArray()
-            .SelectMany(item => item.GetProperty("content").EnumerateArray())
-            .Where(item => item.GetProperty("type").GetString() == "output_text")
-            .Select(item => item.GetProperty("text").GetString()));
 
     private static ScriptedClient SuccessfulInvestigation() => new(
         _ => AddTodos(),

@@ -1,7 +1,7 @@
-using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
+using AgenticDesignPatterns.TestSupport;
 using Chapter06.Planning;
+using Chapter06.Planning.Hosted;
 using Microsoft.Extensions.AI;
 using Xunit;
 
@@ -15,18 +15,18 @@ public sealed class PlanningWorkflowTests
     public async Task Plans_at_the_step_boundaries_are_accepted_and_written(int stepCount)
     {
         var steps = Enumerable.Range(1, stepCount).Select(index => $"Step {index}").ToArray();
-        using var client = new ScriptedChatClient(PlanJson(steps), "A summary following the plan.");
+        var requests = new List<string>();
+        using var client = CreateClient(requests, JsonSerializer.Serialize(new { steps }), "A summary following the plan.");
         var (planner, writer) = PlanningAgents.Create(client);
 
         var result = await PlanningWorkflow.RunAsync(planner, writer, "A test topic.");
 
         Assert.Equal(steps, result.Steps);
         Assert.Equal("A summary following the plan.", result.Summary);
-        Assert.Equal(2, client.Requests.Count);
-        Assert.Contains("A test topic.", client.Requests[0].Input);
-        Assert.Contains("A test topic.", client.Requests[1].Input);
-        Assert.Contains("1. Step 1", client.Requests[1].Input);
-        Assert.Contains($"{stepCount}. Step {stepCount}", client.Requests[1].Input);
+        Assert.Equal(2, requests.Count);
+        Assert.All(requests, input => Assert.Contains("A test topic.", input));
+        Assert.Contains("1. Step 1", requests[1]);
+        Assert.Contains($"{stepCount}. Step {stepCount}", requests[1]);
     }
 
     [Theory]
@@ -40,57 +40,34 @@ public sealed class PlanningWorkflowTests
     [InlineData("""{"steps":["1","2",null]}""")]
     public async Task Invalid_plans_fail_without_invoking_the_writer(string response)
     {
-        using var client = new ScriptedChatClient(response);
+        var requests = new List<string>();
+        using var client = CreateClient(requests, response);
         var (planner, writer) = PlanningAgents.Create(client);
-
         await Assert.ThrowsAnyAsync<Exception>(() =>
             PlanningWorkflow.RunAsync(planner, writer, "A test topic."));
-
-        Assert.Single(client.Requests);
+        Assert.Single(requests);
     }
 
-    private static string PlanJson(IEnumerable<string> steps) =>
-        JsonSerializer.Serialize(new { steps });
-
-    private sealed record ModelRequest(string Input);
-
-    private sealed class ScriptedChatClient(params string[] responses) : IChatClient
+    [Fact]
+    public async Task Hosted_smoke_returns_the_plan_and_summary_for_the_caller()
     {
-        private readonly ConcurrentQueue<ModelRequest> _requests = new();
-        private readonly ConcurrentQueue<string> _responses = new(responses);
+        var requests = new List<string>();
+        using var client = CreateClient(requests, """{"steps":["First","Second","Third"]}""", "Caller summary.");
+        await using var host = await HostedResponses.StartAsync(new PlanningAgent(client));
+        using var response = await host.InvokeAsync("Caller topic.", "chapter06-planning");
+        var text = HostedResponses.OutputText(response.RootElement);
+        Assert.Contains("- First", text);
+        Assert.Contains("Caller summary.", text);
+        Assert.All(requests, input => Assert.Contains("Caller topic.", input));
+    }
 
-        public IReadOnlyList<ModelRequest> Requests => _requests.ToArray();
-
-        public Task<ChatResponse> GetResponseAsync(
-            IEnumerable<ChatMessage> messages,
-            ChatOptions? options = null,
-            CancellationToken cancellationToken = default)
+    private static ScriptedChatClient CreateClient(List<string> requests, params string[] responses)
+    {
+        var queue = new Queue<string>(responses);
+        return new ScriptedChatClient((messages, _) =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var messageList = messages.ToList();
-            var input = messageList.LastOrDefault(message => message.Role == ChatRole.User)?.Text ?? string.Empty;
-            _requests.Enqueue(new(input));
-            if (!_responses.TryDequeue(out var response))
-            {
-                throw new InvalidOperationException("No scripted model response remains.");
-            }
-
-            return Task.FromResult(new ChatResponse(new ChatMessage(ChatRole.Assistant, response)));
-        }
-
-        public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
-            IEnumerable<ChatMessage> messages,
-            ChatOptions? options = null,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            var response = await GetResponseAsync(messages, options, cancellationToken);
-            foreach (var message in response.Messages)
-            {
-                yield return new ChatResponseUpdate(message.Role, message.Text);
-            }
-        }
-
-        public object? GetService(Type serviceType, object? serviceKey = null) => null;
-        public void Dispose() { }
+            requests.Add(messages.Last(message => message.Role == ChatRole.User).Text);
+            return new ChatResponse(new ChatMessage(ChatRole.Assistant, queue.Dequeue()));
+        });
     }
 }

@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+using AgenticDesignPatterns.TestSupport;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Chapter19.Evaluation;
@@ -6,8 +6,6 @@ using Chapter19.Evaluation.Demos;
 using Chapter19.Evaluation.Hosted;
 using Chapter19.Evaluation.Models;
 using Microsoft.Agents.AI;
-using Microsoft.Agents.AI.Foundry.Hosting;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Xunit;
@@ -84,57 +82,30 @@ public sealed class EvaluationTests
     }
 
     [Fact]
-    public async Task Hosted_stream_buffers_one_valid_judgment()
+    public async Task Responses_endpoint_returns_the_actual_judgment()
     {
         using var model = new JudgeClient(4);
-        var updates = new List<AgentResponseUpdate>();
-        await foreach (var update in new SurveyEvaluationAgent(model).RunStreamingAsync("Question"))
-            updates.Add(update);
-        Assert.Equal(4, JsonSerializer.Deserialize<SurveyJudgment>(Assert.Single(updates).Text)!.OverallScore);
+        await using var host = await HostedResponses.StartAsync(new SurveyEvaluationAgent(model));
+        using var document = await host.InvokeAsync("Caller-owned survey question", "chapter19-evaluation");
+        var text = HostedResponses.OutputText(document.RootElement);
+        Assert.Equal(4, JsonSerializer.Deserialize<SurveyJudgment>(text)!.OverallScore);
+        Assert.Equal("Caller-owned survey question", Assert.Single(model.Questions));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Responses_endpoint_returns_the_actual_judgment(bool streaming)
+    [Fact]
+    public async Task Responses_endpoint_streams_a_completed_judgment()
     {
         using var model = new JudgeClient(4);
-        var builder = AgentHost.CreateBuilder([]);
-        builder.WebApplicationBuilder.WebHost.UseTestServer();
-        builder.Services.AddFoundryResponses(new SurveyEvaluationAgent(model));
-        builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());
-        await using var app = builder.Build().App;
-        await app.StartAsync();
-        try
-        {
-            using var http = app.GetTestClient();
-            using var response = await http.PostAsJsonAsync("/responses", new
-            {
-                input = "Caller-owned survey question", stream = streaming, store = false
-            });
-            response.EnsureSuccessStatusCode();
-            var body = await response.Content.ReadAsStringAsync();
-            if (streaming)
-            {
-                Assert.Contains("response.completed", body);
-                Assert.Contains("overall_score", body);
-            }
-            else
-            {
-                using var document = JsonDocument.Parse(body);
-                Assert.Equal("completed", document.RootElement.GetProperty("status").GetString());
-                var text = string.Concat(document.RootElement.GetProperty("output").EnumerateArray()
-                    .SelectMany(item => item.GetProperty("content").EnumerateArray())
-                    .Where(content => content.GetProperty("type").GetString() == "output_text")
-                    .Select(content => content.GetProperty("text").GetString()));
-                Assert.Equal(4, JsonSerializer.Deserialize<SurveyJudgment>(text)!.OverallScore);
-            }
-            Assert.Equal("Caller-owned survey question", Assert.Single(model.Questions));
-        }
-        finally
-        {
-            await app.StopAsync();
-        }
+        await using var host = await HostedResponses.StartAsync(new SurveyEvaluationAgent(model));
+        using var response = await host.InvokeStreamingAsync("Caller-owned survey question", "chapter19-evaluation");
+        response.EnsureSuccessStatusCode();
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+
+        var events = await response.Content.ReadAsStringAsync();
+        Assert.Contains("event: response.completed", events);
+        Assert.Contains("\"status\":\"completed\"", events);
+        Assert.Contains("\"text\":\"{", events);
+        Assert.Equal("Caller-owned survey question", Assert.Single(model.Questions));
     }
 
     [Theory]

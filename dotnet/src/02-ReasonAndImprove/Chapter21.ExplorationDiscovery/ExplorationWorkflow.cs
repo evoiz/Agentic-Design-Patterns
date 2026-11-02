@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Chapter21.ExplorationDiscovery.Models;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -44,7 +45,7 @@ public static class ExplorationWorkflow
             "ResearchExplorer",
             """
             You are a research postdoc helping formulate an investigation plan.
-            Propose a focused, testable question and 3 to 5 ordered investigation steps.
+            Propose a focused, testable question and 3 to 5 ordered, unnumbered investigation steps.
             Identify evidence that would need to be collected, assumptions, and risks.
             Work from the caller's request and general model knowledge only. Do not claim to have
             read papers, searched the web, run code, collected data, or performed experiments.
@@ -64,8 +65,6 @@ public static class ExplorationWorkflow
                     Return an overall score from 1 to 10, confidence from 1 to 5, and Decision exactly "Accept" or "Reject".
                     Accept only a clear, feasible proposal with testable steps, relevant evidence needs, and explicit risks.
                     Do not include private chain-of-thought; provide concise review conclusions.
-                    Rate Originality, Quality, Clarity, Significance, Soundness, Presentation, and Contribution
-                    as integers from 1 to 4. Rate Overall as an integer from 1 to 10 and Confidence from 1 to 5.
                     Return an empty array for any list field with no items.
                     """)))
             .ToArray();
@@ -198,87 +197,18 @@ public static class ExplorationWorkflow
 
     private static void ValidateAssessment(string reviewer, ReviewerAssessment assessment)
     {
-        var invalidFields = new List<string>();
-        if (string.IsNullOrWhiteSpace(assessment.Summary))
-        {
-            invalidFields.Add(nameof(assessment.Summary));
-        }
-
-        if (assessment.Strengths is null)
-        {
-            invalidFields.Add(nameof(assessment.Strengths));
-        }
-
-        if (assessment.Weaknesses is null)
-        {
-            invalidFields.Add(nameof(assessment.Weaknesses));
-        }
-
-        if (assessment.Questions is null)
-        {
-            invalidFields.Add(nameof(assessment.Questions));
-        }
-
-        if (assessment.Limitations is null)
-        {
-            invalidFields.Add(nameof(assessment.Limitations));
-        }
-
-        if (assessment.Overall is < 1 or > 10)
-        {
-            invalidFields.Add($"{nameof(assessment.Overall)} (1-10)");
-        }
-
-        if (assessment.Confidence is < 1 or > 5)
-        {
-            invalidFields.Add($"{nameof(assessment.Confidence)} (1-5)");
-        }
-
-        if (assessment.Originality is < 1 or > 4)
-        {
-            invalidFields.Add($"{nameof(assessment.Originality)} (1-4)");
-        }
-
-        if (assessment.Quality is < 1 or > 4)
-        {
-            invalidFields.Add($"{nameof(assessment.Quality)} (1-4)");
-        }
-
-        if (assessment.Clarity is < 1 or > 4)
-        {
-            invalidFields.Add($"{nameof(assessment.Clarity)} (1-4)");
-        }
-
-        if (assessment.Significance is < 1 or > 4)
-        {
-            invalidFields.Add($"{nameof(assessment.Significance)} (1-4)");
-        }
-
-        if (assessment.Soundness is < 1 or > 4)
-        {
-            invalidFields.Add($"{nameof(assessment.Soundness)} (1-4)");
-        }
-
-        if (assessment.Presentation is < 1 or > 4)
-        {
-            invalidFields.Add($"{nameof(assessment.Presentation)} (1-4)");
-        }
-
-        if (assessment.Contribution is < 1 or > 4)
-        {
-            invalidFields.Add($"{nameof(assessment.Contribution)} (1-4)");
-        }
-
-        if (!(string.Equals(assessment.Decision, "Accept", StringComparison.OrdinalIgnoreCase) ||
+        IReadOnlyList<string>?[] lists =
+            [assessment.Strengths, assessment.Weaknesses, assessment.Questions, assessment.Limitations];
+        if (string.IsNullOrWhiteSpace(assessment.Summary) ||
+            lists.Any(list => list is null || list.Any(string.IsNullOrWhiteSpace)) ||
+            assessment.Overall is < 1 or > 10 ||
+            assessment.Confidence is < 1 or > 5 ||
+            !(string.Equals(assessment.Decision, "Accept", StringComparison.OrdinalIgnoreCase) ||
               string.Equals(assessment.Decision, "Reject", StringComparison.OrdinalIgnoreCase)))
         {
-            invalidFields.Add(nameof(assessment.Decision));
-        }
-
-        if (invalidFields.Count > 0)
-        {
             throw new InvalidOperationException(
-                $"Reviewer '{reviewer}' returned an invalid assessment in: {string.Join(", ", invalidFields)}.");
+                $"Reviewer '{reviewer}' must return a summary, non-null review lists, " +
+                "overall score (1-10), confidence (1-5), and an Accept or Reject decision.");
         }
     }
 
@@ -291,21 +221,6 @@ public static class ExplorationWorkflow
         Risks: {string.Join("; ", proposal.Risks)}
         """;
 
-    private static string NormalizePlanStep(string step)
-    {
-        var trimmed = step.Trim();
-        while (true)
-        {
-            var separator = trimmed.IndexOf('.');
-            if (separator <= 0 ||
-                !trimmed[..separator].All(char.IsDigit) ||
-                separator + 1 >= trimmed.Length ||
-                !char.IsWhiteSpace(trimmed[separator + 1]))
-            {
-                return trimmed;
-            }
-
-            trimmed = trimmed[(separator + 1)..].TrimStart();
-        }
-    }
+    private static string NormalizePlanStep(string step) =>
+        Regex.Replace(step.Trim(), @"^(?:\d+\.\s+)+", string.Empty);
 }

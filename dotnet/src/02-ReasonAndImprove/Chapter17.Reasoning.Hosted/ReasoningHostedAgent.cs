@@ -1,64 +1,25 @@
-using System.Runtime.CompilerServices;
-using System.Text.Json;
+using AgenticDesignPatterns.Shared.Hosting;
 using Chapter17.Reasoning;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 namespace Chapter17.Reasoning.Hosted;
 
-public sealed class ReasoningHostedAgent(IChatClient chatClient) : AIAgent
+public sealed class ReasoningHostedAgent(IChatClient chatClient) : StatelessWorkflowAgent
 {
     public override string Name => "chapter17-reasoning";
     public override string Description =>
         "Runs a bounded reasoning scenario against caller-provided input without retaining conversation history.";
 
-    protected override async Task<AgentResponse> RunCoreAsync(
-        IEnumerable<ChatMessage> messages,
-        AgentSession? session = null,
-        AgentRunOptions? options = null,
-        CancellationToken cancellationToken = default)
+    protected override async Task<string> RunAsync(string request, CancellationToken cancellationToken)
     {
-        var request = messages.LastOrDefault(message => message.Role == ChatRole.User)?.Text;
-        ArgumentException.ThrowIfNullOrWhiteSpace(request);
         var (scenario, input) = ParseRequest(request);
-        var result = await ReasoningWorkflow.RunAsync(
+        return await ReasoningWorkflow.RunAsync(
             chatClient,
             scenario,
             input,
             cancellationToken: cancellationToken);
-        return new AgentResponse(new ChatMessage(ChatRole.Assistant, result));
     }
-
-    // The Responses protocol supports streaming; buffer the completed reasoning run as one final update.
-    protected override async IAsyncEnumerable<AgentResponseUpdate> RunCoreStreamingAsync(
-        IEnumerable<ChatMessage> messages,
-        AgentSession? session = null,
-        AgentRunOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        var response = await RunCoreAsync(messages, session, options, cancellationToken);
-        yield return new AgentResponseUpdate
-        {
-            Role = ChatRole.Assistant,
-            Contents = [new TextContent(response.Text)]
-        };
-    }
-
-    protected override ValueTask<AgentSession> CreateSessionCoreAsync(
-        CancellationToken cancellationToken = default) =>
-        new(new ReasoningSession());
-
-    protected override ValueTask<JsonElement> SerializeSessionCoreAsync(
-        AgentSession session,
-        JsonSerializerOptions? jsonSerializerOptions = null,
-        CancellationToken cancellationToken = default) =>
-        new(JsonSerializer.SerializeToElement(new { }, jsonSerializerOptions));
-
-    protected override ValueTask<AgentSession> DeserializeSessionCoreAsync(
-        JsonElement serializedState,
-        JsonSerializerOptions? jsonSerializerOptions = null,
-        CancellationToken cancellationToken = default) =>
-        new(new ReasoningSession());
 
     public static (ReasoningScenario Scenario, string Input) ParseRequest(string request)
     {
@@ -86,5 +47,4 @@ public sealed class ReasoningHostedAgent(IChatClient chatClient) : AIAgent
         return (ReasoningScenario.ChainOfThought, request.Trim());
     }
 
-    private sealed class ReasoningSession : AgentSession;
 }

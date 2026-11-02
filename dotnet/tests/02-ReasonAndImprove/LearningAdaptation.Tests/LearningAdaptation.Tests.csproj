@@ -5,9 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\02-ReasonAndImprove\Chapter09.LearningAdaptation.Hosted\Chapter09.LearningAdaptation.Hosted.csproj" />
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\..\TestSupport\TestSupport.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>

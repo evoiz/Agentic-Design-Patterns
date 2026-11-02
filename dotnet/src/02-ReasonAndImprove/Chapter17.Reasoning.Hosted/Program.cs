@@ -1,5 +1,6 @@
 using Azure.Identity;
 using AgenticDesignPatterns.Shared;
+using AgenticDesignPatterns.Shared.Hosting;
 using Chapter17.Reasoning;
 using Chapter17.Reasoning.Hosted;
 using Microsoft.Agents.AI.Foundry.Hosting;

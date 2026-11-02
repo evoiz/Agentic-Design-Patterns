@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Chapter21.ExplorationDiscovery.Models;
 
 public sealed record ReviewerAssessment(
@@ -6,14 +8,7 @@ public sealed record ReviewerAssessment(
     IReadOnlyList<string> Weaknesses,
     IReadOnlyList<string> Questions,
     IReadOnlyList<string> Limitations,
-    bool EthicalConcerns,
-    int Originality,
-    int Quality,
-    int Clarity,
-    int Significance,
-    int Soundness,
-    int Presentation,
-    int Contribution,
+    [property: JsonRequired] bool EthicalConcerns,
     int Overall,
     int Confidence,
     string Decision);

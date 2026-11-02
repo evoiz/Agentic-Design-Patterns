@@ -1,4 +1,5 @@
 using AgenticDesignPatterns.Shared;
+using AgenticDesignPatterns.Shared.Hosting;
 using Azure.AI.OpenAI;
 using Azure.AI.Projects;
 using Azure.Identity;

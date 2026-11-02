@@ -1,4 +1,4 @@
-using Chapter02.Routing.Hosted;
+using AgenticDesignPatterns.Shared.Hosting;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 

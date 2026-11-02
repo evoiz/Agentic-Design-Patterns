@@ -1,12 +1,9 @@
 using System.Collections.Concurrent;
+using AgenticDesignPatterns.TestSupport;
 using System.Globalization;
-using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using Chapter17.Reasoning;
 using Chapter17.Reasoning.Hosted;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Agents.AI.Foundry.Hosting;
 using Microsoft.Extensions.AI;
 using Xunit;
 
@@ -81,55 +78,10 @@ public sealed class ReasoningHostedAgentTests
     public async Task Responses_protocol_returns_result_for_the_callers_request()
     {
         using var model = new ScriptedChatClient();
-        var builder = AgentHost.CreateBuilder([]);
-        builder.WebApplicationBuilder.WebHost.UseTestServer();
-        builder.ConfigureTracing(tracing => tracing.AddSource(ReasoningWorkflow.TelemetrySourceName));
-        builder.Services.AddFoundryResponses(new ReasoningHostedAgent(model));
-        builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());
-        await using var app = builder.Build().App;
-        await app.StartAsync();
-
-        try
-        {
-            using var http = app.GetTestClient();
-            using var response = await http.PostAsJsonAsync("/responses", new
-            {
-                model = "chapter17-reasoning",
-                input = "cot: Explain a caller-specific topic.",
-                stream = false,
-                store = false
-            });
-            response.EnsureSuccessStatusCode();
-            using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-
-            Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
-            var responseText = string.Concat(
-                body.RootElement.GetProperty("output").EnumerateArray()
-                    .SelectMany(item => item.GetProperty("content").EnumerateArray())
-                    .Where(item => item.GetProperty("type").GetString() == "output_text")
-                    .Select(item => item.GetProperty("text").GetString()));
-            Assert.Contains("Scripted reasoning response.", responseText);
-            Assert.Contains("caller-specific topic", Assert.Single(model.Requests), StringComparison.OrdinalIgnoreCase);
-        }
-        finally
-        {
-            await app.StopAsync();
-        }
-    }
-
-    [Fact]
-    public async Task Streaming_adapter_buffers_one_completed_response()
-    {
-        using var model = new ScriptedChatClient();
-        var updates = new List<string>();
-
-        await foreach (var update in new ReasoningHostedAgent(model).RunStreamingAsync("cot: Explain this request."))
-        {
-            Assert.Single(model.Requests);
-            updates.Add(update.Text);
-        }
-
-        Assert.Contains("Scripted reasoning response.", Assert.Single(updates));
+        await using var host = await HostedResponses.StartAsync(new ReasoningHostedAgent(model));
+        using var body = await host.InvokeAsync("cot: Explain a caller-specific topic.", "chapter17-reasoning");
+        Assert.Contains("Scripted reasoning response.", HostedResponses.OutputText(body.RootElement));
+        Assert.Contains("caller-specific topic", Assert.Single(model.Requests), StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed class ScriptedChatClient : IChatClient

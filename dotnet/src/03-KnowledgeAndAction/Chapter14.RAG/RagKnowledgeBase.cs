@@ -6,11 +6,13 @@ public sealed record RagDocument(string Id, string Title, string Source, string 
 
 public sealed record RetrievedChunk(string DocumentId, string Title, string Source, string Text, double Score);
 
+/// <summary>
+/// Tiny in-memory knowledge base with keyword-overlap retrieval. The documents are short, so each one is a
+/// single chunk; a production system would chunk, embed, and index them (see Foundry File Search).
+/// </summary>
 public sealed class RagKnowledgeBase(Action<string>? writeSearchOutput = null)
 {
-    private const int ChunkSize = 500;
-    private const int ChunkOverlap = 50;
-    private const int DefaultTopK = 5;
+    private const int TopK = 3;
 
     private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -54,42 +56,23 @@ public sealed class RagKnowledgeBase(Action<string>? writeSearchOutput = null)
             """)
     ];
 
-    private readonly Action<string>? _writeSearchOutput = writeSearchOutput;
-
-    public IReadOnlyList<RetrievedChunk> Retrieve(
-        string query,
-        int topK = DefaultTopK,
-        double minimumScore = 0)
+    /// <summary>Scores each document by how many distinct query keywords appear in its title or content.</summary>
+    public IReadOnlyList<RetrievedChunk> Retrieve(string query)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(query);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(topK);
-        ArgumentOutOfRangeException.ThrowIfNegative(minimumScore);
+        var queryTerms = Tokenize(query).Where(term => !StopWords.Contains(term)).ToHashSet();
 
-        var queryTerms = Tokenize(query)
-            .Where(term => !StopWords.Contains(term))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-        if (queryTerms.Length == 0)
-        {
-            return [];
-        }
-
-        var chunks = Documents
-            .SelectMany(document => SplitIntoChunks(document)
-                .Select(text => new RetrievedChunk(document.Id, document.Title, document.Source, text, 0)))
-            .ToArray();
-        var documentFrequency = queryTerms.ToDictionary(
-            term => term,
-            term => chunks.Count(chunk => Tokenize(chunk.Text).Contains(term, StringComparer.OrdinalIgnoreCase)),
-            StringComparer.OrdinalIgnoreCase);
-        var averageLength = chunks.Average(chunk => Tokenize(chunk.Text).Length);
-
-        return chunks
-            .Select(chunk => chunk with { Score = Score(chunk.Text, queryTerms, documentFrequency, chunks.Length, averageLength) })
-            .Where(chunk => chunk.Score > minimumScore)
+        return Documents
+            .Select(document =>
+            {
+                var documentTerms = Tokenize($"{document.Title} {document.Content}").ToHashSet();
+                var score = queryTerms.Count(documentTerms.Contains);
+                return new RetrievedChunk(document.Id, document.Title, document.Source, document.Content.Trim(), score);
+            })
+            .Where(chunk => chunk.Score > 0)
             .OrderByDescending(chunk => chunk.Score)
             .ThenBy(chunk => chunk.DocumentId, StringComparer.Ordinal)
-            .Take(topK)
+            .Take(TopK)
             .ToArray();
     }
 
@@ -100,68 +83,12 @@ public sealed class RagKnowledgeBase(Action<string>? writeSearchOutput = null)
             ? $"No relevant information was found for '{query}' in the sample knowledge base."
             : string.Join(
                 "\n\n",
-                matches.Select(match =>
-                    $"[{match.DocumentId}] {match.Title}\nSource: {match.Source}\n{match.Text.Trim()}"));
+                matches.Select(match => $"[{match.DocumentId}] {match.Title}\nSource: {match.Source}\n{match.Text}"));
 
-        _writeSearchOutput?.Invoke(result);
+        writeSearchOutput?.Invoke(result);
         return result;
     }
 
-    private static double Score(
-        string text,
-        IReadOnlyCollection<string> queryTerms,
-        IReadOnlyDictionary<string, int> documentFrequency,
-        int documentCount,
-        double averageLength)
-    {
-        var terms = Tokenize(text);
-        var frequencies = terms
-            .GroupBy(term => term, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
-        var lengthNormalization = 0.5 + 0.5 * terms.Length / averageLength;
-
-        return queryTerms.Sum(term =>
-        {
-            if (!frequencies.TryGetValue(term, out var frequency))
-            {
-                return 0;
-            }
-
-            var inverseFrequency = Math.Log(1 + (documentCount - documentFrequency[term] + 0.5) /
-                (documentFrequency[term] + 0.5));
-            return inverseFrequency * frequency / lengthNormalization;
-        });
-    }
-
-    private static IEnumerable<string> SplitIntoChunks(RagDocument document)
-    {
-        var content = $"{document.Title}\n{document.Content}".Trim();
-        var start = 0;
-        while (start < content.Length)
-        {
-            var length = Math.Min(ChunkSize, content.Length - start);
-            var end = start + length;
-            if (end < content.Length)
-            {
-                var boundary = content.LastIndexOf(' ', end - 1, length);
-                if (boundary > start)
-                {
-                    end = boundary;
-                }
-            }
-
-            yield return content[start..end].Trim();
-            if (end >= content.Length)
-            {
-                yield break;
-            }
-
-            start = Math.Max(start + 1, end - ChunkOverlap);
-        }
-    }
-
-    private static string[] Tokenize(string text) =>
-        Regex.Matches(text, @"[\p{L}\p{N}]+")
-            .Select(match => match.Value.ToLowerInvariant())
-            .ToArray();
+    private static IEnumerable<string> Tokenize(string text) =>
+        Regex.Matches(text, @"[\p{L}\p{N}]+").Select(match => match.Value.ToLowerInvariant());
 }

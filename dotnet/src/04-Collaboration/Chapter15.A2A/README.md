@@ -1,10 +1,8 @@
 # Chapter 15 — Inter-Agent Communication (A2A)
 
-> Book: *Agentic Design Patterns* (Antonio Gulli), Chapter 15. Implemented with Microsoft Agent Framework (C#) and Microsoft Foundry.
+> *Agentic Design Patterns*, Antonio Gulli, Chapter 15. C# / Microsoft Agent Framework (MAF).
 
-## The Pattern in One Paragraph
-
-Agent-to-Agent (A2A) is a protocol boundary that lets independently deployed agents discover one another through agent cards and exchange messages using a shared contract. It supports request/response and streaming without requiring the caller to know the remote agent's framework or internal implementation. A2A provides interoperability, not orchestration, authorization, or shared memory.
+A2A lets independently deployed agents discover capabilities through an agent card and exchange requests without sharing a framework. It provides interoperability, not orchestration, authorization, or shared memory. This console is a **client**: run the [hosted companion](../Chapter15.A2A.Hosted/README.md) as its server.
 
 ```mermaid
 flowchart LR
@@ -15,85 +13,57 @@ flowchart LR
     Specialist --> Caller
 ```
 
-## What This Demo Shows
+## Where to look in code
 
-| Variant | Source notebook | MAF / Foundry building blocks | What to observe |
-|---|---|---|---|
-| A2A client (MAF) | `Chapter_15_Inter_Agent_(Sync_Streaming_Requests).ipynb` | `A2ACardResolver`, `AgentCard.AsAIAgent`, `A2AClientOptions`, `RunAsync`, `RunStreamingAsync` | Discovers a remote card, sends the USD/EUR example synchronously over JSON-RPC, and receives incremental task updates for the JPY/GBP example over HTTP+JSON. |
-| WeatherBot card and A2A server | `Chapter_15_Inter_Agent_(A2A_AgentCard_WeatherBot).ipynb` | `Microsoft.Agents.AI.Hosting.A2A.AspNetCore`, `AddA2AServer`, `MapA2AHttpJson`, `MapA2AJsonRpc`, `MapWellKnownAgentCard` | Publishes the agent's description, skill, protocol bindings, and streaming capability for discovery. |
-| Calendar-agent hosting sketch | `Chapter_15_Inter_Agent_(A2A).ipynb` | A MAF `ChatClientAgent` behind the same A2A server; Foundry hosted companion | Applies the notebook's agent-card/hosting boundary without its unavailable Google ADK and calendar credentials. No calendar operations are claimed. |
-| Foundry-native | Same hosted service | Foundry hosted-agent A2A endpoint and declarative `agentCard` | Foundry publishes the card and exposes the MAF-hosted behavior through A2A; this is a deployment/protocol integration, not a separate native reimplementation. |
-| Hosted companion | Same hosted service | A2A protocol server, Foundry hosted agent runtime, managed identity | See [hosted deployment guide](../Chapter15.A2A.Hosted/README.md) for local requests, the card contract, and deploy/invoke guidance. |
+- [Program.cs](Program.cs): card discovery, explicit JSON-RPC `RunAsync` and HTTP+JSON `RunStreamingAsync` branches.
+- [InterAgentAgent.cs](InterAgentAgent.cs), `Create`: remote specialist instructions and fresh request state.
+- [Hosted Program.cs](../Chapter15.A2A.Hosted/Program.cs), `CreateAgentCard`: advertised skills, bindings, and server mappings.
 
-The weather, exchange-rate, and calendar examples are protocol demonstrations. This agent has no live weather, currency, or calendar data source; its instructions require it to disclose that and not invent current data or completed operations.
+## Notebook → C# mapping
 
-## Setup
-
-1. Prerequisites: .NET 10 SDK, a Microsoft Foundry project, and a deployed chat-model deployment.
-2. Configure shared local API-key user-secrets once; see [dotnet/README.md](../../../README.md#configure-foundry-user-secrets).
-3. Start the A2A server in one terminal:
-   ```powershell
-   $env:PORT = '5090'
-   $env:A2A_PUBLIC_URL = 'http://localhost:5090/'
-   dotnet run --project .\dotnet\src\04-Collaboration\Chapter15.A2A.Hosted
-   ```
-4. In another terminal, run all client examples:
-   ```powershell
-   dotnet run --project .\dotnet\src\04-Collaboration\Chapter15.A2A -- all http://localhost:5090/
-   ```
-5. Run a single mode (`card`, `sync`, or `stream`) or provide a custom request after the URL:
-   ```powershell
-   dotnet run --project .\dotnet\src\04-Collaboration\Chapter15.A2A -- sync http://localhost:5090/ "Explain why exchange rates need a current source."
-   ```
-
-## Notebook → C# Mapping
-
-| Python / notebook material | C# (MAF) |
+| Notebook | Implementation |
 |---|---|
-| JSON-RPC `sendTask` with the USD-to-EUR example | `A2AClientDemo` uses the discovered `AgentCard`, selects `ProtocolBindingNames.JsonRpc`, and calls `RunAsync`. |
-| `sendTaskSubscribe` with the JPY-to-GBP example | `A2AClientDemo` selects HTTP+JSON and consumes `RunStreamingAsync` updates. |
-| WeatherBot agent card and streaming skill | Hosted server publishes a typed `AgentCard` at `/.well-known/agent-card.json` and maps both A2A bindings. |
-| Google ADK calendar agent, skill card, and HTTP server | The hosted companion demonstrates the same A2A hosting boundary with a Foundry-backed MAF agent; the incomplete notebook dependencies and calendar integration are not reproduced. |
+| `Chapter_15_Inter_Agent_(Sync_Streaming_Requests)` | USD/EUR synchronous sample and JPY/GBP streaming sample, using the current SDK bindings instead of manually constructing older task JSON. |
+| `Chapter_15_Inter_Agent_(A2A_AgentCard_WeatherBot)` | Typed `AgentCard` published at `/.well-known/agent-card.json`. |
+| `Chapter_15_Inter_Agent_(A2A)` | Agent-card/hosting boundary; the notebook's incomplete Google Calendar integration is not claimed. |
 
-## When to Use
+Weather, rates, and calendar requests are **protocol examples**, not live integrations. The agent must disclose missing live data and never claim completed calendar actions. Foundry's hosted A2A endpoint is a deployment integration, not a separate native reasoning variant.
 
-- Agents are independently deployed, owned, identified, or versioned.
-- A caller needs to discover a remote agent's capabilities before delegating a task.
-- Different teams or frameworks need an interoperable agent request contract.
-- A remote task benefits from streaming or a standard task-oriented protocol.
+## Run
 
-## When NOT to Use
+Configure .NET 10 and the server's model credentials via the [shared setup](../../../README.md). From the repository root, start the server:
 
-- Agents are functions or components within the same application and a local method/workflow is sufficient.
-- The caller needs tightly controlled orchestration, shared state, or transaction semantics that A2A does not provide.
-- The remote agent's identity, authorization, or endpoint trust cannot be established.
-- A workflow requires reliable live data or side effects, but the remote agent exposes no suitable authenticated tool or API.
+```powershell
+$env:PORT = '5090'
+$env:A2A_PUBLIC_URL = 'http://localhost:5090/'
+dotnet run --project dotnet\src\04-Collaboration\Chapter15.A2A.Hosted
+```
 
-## Real-World Scenarios
+In another terminal:
 
-1. **Travel planning** — a trip coordinator discovers separate lodging, weather, and itinerary agents owned by their respective services.
-2. **Customer support** — a service desk delegates product-policy questions to an independently maintained policy specialist and streams the answer.
-3. **Enterprise procurement** — a purchasing workflow discovers supplier agents and requests catalog or fulfillment information over a governed identity boundary.
-4. **Research collaboration** — a research coordinator asks independently hosted domain specialists for bounded contributions without coupling to their internal model frameworks.
+```powershell
+dotnet run --project dotnet\src\04-Collaboration\Chapter15.A2A -- all http://localhost:5090/
+dotnet run --project dotnet\src\04-Collaboration\Chapter15.A2A -- sync http://localhost:5090/ "Explain why exchange rates need a current source."
+dotnet run --project dotnet\src\04-Collaboration\Chapter15.A2A -- stream http://localhost:5090/
+dotnet run --project dotnet\src\04-Collaboration\Chapter15.A2A -- card http://localhost:5090/
+```
 
-## Extending with Microsoft Foundry
+The default mode is `sync`; the URL defaults to `A2A_AGENT_URL` or `http://localhost:5090/`. Custom request words follow the URL. Only absolute HTTP(S) URLs are accepted; Ctrl+C cancels discovery/model work. The local listener is unauthenticated: keep it on a trusted network.
 
-- Publish hosted agents through Foundry's A2A endpoints and agent cards, with narrow skill descriptions and caller authorization.
-- Add explicit toolboxes or APIs for live weather, rates, or calendar changes; keep their authentication and permissions independent of the A2A protocol.
-- Use Foundry tracing and evaluation to inspect delegated requests, latency, errors, and the quality of the final agent response.
+## When to use / not to use
 
-## Hosted Deployment Companion
+**Use** for separately owned/versioned agents, capability discovery, and cross-framework delegation.
+**Do not use** instead of a local method call, transactional orchestration, trusted caller identity, or a permission model.
 
-- Suitability: the demo is an ordinary request/response agent with streaming support and no durable memory or human-approval interaction; it can run behind the A2A protocol.
-- Project and deployment guide: [Chapter 15 hosted companion](../Chapter15.A2A.Hosted/README.md); the console client and hosted server remain separate.
-- Authentication: local server calls use the configured developer API key; Azure execution uses managed identity. Before remote invocation, verify or assign Cognitive Services OpenAI User to the current `instance_identity.principal_id` at the model-hosting Foundry account scope with RBAC-write approval, allow propagation, and recheck after redeployment.
-- Packaging: azd's bundled .NET deployment includes project references and central package/build files; `.agentignore` excludes `.azure`, environment files, user-secrets, and build outputs.
-- Request contract: text/plain A2A messages; JSON-RPC or HTTP+JSON; a fresh non-persistent run per request; final text returned by the model. Streaming is supported over the HTTP+JSON binding.
-- Deployment: follow the companion guide with a reader-owned Foundry project and existing model; deployment and runtime inference permissions are separate, and each request incurs hosted-runtime and model usage costs.
+## Real-world scenarios
 
-## Risks & Limitations
+1. Travel coordinators discover independent lodging and weather specialists.
+2. Service desks delegate product-policy questions to another team's agent.
+3. Procurement workflows query supplier-owned catalog agents.
+4. Research coordinators obtain bounded contributions from domain specialists.
 
-- The protocol does not itself provide orchestration, authorization, trust, or persistence; each boundary needs its own explicit policy.
-- Remote calls add network latency and can fail independently of the caller.
-- Agent cards can become stale as capabilities change; validate advertised skills and endpoint ownership.
-- Model-generated answers without connected domain tools can be incomplete; live-data requests must not be treated as authoritative.
+## Tradeoffs and Foundry extensions
+
+Network calls fail independently; cards may be stale, so validate endpoint ownership and advertised skills. Connect authenticated domain tools for real data or actions; A2A itself does not grant those permissions. Streaming improves responsiveness without proving answer quality.
+
+For Foundry-managed A2A endpoints, request semantics, and service-specific commands, see the [hosted guide](../Chapter15.A2A.Hosted/README.md). Shared deployment, inference RBAC, sensitive tracing, packaging, cost, and cleanup instructions live in [HOSTING.md](../../../HOSTING.md).

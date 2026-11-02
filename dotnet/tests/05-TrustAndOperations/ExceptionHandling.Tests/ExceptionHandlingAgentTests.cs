@@ -1,12 +1,7 @@
-using System.Net.Http.Json;
-using System.Text.Json;
-using Azure.AI.AgentServer.Core;
+using AgenticDesignPatterns.TestSupport;
 using Chapter12.ExceptionHandling;
 using Chapter12.ExceptionHandling.Hosted;
-using Microsoft.Agents.AI.Foundry.Hosting;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.AI;
-using OpenTelemetry.Trace;
 using Xunit;
 
 namespace AgenticDesignPatterns.ExceptionHandling.Tests;
@@ -22,114 +17,89 @@ public sealed class ExceptionHandlingAgentTests
     }
 
     [Fact]
-    public async Task Transient_lookup_failure_retries_primary_activity_only()
+    public async Task Successful_primary_lookup_returns_precise_explanation_without_fallback()
     {
-        using var client = new ScriptedChatClient("Precise record.", "Final precise response.");
-        var checkpoints = new List<string>();
+        var model = new RecordingModel("Precise record.");
+        var output = new List<string>();
 
         var result = await ExceptionHandlingWorkflow.RunAsync(
-            client,
-            "transient: 1600 Amphitheatre Parkway, Mountain View, CA",
-            checkpoints.Add);
+            model.Client, "1600 Amphitheatre Parkway, Mountain View, CA", output.Add);
 
-        Assert.Equal("Final precise response.", result);
-        Assert.Equal(2, client.Requests.Count);
-        Assert.Contains(checkpoints, line => line.Contains("attempt 1 failed", StringComparison.Ordinal));
-        Assert.Contains(checkpoints, line => line.Contains("succeeded on attempt 2", StringComparison.Ordinal));
-        Assert.DoesNotContain(checkpoints, line => line.Contains("General-area fallback", StringComparison.Ordinal));
+        Assert.Equal("Precise lookup succeeded after 1 attempt(s).\nPrecise record.", result);
+        Assert.Single(model.Requests);
+        Assert.Contains("37.4220, -122.0841", model.Requests[0]);
+        Assert.DoesNotContain(output, line => line.Contains("General-area fallback", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Transient_lookup_failure_retries_primary_activity_only()
+    {
+        var model = new RecordingModel("Precise record.");
+        var output = new List<string>();
+
+        var result = await ExceptionHandlingWorkflow.RunAsync(
+            model.Client, "transient: 1600 Amphitheatre Parkway, Mountain View, CA", output.Add);
+
+        Assert.Equal("Precise lookup succeeded after 2 attempt(s).\nPrecise record.", result);
+        Assert.Single(model.Requests);
+        Assert.Contains(output, line => line.Contains("attempt 1 failed; next: retry primary", StringComparison.Ordinal));
+        Assert.Contains(output, line => line.Contains("succeeded on attempt 2", StringComparison.Ordinal));
+        Assert.DoesNotContain(output, line => line.Contains("General-area fallback", StringComparison.Ordinal));
     }
 
     [Fact]
     public async Task Exhausted_primary_attempts_use_city_fallback_and_preserve_failure_context()
     {
-        using var client = new ScriptedChatClient("San Francisco area result.", "Final fallback response.");
-        var checkpoints = new List<string>();
+        var model = new RecordingModel("San Francisco area result.");
+        var output = new List<string>();
 
         var result = await ExceptionHandlingWorkflow.RunAsync(
-            client,
-            "primary-unavailable: 1 Market Street, San Francisco, CA",
-            checkpoints.Add);
+            model.Client, "primary-unavailable: 1 Market Street, San Francisco, CA", output.Add);
 
-        Assert.Equal("Final fallback response.", result);
-        Assert.Equal(2, client.Requests.Count);
-        Assert.Contains(
-            "Primary lookup failure:",
-            client.Requests[0].Last(message => message.Role == ChatRole.User).Text);
-        Assert.Contains(
-            "San Francisco",
-            client.Requests[0].Last(message => message.Role == ChatRole.User).Text);
-        Assert.Contains(checkpoints, line => line.Contains("attempt 2 failed", StringComparison.Ordinal));
-        Assert.Contains(checkpoints, line => line.Contains("fallback result recorded", StringComparison.Ordinal));
+        Assert.StartsWith("Precise lookup failed after 2 attempt(s)", result);
+        Assert.EndsWith("San Francisco area result.", result);
+        Assert.Single(model.Requests);
+        Assert.Contains("Primary lookup failure:", model.Requests[0]);
+        Assert.Contains("The Ferry Building", model.Requests[0]);
+        Assert.Contains(output, line => line.Contains("attempt 2 failed; next: area fallback", StringComparison.Ordinal));
+        Assert.Contains(output, line => line.Contains("Fallback result recorded", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Model_failure_is_not_treated_as_a_recoverable_lookup_failure()
+    {
+        var model = new RecordingModel(" ");
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            ExceptionHandlingWorkflow.RunAsync(model.Client, "1600 Amphitheatre Parkway, Mountain View, CA"));
+
+        Assert.Contains("PrimaryLookup", exception.Message);
+        Assert.Single(model.Requests);
     }
 
     [Fact]
     public async Task Responses_protocol_returns_completed_recovery_result()
     {
-        using var model = new ScriptedChatClient("San Francisco area result.", "Final hosted fallback response.");
-        using var client = model.AsBuilder()
-            .UseOpenTelemetry(
-                sourceName: ExceptionHandlingWorkflow.TelemetrySourceName,
-                configure: options => options.EnableSensitiveData = true)
-            .Build();
-        var builder = AgentHost.CreateBuilder([]);
-        builder.WebApplicationBuilder.WebHost.UseTestServer();
-        builder.ConfigureTracing(tracing => tracing.AddSource(ExceptionHandlingWorkflow.TelemetrySourceName));
-        builder.Services.AddFoundryResponses(new ExceptionHandlingAgent(client));
-        builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());
-        await using var app = builder.Build().App;
-        await app.StartAsync();
-        try
-        {
-            using var http = app.GetTestClient();
-            using var response = await http.PostAsJsonAsync("/responses", new
-            {
-                model = "chapter12-exception-handling",
-                input = "primary-unavailable: 1 Market Street, San Francisco, CA",
-                stream = false,
-                store = false
-            });
-            response.EnsureSuccessStatusCode();
-            using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
-            var text = body.RootElement.GetProperty("output").EnumerateArray()
-                .SelectMany(item => item.GetProperty("content").EnumerateArray())
-                .Where(item => item.GetProperty("type").GetString() == "output_text")
-                .Select(item => item.GetProperty("text").GetString());
-            Assert.Contains("Final hosted fallback response.", string.Concat(text));
-        }
-        finally
-        {
-            await app.StopAsync();
-        }
+        var model = new RecordingModel("Hosted fallback response.");
+        await using var host = await HostedResponses.StartAsync(new ExceptionHandlingAgent(model.Client));
+
+        using var body = await host.InvokeAsync(
+            "primary-unavailable: 1 Market Street, San Francisco, CA", "chapter12-exception-handling");
+
+        Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
+        Assert.Contains("Hosted fallback response.", HostedResponses.OutputText(body.RootElement));
     }
 
-    private sealed class ScriptedChatClient(params string[] responses) : IChatClient
+    private sealed class RecordingModel
     {
-        private readonly Queue<string> _responses = new(responses);
-        public List<List<ChatMessage>> Requests { get; } = [];
-
-        public Task<ChatResponse> GetResponseAsync(
-            IEnumerable<ChatMessage> messages,
-            ChatOptions? options = null,
-            CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            Requests.Add(messages.ToList());
-            if (!_responses.TryDequeue(out var response))
+        public RecordingModel(string response) =>
+            Client = new ScriptedChatClient((messages, _) =>
             {
-                throw new InvalidOperationException("Scripted model response is missing.");
-            }
+                Requests.Add(messages.Last(message => message.Role == ChatRole.User).Text);
+                return new ChatResponse(new ChatMessage(ChatRole.Assistant, response));
+            });
 
-            return Task.FromResult(new ChatResponse(new ChatMessage(ChatRole.Assistant, response)));
-        }
-
-        public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
-            IEnumerable<ChatMessage> messages,
-            ChatOptions? options = null,
-            CancellationToken cancellationToken = default)
-            => throw new NotSupportedException("Chapter 12 model calls should be non-streaming.");
-
-        public object? GetService(Type serviceType, object? serviceKey = null) => null;
-        public void Dispose() { }
+        public IChatClient Client { get; }
+        public List<string> Requests { get; } = [];
     }
 }

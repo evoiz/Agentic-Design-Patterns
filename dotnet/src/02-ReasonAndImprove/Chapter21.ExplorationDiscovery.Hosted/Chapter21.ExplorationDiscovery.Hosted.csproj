@@ -5,6 +5,7 @@
     <UserSecretsId>agentic-design-patterns-maf</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared.Hosting\Shared.Hosting.csproj" />
     <ProjectReference Include="..\Chapter21.ExplorationDiscovery\Chapter21.ExplorationDiscovery.csproj" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Azure.Identity" />

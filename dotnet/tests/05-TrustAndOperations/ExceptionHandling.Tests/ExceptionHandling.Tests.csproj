@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\05-TrustAndOperations\Chapter12.ExceptionHandling\Chapter12.ExceptionHandling.csproj" />
     <ProjectReference Include="..\..\..\src\05-TrustAndOperations\Chapter12.ExceptionHandling.Hosted\Chapter12.ExceptionHandling.Hosted.csproj" />
+    <ProjectReference Include="..\..\TestSupport\TestSupport.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

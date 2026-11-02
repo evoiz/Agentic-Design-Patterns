@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.AI;
 
 namespace Chapter01.PromptChaining.Demos;
@@ -9,11 +10,17 @@ internal static class MarketTrendsDemo
         "Product sales analysis: Sales of products with ESG-related claims grew 28% over the last five years, compared to 20% for products without.";
 
     public static Task RunAsync(IChatClient chatClient) =>
-        PromptChainRunner.RunAsync(
+        PromptChainRunner.RunAsync<MarketTrends>(
             chatClient,
             ResearchNotes,
             "MarketTrendExtractor",
             "Identify distinct market trends supported by the user's notes. For each trend, preserve its quantitative evidence accurately. Do not add claims or infer causation.",
             "MarketTrendJsonFormatter",
             "Transform the identified trends into valid JSON matching this schema: {\"trends\":[{\"trend_name\":\"...\",\"supporting_data\":\"...\"}]}. Preserve the evidence and percentages. Return only JSON, with no Markdown fences or commentary.");
+
+    public sealed record MarketTrends(
+        [property: JsonPropertyName("trends"), JsonRequired] Trend[] Trends);
+    public sealed record Trend(
+        [property: JsonPropertyName("trend_name"), JsonRequired] string TrendName,
+        [property: JsonPropertyName("supporting_data"), JsonRequired] string SupportingData);
 }

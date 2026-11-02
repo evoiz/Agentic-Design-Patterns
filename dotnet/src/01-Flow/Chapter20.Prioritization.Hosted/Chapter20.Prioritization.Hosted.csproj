@@ -5,6 +5,7 @@
     <UserSecretsId>c5ee31d2-1f14-465f-991d-8a8db4da8620</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared.Hosting\Shared.Hosting.csproj" />
     <ProjectReference Include="..\Chapter20.Prioritization\Chapter20.Prioritization.csproj" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Azure.Identity" />

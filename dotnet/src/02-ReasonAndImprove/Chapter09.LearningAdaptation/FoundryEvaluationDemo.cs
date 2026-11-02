@@ -258,47 +258,20 @@ public static class FoundryEvaluationDemo
             var root = document.RootElement;
             foreach (var outputItem in root.GetProperty("data").EnumerateArray())
             {
-                if (!outputItem.TryGetProperty("results", out var results) ||
-                    results.ValueKind != JsonValueKind.Array)
+                if (!outputItem.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
                 {
                     continue;
                 }
 
                 foreach (var result in results.EnumerateArray())
                 {
-                    var evaluatorName = result.TryGetProperty("name", out var name)
-                        ? name.GetString()
-                        : result.TryGetProperty("metric", out var metric)
-                            ? metric.GetString()
-                            : null;
-                    if (!string.Equals(evaluatorName, "task_adherence", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    if (result.TryGetProperty("passed", out var passedValue) &&
-                        passedValue.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                    if (IsTaskAdherence(result) && TryGetPassed(result, out var resultPassed))
                     {
                         total++;
-                        if (passedValue.GetBoolean())
-                        {
-                            passed++;
-                        }
-                    }
-                    else if (result.TryGetProperty("label", out var label) &&
-                             label.ValueKind == JsonValueKind.String &&
-                             (string.Equals(label.GetString(), "pass", StringComparison.OrdinalIgnoreCase) ||
-                              string.Equals(label.GetString(), "fail", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        total++;
-                        if (string.Equals(label.GetString(), "pass", StringComparison.OrdinalIgnoreCase))
-                        {
-                            passed++;
-                        }
+                        passed += resultPassed ? 1 : 0;
                     }
                 }
             }
-
             hasMore = root.GetProperty("has_more").GetBoolean();
             after = hasMore ? root.GetProperty("last_id").GetString() : null;
         }
@@ -312,6 +285,30 @@ public static class FoundryEvaluationDemo
         }
 
         return new EvaluationScore(passed, total);
+    }
+
+    private static bool IsTaskAdherence(JsonElement result)
+    {
+        var name = result.TryGetProperty("name", out var nameValue) ? nameValue.GetString()
+            : result.TryGetProperty("metric", out var metric) ? metric.GetString()
+            : null;
+        return string.Equals(name, "task_adherence", StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Accept a boolean "passed" or a "pass"/"fail" label; anything else is not a usable result.
+    private static bool TryGetPassed(JsonElement result, out bool passed)
+    {
+        if (result.TryGetProperty("passed", out var value) && value.ValueKind is JsonValueKind.True or JsonValueKind.False)
+        {
+            passed = value.GetBoolean();
+            return true;
+        }
+
+        var label = result.TryGetProperty("label", out var labelValue) && labelValue.ValueKind == JsonValueKind.String
+            ? labelValue.GetString()
+            : null;
+        passed = string.Equals(label, "pass", StringComparison.OrdinalIgnoreCase);
+        return passed || string.Equals(label, "fail", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string GetString(ClientResult result, string propertyName)

@@ -1,7 +1,5 @@
 using AgenticDesignPatterns.Shared;
-using Azure.AI.AgentServer.Core;
-using Azure.AI.OpenAI;
-using Azure.Identity;
+using AgenticDesignPatterns.Shared.Hosting;
 using Chapter12.ExceptionHandling;
 using Chapter12.ExceptionHandling.Hosted;
 using Microsoft.Agents.AI.Foundry.Hosting;
@@ -13,26 +11,9 @@ builder.WebApplicationBuilder.Configuration
     .AddUserSecrets(typeof(FoundryChatClientFactory).Assembly)
     .AddEnvironmentVariables()
     .AddCommandLine(args);
-var settings = HostedFoundryConfiguration.LoadSettings(builder.Configuration);
-var deploymentAlias = builder.Configuration["deployment"];
-var deployment = settings.ResolveModelDeployment(deploymentAlias);
-
-var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-{
-    TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID")
-});
-IChatClient modelClient = string.IsNullOrWhiteSpace(settings.ApiKey)
-    ? new AzureOpenAIClient(
-            new Uri(settings.OpenAIEndpoint.GetLeftPart(UriPartial.Authority)), credential)
-        .GetChatClient(deployment)
-        .AsIChatClient()
-    : FoundryChatClientFactory.CreateChatClient(settings, deploymentAlias);
-using IChatClient chatClient = modelClient.AsBuilder()
-    .UseOpenTelemetry(
-        sourceName: ExceptionHandlingWorkflow.TelemetrySourceName,
-        configure: options => options.EnableSensitiveData = true)
-    .Build();
-
+// Agent-level spans (with sensitive data) are added inside the workflow; no extra chat-client wrapper needed.
+using IChatClient chatClient = HostedFoundryConfiguration.CreateChatClient(
+    builder.Configuration, builder.Configuration["deployment"]);
 builder.ConfigureTracing(tracing => tracing.AddSource(ExceptionHandlingWorkflow.TelemetrySourceName));
 builder.Services.AddFoundryResponses(new ExceptionHandlingAgent(chatClient));
 builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());

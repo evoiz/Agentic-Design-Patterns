@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Chapter09.LearningAdaptation.Models;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -8,11 +7,19 @@ namespace Chapter09.LearningAdaptation;
 public static class LearningAdaptationWorkflow
 {
     public const string TelemetrySourceName = "Chapter09.LearningAdaptation";
+    public const string InitialInstructions =
+        "You are a helpful customer-support assistant. Answer the customer's question briefly.";
     public const int MaximumInstructionLength = 4000;
     public const int MaximumIterations = 3;
 
-    private static readonly ActivitySource ActivitySource = new(TelemetrySourceName);
+    private const string CuratorInstructions = """
+        You improve task instructions using evidence from a fixed evaluation contract.
+        Return only a complete replacement instruction block, not an answer to any benchmark case.
+        Preserve the original task and policy facts. Add only guidance needed to satisfy the listed
+        requirements; do not weaken the evaluation criteria or invent policies.
+        """;
 
+    // Evaluate → curate a prompt from failures → re-evaluate; keep a candidate only if it scores higher.
     public static async Task<LearningAdaptationResult> RunAsync(
         IChatClient chatClient,
         string startingInstructions,
@@ -22,35 +29,17 @@ public static class LearningAdaptationWorkflow
     {
         ArgumentNullException.ThrowIfNull(chatClient);
         ValidateInstructions(startingInstructions);
-        if (maxIterations is < 1 or > MaximumIterations)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(maxIterations),
-                maxIterations,
-                $"The iteration budget must be between 1 and {MaximumIterations}.");
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxIterations, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(maxIterations, MaximumIterations);
 
-        cancellationToken.ThrowIfCancellationRequested();
-        using var activity = ActivitySource.StartActivity("learning-adaptation.run");
-        activity?.SetTag("learning-adaptation.max_iterations", maxIterations);
         writeOutput?.Invoke("--- Baseline evaluation ---");
         var baseline = await EvaluateAsync(chatClient, startingInstructions, writeOutput, cancellationToken);
         var best = baseline;
         var proposals = new List<PromptProposal>();
+        var curator = CreateAgent(chatClient, "PromptCurator", CuratorInstructions);
 
         for (var iteration = 1; iteration <= maxIterations && !best.Passed; iteration++)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            writeOutput?.Invoke($"\n--- Prompt update proposal (iteration {iteration}) ---");
-            var curator = CreateAgent(
-                chatClient,
-                "PromptCurator",
-                """
-                You improve task instructions using evidence from a fixed evaluation contract.
-                Return only a complete replacement instruction block, not an answer to any benchmark case.
-                Preserve the original task and policy facts. Add only guidance needed to satisfy the listed
-                requirements; do not weaken the evaluation criteria or invent policies.
-                """);
             var feedback = FormatFeedback(best);
             writeOutput?.Invoke($"\n--- Curated findings (iteration {iteration}) ---\n{feedback}");
             var response = await curator.RunAsync(
@@ -64,64 +53,43 @@ public static class LearningAdaptationWorkflow
                 Return only the revised instructions.
                 """,
                 cancellationToken: cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
             var proposedInstructions = response.Text?.Trim();
             ValidateInstructions(proposedInstructions);
-            writeOutput?.Invoke(
-                $"\n--- Prompt candidate (iteration {iteration}) ---\n{proposedInstructions}");
+            writeOutput?.Invoke($"\n--- Prompt candidate (iteration {iteration}) ---\n{proposedInstructions}");
 
-            var proposalEvaluation = await EvaluateAsync(
-                chatClient,
-                proposedInstructions!,
-                writeOutput,
-                cancellationToken);
-            proposals.Add(new PromptProposal(iteration, proposalEvaluation));
-            writeOutput?.Invoke(
-                $"Candidate score: {proposalEvaluation.PassedCases}/{proposalEvaluation.TotalCases} cases passed.");
-
-            if (proposalEvaluation.PassedCases > best.PassedCases)
-            {
-                best = proposalEvaluation;
-            }
-            else
+            var candidate = await EvaluateAsync(chatClient, proposedInstructions!, writeOutput, cancellationToken);
+            proposals.Add(new PromptProposal(iteration, candidate));
+            writeOutput?.Invoke($"Candidate score: {candidate.PassedCases}/{candidate.TotalCases} cases passed.");
+            if (candidate.PassedCases <= best.PassedCases)
             {
                 break;
             }
+
+            best = candidate;
         }
 
-        activity?.SetTag("learning-adaptation.baseline_score", baseline.PassedCases);
-        activity?.SetTag("learning-adaptation.best_score", best.PassedCases);
-        activity?.SetTag("learning-adaptation.proposal_count", proposals.Count);
         return new LearningAdaptationResult(baseline, proposals, best);
     }
 
-    public static AIAgent CreateAgent(IChatClient chatClient, string name, string instructions)
-    {
-        ArgumentNullException.ThrowIfNull(chatClient);
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(instructions);
-
-        return new ChatClientAgent(chatClient, instructions, name: name)
+    private static AIAgent CreateAgent(IChatClient chatClient, string name, string instructions) =>
+        new ChatClientAgent(chatClient, instructions, name: name)
             .AsBuilder()
-            .UseOpenTelemetry(
-                TelemetrySourceName,
-                configure: options => options.EnableSensitiveData = true)
+            .UseOpenTelemetry(TelemetrySourceName, configure: options => options.EnableSensitiveData = true)
             .Build();
-    }
 
+    // Deterministic benchmark: required/forbidden phrases decide pass/fail, not a model judge.
     private static async Task<PromptEvaluationResult> EvaluateAsync(
         IChatClient chatClient,
         string instructions,
         Action<string>? writeOutput,
         CancellationToken cancellationToken)
     {
+        var candidate = CreateAgent(chatClient, "PromptUnderEvaluation", instructions);
         var caseResults = new List<EvaluationCaseResult>(EvaluationBenchmark.Cases.Count);
         foreach (var benchmarkCase in EvaluationBenchmark.Cases)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var candidate = CreateAgent(chatClient, "PromptUnderEvaluation", instructions);
+            // A fresh session per case keeps benchmark answers independent.
             var response = await candidate.RunAsync(benchmarkCase.Input, cancellationToken: cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
             var answer = response.Text ?? string.Empty;
             var missing = benchmarkCase.RequiredPhrases
                 .Where(phrase => !answer.Contains(phrase, StringComparison.OrdinalIgnoreCase))
@@ -135,7 +103,6 @@ public static class LearningAdaptationWorkflow
                 missing,
                 forbidden);
             caseResults.Add(result);
-
             writeOutput?.Invoke(
                 $"{(result.Passed ? "PASS" : "FAIL")} {result.Name}" +
                 (result.Passed ? string.Empty : $"; missing: {FormatPhrases(missing)}; forbidden: {FormatPhrases(forbidden)}"));
@@ -157,11 +124,8 @@ public static class LearningAdaptationWorkflow
                     $"- {result.Name}: required phrases missing [{FormatPhrases(result.MissingPhrases)}]; " +
                     $"forbidden phrases present [{FormatPhrases(result.ForbiddenPhrases)}]."));
 
-    private static string FormatPhrases(IEnumerable<string> phrases)
-    {
-        var values = phrases.ToArray();
-        return values.Length == 0 ? "none" : string.Join(", ", values);
-    }
+    private static string FormatPhrases(IReadOnlyList<string> phrases) =>
+        phrases.Count == 0 ? "none" : string.Join(", ", phrases);
 
     private static void ValidateInstructions(string? instructions)
     {

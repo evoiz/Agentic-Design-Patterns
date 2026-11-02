@@ -6,8 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Chapter11.GoalSettingMonitoring\Chapter11.GoalSettingMonitoring.csproj" />
-    <PackageReference Include="Azure.AI.OpenAI" />
-    <PackageReference Include="Azure.Identity" />
+    <ProjectReference Include="..\..\Shared.Hosting\Shared.Hosting.csproj" />
     <PackageReference Include="Microsoft.Agents.AI.Foundry.Hosting" />
   </ItemGroup>
 </Project>

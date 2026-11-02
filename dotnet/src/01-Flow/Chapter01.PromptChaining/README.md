@@ -1,10 +1,6 @@
 # Chapter 01 — Prompt Chaining
 
-> Book: *Agentic Design Patterns* (Antonio Gulli), Chapter 01. Implemented with Microsoft Agent Framework (C#) and a Microsoft Foundry model deployment.
-
-## The Pattern in One Paragraph
-
-Prompt chaining decomposes a complex request into ordered model steps, where each step produces an intermediate result for the next. It makes transformations easier to inspect and specialize, but each step adds latency and can propagate earlier mistakes.
+Prompt chaining breaks a transformation into ordered, inspectable model calls. The extractor preserves facts; the formatter consumes that intermediate response and produces a typed JSON shape. MAF's `BuildSequential` supplies orchestration, not a hand-written simulation.
 
 ```mermaid
 flowchart LR
@@ -14,72 +10,50 @@ flowchart LR
     Transform --> Output
 ```
 
-## What This Demo Shows
+## Where to look in code
 
-| Variant | Source notebook | MAF / Foundry building blocks | What to observe |
-|---|---|---|---|
-| Technical specifications (`specs`) | `Chapter_01_Prompt_Chaining_(Code_Example).ipynb` | Two `ChatClientAgent`s in an `AgentWorkflowBuilder.BuildSequential` workflow | Extracted CPU, memory, and storage values flow into a JSON formatting step. |
-| Market trends (`trends`) | `Chapter_01_Prompt_Chaining_(JSON_Example).ipynb` | Two `ChatClientAgent`s in an `AgentWorkflowBuilder.BuildSequential` workflow | Research evidence is extracted into trends, then transformed into the notebook's JSON shape. The notebook contains only a sample JSON output, not executable prompts or input; the demo supplies evidence corresponding to those sample claims. |
-| Foundry-native | Both | Not applicable | Foundry does not provide a separate native prompt-chaining primitive for this scenario; MAF supplies the orchestration while Foundry hosts the model deployment. |
+- [`PromptChainRunner.RunAsync<TOutput>`](Demos/PromptChainRunner.cs): two agents, `BuildSequential`, typed response schema, workflow output and failure handling.
+- [`TechnicalSpecificationsDemo`](Demos/TechnicalSpecificationsDemo.cs): extraction and specification schema (`cpu`, `memory`, `storage`).
+- [`MarketTrendsDemo`](Demos/MarketTrendsDemo.cs): evidence-preserving trend extraction and the notebook's JSON structure.
+- [`BufferedStreamingChatClient`](Demos/BufferedStreamingChatClient.cs): compatibility bridge; the installed sequential workflow calls agent streaming APIs internally, even when the caller awaits a completed run.
 
-The demos request JSON through prompts and return the final assistant text without schema validation. They await the workflow and print completed agent responses rather than streaming tokens.
+## Notebook → C# mapping
 
-## Setup
-
-1. Prerequisites: .NET 10 SDK and a Microsoft Foundry project with an OpenAI-compatible model deployment and API key.
-2. Configure shared user-secrets once; see [the .NET setup guide](../../../README.md). Do not put credentials in source files.
-3. Run all examples:
-   ```powershell
-   dotnet run --project dotnet/src/01-Flow/Chapter01.PromptChaining
-   ```
-4. Run one example:
-   ```powershell
-   dotnet run --project dotnet/src/01-Flow/Chapter01.PromptChaining -- specs
-   dotnet run --project dotnet/src/01-Flow/Chapter01.PromptChaining -- trends
-   ```
-5. Optionally select a named model deployment configured under `Foundry:ModelDeployments`:
-   ```powershell
-   dotnet run --project dotnet/src/01-Flow/Chapter01.PromptChaining -- specs --deployment fast
-   ```
-
-## Notebook → C# Mapping
-
-| Python notebook element | C# (MAF) |
+| Notebook in `chapter_notebooks/` | C# behavior |
 |---|---|
-| `ChatPromptTemplate` extraction prompt | `SpecificationExtractor` / `MarketTrendExtractor` agent instructions |
-| `ChatPromptTemplate` transformation prompt | `SpecificationJsonFormatter` / `MarketTrendJsonFormatter` agent instructions |
-| LCEL pipe (`prompt → model → parser`) | `AgentWorkflowBuilder.BuildSequential` over two `ChatClientAgent`s |
-| Laptop sample input | Same laptop sentence, including 3.5 GHz octa-core CPU, 16 GB RAM, and 1 TB NVMe SSD |
-| Trends notebook's JSON sample | JSON shape reproduced from the sample; source data is provided as input because the notebook has no executable prompt or input |
-| `StrOutputParser` | Final assistant message text from the workflow output |
+| `Chapter_01_Prompt_Chaining_(Code_Example).ipynb` | `specs`: the same laptop specifications flow from extraction to JSON formatting. LCEL pipes become `BuildSequential`. |
+| `Chapter_01_Prompt_Chaining_(JSON_Example).ipynb` | `trends`: reproduces the example's `trends`, `trend_name`, and `supporting_data` shape. The notebook contains only JSON; the demo supplies corresponding source notes rather than pretending it contains an executable pipeline. |
 
-## When to Use
+Both completed assistant responses are printed, followed by final JSON. The formatter receives a response schema and the result is deserialized before success; neither structural typing nor valid JSON proves that extracted facts are correct.
 
-- A request has clear stages and each stage can be evaluated independently.
-- The input is transformed into an intermediate representation before formatting or generation.
-- You need visible, specialized processing steps for extraction, normalization, or document workflows.
+## Run
 
-## When NOT to Use
+Use .NET 10 and the [shared Foundry configuration](../../../README.md). From the repository root:
 
-- The task is simple enough for one model call; extra steps add cost and latency without useful control.
-- The stages are independent and could be evaluated or executed in parallel.
-- A later stage cannot validate or correct errors introduced by an earlier stage.
+```powershell
+dotnet run --project .\dotnet\src\01-Flow\Chapter01.PromptChaining
+dotnet run --project .\dotnet\src\01-Flow\Chapter01.PromptChaining -- specs
+dotnet run --project .\dotnet\src\01-Flow\Chapter01.PromptChaining -- trends --deployment fast
+dotnet test .\dotnet\tests\01-Flow\PromptChaining.Tests
+```
 
-## Real-World Scenarios
+The default and `all` run both examples; `--deployment <alias>` selects a configured model alias. Deterministic tests check handoff, visible intermediate output, schema selection, and invalid JSON without model access.
 
-1. **Document intake** — extract named fields from contracts, then normalize them into a downstream JSON schema.
-2. **Customer support** — classify a request, then draft a response using the selected category and extracted facts.
-3. **Market research** — identify evidence-backed trends from source notes, then emit a consistent reporting structure.
-4. **Data migration** — interpret legacy records, then map fields into a target representation for deterministic validation.
+## When to use / when not to use
 
-## Extending with Microsoft Foundry
+Use when stages have distinct responsibilities and useful intermediate artifacts. Avoid it for a direct question, independent subtasks that could run concurrently, or a pipeline whose later stages cannot detect upstream omissions.
 
-- Add tracing to observe each agent invocation, token usage, latency, and failures.
-- Evaluate extraction fidelity and JSON validity against representative examples before changing prompts or deployments.
-- Use Foundry's structured-output support or a deterministic JSON/schema validator for stronger output guarantees when the deployment supports it.
+## Scenarios
 
-## Risks & Limitations
+- Extract contract fields, then normalize them into an intake schema.
+- Identify evidence-backed market trends, then format a report.
+- Interpret legacy records, then map them into a target data model.
+- Extract product attributes, then generate a consistent catalog entry.
 
-- The calls execute serially, so latency and token use increase with each stage.
-- Later steps receive model-generated intermediate text; extraction errors or omissions can propagate.
-- Prompted output formats are not guarantees; validate intermediate and final data against the downstream contract.
+## Foundry and hosting
+
+Foundry supplies the model; there is no distinct native prompt-chaining primitive to demonstrate. Evaluate extraction fidelity as well as schema validity. This chapter intentionally remains a console example: it presents two fixed sample transformations rather than a caller-input service. A hosted adaptation should first define scenario selection and the caller's input/output contract; see [common hosting guidance](../../../HOSTING.md).
+
+## Tradeoffs
+
+Serial calls add latency and token cost. Intermediate model errors can propagate, and a schema controls shape rather than evidence fidelity. Keep source facts available and validate domain requirements at the consuming boundary.

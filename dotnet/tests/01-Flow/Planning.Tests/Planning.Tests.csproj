@@ -4,6 +4,8 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\TestSupport\TestSupport.csproj" />
+    <ProjectReference Include="..\..\..\src\01-Flow\Chapter06.Planning.Hosted\Chapter06.Planning.Hosted.csproj" />
     <ProjectReference Include="..\..\..\src\01-Flow\Chapter06.Planning\Chapter06.Planning.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />

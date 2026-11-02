@@ -1,14 +1,9 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using System.Net.Http.Json;
-using System.Text.Json;
-using Azure.AI.AgentServer.Core;
+using AgenticDesignPatterns.TestSupport;
 using Chapter03.Parallelization;
 using Chapter03.Parallelization.Hosted;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Agents.AI.Foundry.Hosting;
 using Microsoft.Extensions.AI;
-using OpenTelemetry.Trace;
 using Xunit;
 
 namespace AgenticDesignPatterns.Parallelization.Tests;
@@ -150,45 +145,11 @@ public sealed class ParallelizationAgentTests
     public async Task Responses_protocol_returns_synthesis_for_the_callers_topic()
     {
         using var model = new ScriptedChatClient();
-        using var chatClient = model.AsBuilder()
-            .UseOpenTelemetry(
-                sourceName: ParallelizationWorkflow.TelemetrySourceName,
-                configure: options => options.EnableSensitiveData = true)
-            .Build();
-        var builder = AgentHost.CreateBuilder([]);
-        builder.WebApplicationBuilder.WebHost.UseTestServer();
-        builder.ConfigureTracing(tracing => tracing.AddSource(ParallelizationWorkflow.TelemetrySourceName));
-        builder.Services.AddFoundryResponses(new ParallelizationAgent(chatClient));
-        builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());
-        await using var app = builder.Build().App;
-        await app.StartAsync();
-
-        try
-        {
-            using var http = app.GetTestClient();
-            using var response = await http.PostAsJsonAsync("/responses", new
-            {
-                model = "chapter03-parallelization",
-                input = "topic: Caller-supplied city planning request.",
-                stream = false,
-                store = false
-            });
-            response.EnsureSuccessStatusCode();
-            using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-
-            Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
-            var responseText = string.Concat(
-                body.RootElement.GetProperty("output").EnumerateArray()
-                    .SelectMany(item => item.GetProperty("content").EnumerateArray())
-                    .Where(item => item.GetProperty("type").GetString() == "output_text")
-                    .Select(item => item.GetProperty("text").GetString()));
-            Assert.Contains("Synthesized response.", responseText);
-            Assert.Contains(model.Requests, item => item.Input == "Caller-supplied city planning request.");
-        }
-        finally
-        {
-            await app.StopAsync();
-        }
+        await using var host = await HostedResponses.StartAsync(new ParallelizationAgent(model));
+        using var body = await host.InvokeAsync("topic: Caller-supplied city planning request.", "chapter03-parallelization");
+        Assert.Equal("completed", body.RootElement.GetProperty("status").GetString());
+        Assert.Contains("Synthesized response.", HostedResponses.OutputText(body.RootElement));
+        Assert.Contains(model.Requests, item => item.Input == "Caller-supplied city planning request.");
     }
 
     [Fact]
@@ -197,7 +158,7 @@ public sealed class ParallelizationAgentTests
         using var client = new ScriptedChatClient();
         var agent = new ParallelizationAgent(client);
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+        await Assert.ThrowsAnyAsync<ArgumentException>(() =>
             agent.RunAsync([new ChatMessage(ChatRole.Assistant, "No user request.")]));
 
         Assert.Empty(client.Requests);

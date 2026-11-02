@@ -59,7 +59,7 @@ if (invalidArguments || selectedDemos is null)
 try
 {
     var settings = FoundryChatClientFactory.LoadSettings();
-    var chatClient = FoundryChatClientFactory.CreateChatClient(settings, deploymentSelection);
+    using var chatClient = FoundryChatClientFactory.CreateChatClient(settings, deploymentSelection);
     Console.WriteLine($"Using model deployment: {settings.ResolveModelDeployment(deploymentSelection)}");
 
     foreach (var (key, demo) in selectedDemos)

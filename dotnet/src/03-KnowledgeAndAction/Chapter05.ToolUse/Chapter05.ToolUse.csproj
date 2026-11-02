@@ -5,6 +5,7 @@
     <RootNamespace>Chapter05.ToolUse</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared.Hosting\Shared.Hosting.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.csproj" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Microsoft.Agents.AI" />

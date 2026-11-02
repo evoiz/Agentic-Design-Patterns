@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <ItemGroup>
-    <ProjectReference Include="..\DecisionModels\DecisionModels.csproj" />
-    <PackageReference Include="Microsoft.Agents.AI.Foundry.Hosting" />
-    <PackageReference Include="Azure.AI.OpenAI" />
-  </ItemGroup>
-</Project>

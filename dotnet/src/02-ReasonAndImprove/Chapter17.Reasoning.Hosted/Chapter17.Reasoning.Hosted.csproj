@@ -5,6 +5,7 @@
     <UserSecretsId>b56ff72e-c320-48cc-9903-59a94cc12fb2</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared.Hosting\Shared.Hosting.csproj" />
     <ProjectReference Include="..\Chapter17.Reasoning\Chapter17.Reasoning.csproj" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Azure.Identity" />

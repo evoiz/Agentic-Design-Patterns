@@ -1,7 +1,11 @@
 using System.ComponentModel;
 using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace Chapter05.ToolUse;
+
+[JsonConverter(typeof(JsonStringEnumConverter<CalculatorOperation>))]
+public enum CalculatorOperation { Add, Subtract, Multiply, Divide, Factorial }
 
 public sealed class ToolUseFunctions(Action<string>? writeToolOutput = null)
 {
@@ -22,191 +26,63 @@ public sealed class ToolUseFunctions(Action<string>? writeToolOutput = null)
             ["MSFT"] = 425.50m
         };
 
-    [Description("Looks up factual information in a small deterministic sample search index. Use this for known sample topics, not current events.")]
-    public string SearchInformation(
-        [Description("The topic or question to look up.")] string query)
+    [Description("Looks up factual information in a small deterministic sample search index, not current events.")]
+    public string SearchInformation([Description("The topic or question to look up.")] string query)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(query);
-        var normalizedQuery = query.Trim();
-        var result = SearchResults.TryGetValue(normalizedQuery, out var found)
+        var result = SearchResults.TryGetValue(query.Trim(), out var found)
             ? found
-            : $"Simulated search result for '{normalizedQuery}': No specific information found, but the topic seems interesting.";
-        writeToolOutput?.Invoke($"Tool called: search_information\nQuery: {normalizedQuery}\nResult: {result}");
+            : $"Simulated search result for '{query.Trim()}': No specific information found, but the topic seems interesting.";
+        return Report("search_information", query, result);
+    }
+
+    [Description("Performs one typed decimal arithmetic operation. Chain calls for compound expressions. Factorial uses left only, an integer from 0 to 27. Never executes code.")]
+    public decimal Calculate(
+        CalculatorOperation operation,
+        [Description("First operand, or factorial input.")] decimal left,
+        [Description("Second operand; ignored for factorial.")] decimal right = 0)
+    {
+        var result = operation switch
+        {
+            CalculatorOperation.Add => left + right,
+            CalculatorOperation.Subtract => left - right,
+            CalculatorOperation.Multiply => left * right,
+            CalculatorOperation.Divide => left / right,
+            CalculatorOperation.Factorial => Factorial(left),
+            _ => throw new ArgumentOutOfRangeException(nameof(operation))
+        };
+        return Report("calculate", $"{operation}({left}, {right})", result);
+    }
+
+    [Description("Looks up a simulated stock price for AAPL, GOOGL, or MSFT. Sample data, not a live quote.")]
+    public decimal GetStockPrice([Description("The stock ticker symbol to look up.")] string ticker)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ticker);
+        var normalized = ticker.Trim().ToUpperInvariant();
+        return Report("get_stock_price", normalized, StockPrices.TryGetValue(normalized, out var price)
+            ? price
+            : throw new KeyNotFoundException($"Simulated price for ticker '{normalized}' not found."));
+    }
+
+    private static decimal Factorial(decimal input)
+    {
+        if (input < 0 || input > 27 || input != decimal.Truncate(input))
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "Factorial requires an integer from 0 to 27.");
+        }
+
+        var result = 1m;
+        for (var value = 2; value <= input; value++)
+        {
+            result *= value;
+        }
+
         return result;
     }
 
-    [Description("Evaluates a basic arithmetic expression using a bounded, deterministic parser. Supports +, -, *, /, parentheses, decimals, and factorial with integer inputs from 0 to 27. Does not execute general code.")]
-    public string CalculateExpression(
-        [Description("An arithmetic expression, such as (5 + 7) * 3 or 10!.")] string expression)
+    private T Report<T>(string tool, string input, T result)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(expression);
-        var result = new ArithmeticExpressionParser(expression).Parse();
-        var formattedResult = result.ToString("G29", CultureInfo.InvariantCulture);
-        writeToolOutput?.Invoke($"Tool called: calculate_expression\nExpression: {expression}\nResult: {formattedResult}");
-        return formattedResult;
-    }
-
-    [Description("Looks up a simulated stock price for a supported ticker symbol (AAPL, GOOGL, or MSFT). This is sample data, not a live quote.")]
-    public decimal GetStockPrice(
-        [Description("The stock ticker symbol to look up.")] string ticker)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(ticker);
-        var normalizedTicker = ticker.Trim().ToUpperInvariant();
-        if (!StockPrices.TryGetValue(normalizedTicker, out var price))
-        {
-            throw new KeyNotFoundException($"Simulated price for ticker '{normalizedTicker}' not found.");
-        }
-
-        writeToolOutput?.Invoke(
-            $"Tool called: get_stock_price\nTicker: {normalizedTicker}\nResult: {price.ToString("0.00", CultureInfo.InvariantCulture)}");
-        return price;
-    }
-
-    private sealed class ArithmeticExpressionParser(string expression)
-    {
-        private const int MaximumExpressionLength = 128;
-        private const int MaximumNestingDepth = 32;
-        private const int MaximumFactorialInput = 27;
-        private readonly string _expression = expression;
-        private int _position;
-        private int _nestingDepth;
-
-        public decimal Parse()
-        {
-            if (_expression.Length > MaximumExpressionLength)
-            {
-                throw new FormatException($"Expressions cannot exceed {MaximumExpressionLength} characters.");
-            }
-
-            var result = ParseAddition();
-            SkipWhitespace();
-            if (_position != _expression.Length)
-            {
-                throw InvalidExpression();
-            }
-
-            return result;
-        }
-
-        private decimal ParseAddition()
-        {
-            var result = ParseMultiplication();
-            while (TryConsume('+') || TryConsume('-'))
-            {
-                var operation = _expression[_position - 1];
-                var right = ParseMultiplication();
-                result = operation == '+' ? result + right : result - right;
-            }
-
-            return result;
-        }
-
-        private decimal ParseMultiplication()
-        {
-            var result = ParseUnary();
-            while (TryConsume('*') || TryConsume('/'))
-            {
-                var operation = _expression[_position - 1];
-                var right = ParseUnary();
-                result = operation == '*' ? result * right : result / right;
-            }
-
-            return result;
-        }
-
-        private decimal ParseUnary()
-        {
-            if (TryConsume('+'))
-            {
-                return ParseUnary();
-            }
-
-            if (TryConsume('-'))
-            {
-                return -ParseUnary();
-            }
-
-            var result = ParsePrimary();
-            if (TryConsume('!'))
-            {
-                if (result < 0 || result != decimal.Truncate(result) || result > MaximumFactorialInput)
-                {
-                    throw new FormatException($"Factorial requires an integer from 0 to {MaximumFactorialInput}.");
-                }
-
-                var factorial = 1m;
-                for (var value = 2; value <= (int)result; value++)
-                {
-                    factorial *= value;
-                }
-
-                result = factorial;
-            }
-
-            return result;
-        }
-
-        private decimal ParsePrimary()
-        {
-            SkipWhitespace();
-            if (TryConsume('('))
-            {
-                if (++_nestingDepth > MaximumNestingDepth)
-                {
-                    throw new FormatException($"Expressions cannot nest more than {MaximumNestingDepth} parentheses.");
-                }
-
-                var result = ParseAddition();
-                if (!TryConsume(')'))
-                {
-                    throw InvalidExpression();
-                }
-
-                _nestingDepth--;
-                return result;
-            }
-
-            var start = _position;
-            while (_position < _expression.Length &&
-                (char.IsAsciiDigit(_expression[_position]) || _expression[_position] == '.'))
-            {
-                _position++;
-            }
-
-            if (start == _position ||
-                !decimal.TryParse(
-                    _expression.AsSpan(start, _position - start),
-                    NumberStyles.AllowDecimalPoint,
-                    CultureInfo.InvariantCulture,
-                    out var value))
-            {
-                throw InvalidExpression();
-            }
-
-            return value;
-        }
-
-        private bool TryConsume(char expected)
-        {
-            SkipWhitespace();
-            if (_position >= _expression.Length || _expression[_position] != expected)
-            {
-                return false;
-            }
-
-            _position++;
-            return true;
-        }
-
-        private void SkipWhitespace()
-        {
-            while (_position < _expression.Length && char.IsWhiteSpace(_expression[_position]))
-            {
-                _position++;
-            }
-        }
-
-        private FormatException InvalidExpression() =>
-            new($"Invalid arithmetic expression near position {_position}: '{_expression}'.");
+        writeToolOutput?.Invoke($"Tool called: {tool}\nInput: {input}\nResult: {Convert.ToString(result, CultureInfo.InvariantCulture)}");
+        return result;
     }
 }

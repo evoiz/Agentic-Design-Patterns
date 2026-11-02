@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Chapter11.GoalSettingMonitoring.Models;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
@@ -10,8 +9,7 @@ public static class GoalSettingWorkflow
 {
     public const string TelemetrySourceName = "Chapter11.GoalSettingMonitoring";
 
-    private static readonly ActivitySource ActivitySource = new(TelemetrySourceName);
-
+    // generate -> review -> judge, looping back to generate until the judge says True or the budget is spent.
     public static async Task<GoalSettingResult> RunAsync(
         IChatClient chatClient,
         GoalSettingRequest request,
@@ -23,46 +21,27 @@ public static class GoalSettingWorkflow
         request.Validate();
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var activity = ActivitySource.StartActivity("goal-setting.run");
-        activity?.SetTag("goal-setting.max_iterations", request.MaxIterations);
-        activity?.SetTag("goal-setting.goal_count", request.Goals.Count);
-
-        var generator = CreateAgent(
-            chatClient,
-            "CodeGenerator",
-            """
+        var generation = new GenerationExecutor(CreateAgent(chatClient, "CodeGenerator", """
             You are a Python code generator. Return only a complete Python code snippet that addresses
             the caller's use case and goals. Do not include Markdown fences or explanations.
             When revising, preserve the use case and address the reviewer feedback without dropping
             previously satisfied goals.
-            """);
-        var reviewer = CreateAgent(
-            chatClient,
-            "GoalReviewer",
-            """
+            """), writeOutput);
+        var review = new ReviewExecutor(CreateAgent(chatClient, "GoalReviewer", """
             You are an independent Python code reviewer. Critique the submitted code against every
             stated goal. Identify correctness, clarity, and edge-case gaps. Do not rewrite the code
             and do not decide whether the loop should stop; the separate goal judge makes that decision.
-            """);
-        var judge = CreateAgent(
-            chatClient,
-            "GoalJudge",
-            """
+            """), writeOutput);
+        var assessment = new AssessmentExecutor(CreateAgent(chatClient, "GoalJudge", """
             You are a strict goal-completion judge. Decide whether the code satisfies every stated
             goal, using the review as evidence. Reply with exactly one word: True or False.
-            """);
-
-        var generation = new GenerationExecutor(generator, writeOutput);
-        var review = new ReviewExecutor(reviewer, writeOutput);
-        var assessment = new AssessmentExecutor(judge, writeOutput);
-        var decision = new DecisionExecutor(writeOutput);
+            """), writeOutput);
         var completion = new CompletionExecutor();
         var workflow = new WorkflowBuilder(generation)
             .AddEdge(generation, review)
             .AddEdge(review, assessment)
-            .AddEdge(assessment, decision)
-            .AddEdge<GoalSettingProgress>(decision, generation, state => state is { IsComplete: false })
-            .AddEdge<GoalSettingProgress>(decision, completion, state => state is { IsComplete: true })
+            .AddEdge<GoalSettingProgress>(assessment, generation, state => state is { IsComplete: false })
+            .AddEdge<GoalSettingProgress>(assessment, completion, state => state is { IsComplete: true })
             .WithOutputFrom(completion)
             .Build();
 
@@ -83,107 +62,33 @@ public static class GoalSettingWorkflow
                         failed.Data as Exception);
                 case WorkflowErrorEvent error:
                     throw new InvalidOperationException("The goal-setting workflow failed.", error.Exception);
+                case WorkflowOutputEvent output when result is not null:
+                    throw new InvalidOperationException("The goal-setting workflow produced multiple terminal results.");
                 case WorkflowOutputEvent output:
-                    if (result is not null)
-                    {
-                        throw new InvalidOperationException(
-                            "The goal-setting workflow produced multiple terminal results.");
-                    }
-
                     result = output.As<GoalSettingResult>()
-                        ?? throw new InvalidOperationException(
-                            "The goal-setting workflow produced an invalid terminal result.");
+                        ?? throw new InvalidOperationException("The goal-setting workflow produced an invalid terminal result.");
                     break;
             }
         }
 
-        if (result is null)
-        {
-            throw new InvalidOperationException(
-                "The goal-setting workflow completed without a terminal result.");
-        }
-
-        activity?.SetTag("goal-setting.iterations_used", result.Iterations.Count);
-        activity?.SetTag("goal-setting.goals_met", result.GoalsMet);
-        return result;
+        return result ?? throw new InvalidOperationException(
+            "The goal-setting workflow completed without a terminal result.");
     }
 
-    public static AIAgent CreateAgent(IChatClient chatClient, string name, string instructions)
-    {
-        ArgumentNullException.ThrowIfNull(chatClient);
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(instructions);
-
-        return new ChatClientAgent(chatClient, instructions, name: name)
+    private static AIAgent CreateAgent(IChatClient chatClient, string name, string instructions) =>
+        new ChatClientAgent(chatClient, instructions, name: name)
             .AsBuilder()
-            .UseOpenTelemetry(
-                TelemetrySourceName,
-                configure: options => options.EnableSensitiveData = true)
+            .UseOpenTelemetry(TelemetrySourceName, configure: options => options.EnableSensitiveData = true)
             .Build();
-    }
-
-    private static string FormatGenerationInput(GoalSettingProgress state)
-    {
-        var input = $"""
-            Use case:
-            {state.Request.UseCase}
-
-            Goals:
-            {FormatGoals(state.Request.Goals)}
-            """;
-
-        if (state.Iterations.Count > 0)
-        {
-            var previous = state.Iterations[^1];
-            input += $"""
-
-                Previously generated code:
-                {previous.Code}
-
-                Reviewer feedback:
-                {previous.Feedback}
-                """;
-        }
-
-        return input;
-    }
-
-    private static string FormatReviewInput(GoalSettingRequest request, string code) =>
-        $"""
-        Use case:
-        {request.UseCase}
-
-        Goals:
-        {FormatGoals(request.Goals)}
-
-        Code:
-        {code}
-        """;
-
-    private static string FormatJudgeInput(
-        GoalSettingRequest request,
-        string code,
-        string feedback) =>
-        $"""
-        Goals:
-        {FormatGoals(request.Goals)}
-
-        Reviewer feedback:
-        {feedback}
-
-        Code:
-        {code}
-
-        Are all goals met? Reply with exactly one word: True or False.
-        """;
 
     private static string FormatGoals(IEnumerable<string> goals) =>
         string.Join(Environment.NewLine, goals.Select(goal => $"- {goal.Trim()}"));
 
+    // The generator is told not to use fences; strip them anyway so the saved file is valid Python.
     private static string CleanCode(string? text)
     {
         var lines = text?.Trim().Split('\n').ToList() ?? [];
-        if (lines.Count > 0 && lines[0].Trim().StartsWith("```", StringComparison.Ordinal))
+        if (lines.Count > 0 && lines[0].TrimStart().StartsWith("```", StringComparison.Ordinal))
         {
             lines.RemoveAt(0);
         }
@@ -200,11 +105,8 @@ public static class GoalSettingWorkflow
         : Executor<GoalSettingProgress, GoalSettingProgress>("CodeGeneration")
     {
         public override async ValueTask<GoalSettingProgress> HandleAsync(
-            GoalSettingProgress state,
-            IWorkflowContext context,
-            CancellationToken cancellationToken = default)
+            GoalSettingProgress state, IWorkflowContext context, CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (state.IsComplete || state.Iterations.Count >= state.Request.MaxIterations)
             {
                 throw new InvalidOperationException(
@@ -213,10 +115,14 @@ public static class GoalSettingWorkflow
 
             var number = state.Iterations.Count + 1;
             writeOutput?.Invoke($"\n--- Code generation (iteration {number} of {state.Request.MaxIterations}) ---");
-            var response = await generator.RunAsync(
-                FormatGenerationInput(state),
-                cancellationToken: cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
+            var input = $"Use case:\n{state.Request.UseCase}\n\nGoals:\n{FormatGoals(state.Request.Goals)}";
+            if (state.Iterations.Count > 0)
+            {
+                var previous = state.Iterations[^1];
+                input += $"\n\nPreviously generated code:\n{previous.Code}\n\nReviewer feedback:\n{previous.Feedback}";
+            }
+
+            var response = await generator.RunAsync(input, cancellationToken: cancellationToken);
             var code = CleanCode(response.Text);
             if (string.IsNullOrWhiteSpace(code))
             {
@@ -232,22 +138,14 @@ public static class GoalSettingWorkflow
         : Executor<GoalSettingProgress, GoalSettingProgress>("GoalReview")
     {
         public override async ValueTask<GoalSettingProgress> HandleAsync(
-            GoalSettingProgress state,
-            IWorkflowContext context,
-            CancellationToken cancellationToken = default)
+            GoalSettingProgress state, IWorkflowContext context, CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (string.IsNullOrWhiteSpace(state.CurrentCode))
-            {
-                throw new InvalidOperationException("Goal review requires generated code.");
-            }
-
-            var number = state.Iterations.Count + 1;
-            writeOutput?.Invoke($"\n--- Goal review (iteration {number}) ---");
+            var code = state.CurrentCode
+                ?? throw new InvalidOperationException("Goal review requires generated code.");
+            writeOutput?.Invoke($"\n--- Goal review (iteration {state.Iterations.Count + 1}) ---");
             var response = await reviewer.RunAsync(
-                FormatReviewInput(state.Request, state.CurrentCode),
+                $"Use case:\n{state.Request.UseCase}\n\nGoals:\n{FormatGoals(state.Request.Goals)}\n\nCode:\n{code}",
                 cancellationToken: cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
             var feedback = response.Text?.Trim();
             if (string.IsNullOrWhiteSpace(feedback))
             {
@@ -259,17 +157,14 @@ public static class GoalSettingWorkflow
         }
     }
 
+    // Records the judge's verdict and decides deterministically whether the bounded loop stops.
     private sealed class AssessmentExecutor(AIAgent judge, Action<string>? writeOutput)
         : Executor<GoalSettingProgress, GoalSettingProgress>("GoalAssessment")
     {
         public override async ValueTask<GoalSettingProgress> HandleAsync(
-            GoalSettingProgress state,
-            IWorkflowContext context,
-            CancellationToken cancellationToken = default)
+            GoalSettingProgress state, IWorkflowContext context, CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (string.IsNullOrWhiteSpace(state.CurrentCode) ||
-                string.IsNullOrWhiteSpace(state.CurrentFeedback))
+            if (string.IsNullOrWhiteSpace(state.CurrentCode) || string.IsNullOrWhiteSpace(state.CurrentFeedback))
             {
                 throw new InvalidOperationException(
                     "Goal assessment requires both generated code and reviewer feedback.");
@@ -278,70 +173,50 @@ public static class GoalSettingWorkflow
             var number = state.Iterations.Count + 1;
             writeOutput?.Invoke($"\n--- Goal decision (iteration {number}) ---");
             var response = await judge.RunAsync(
-                FormatJudgeInput(state.Request, state.CurrentCode, state.CurrentFeedback),
+                $"""
+                Goals:
+                {FormatGoals(state.Request.Goals)}
+
+                Reviewer feedback:
+                {state.CurrentFeedback}
+
+                Code:
+                {state.CurrentCode}
+
+                Are all goals met? Reply with exactly one word: True or False.
+                """,
                 cancellationToken: cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-            var decision = response.Text?.Trim();
-            var goalsMet = decision switch
+            var decision = response.Text?.Trim() ?? string.Empty;
+            var goalsMet = decision.ToLowerInvariant() switch
             {
-                { } value when string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) => true,
-                { } value when string.Equals(value, "false", StringComparison.OrdinalIgnoreCase) => false,
+                "true" => true,
+                "false" => false,
                 _ => throw new InvalidOperationException(
                     $"The goal judge must answer exactly True or False; received '{decision}'.")
             };
 
             writeOutput?.Invoke($"Goal judge: {goalsMet}");
-            var iteration = new GoalSettingIteration(
-                number,
-                state.CurrentCode,
-                state.CurrentFeedback,
-                goalsMet,
-                decision!);
-            return state with { Iterations = [.. state.Iterations, iteration] };
-        }
-    }
-
-    private sealed class DecisionExecutor(Action<string>? writeOutput)
-        : Executor<GoalSettingProgress, GoalSettingProgress>("GoalDecision")
-    {
-        public override ValueTask<GoalSettingProgress> HandleAsync(
-            GoalSettingProgress state,
-            IWorkflowContext context,
-            CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (state.Iterations.Count == 0)
-            {
-                throw new InvalidOperationException("Goal completion cannot be decided before an assessment.");
-            }
-
-            var latest = state.Iterations[^1];
-            var isComplete = latest.GoalsMet || state.Iterations.Count >= state.Request.MaxIterations;
-            if (latest.GoalsMet)
+            if (goalsMet)
             {
                 writeOutput?.Invoke("All goals were reported met; stopping the bounded loop.");
             }
 
-            return ValueTask.FromResult(state with { IsComplete = isComplete });
+            var iterations = state.Iterations
+                .Append(new GoalSettingIteration(number, state.CurrentCode, state.CurrentFeedback, goalsMet, decision))
+                .ToArray();
+            return state with
+            {
+                Iterations = iterations,
+                IsComplete = goalsMet || iterations.Length >= state.Request.MaxIterations
+            };
         }
     }
 
     [YieldsOutput(typeof(GoalSettingResult))]
     private sealed class CompletionExecutor() : Executor<GoalSettingProgress>("GoalCompletion")
     {
-        public override async ValueTask HandleAsync(
-            GoalSettingProgress state,
-            IWorkflowContext context,
-            CancellationToken cancellationToken = default)
-        {
-            if (!state.IsComplete || state.Iterations.Count == 0)
-            {
-                throw new InvalidOperationException("Goal-setting cannot complete before its stopping condition.");
-            }
-
-            await context.YieldOutputAsync(
-                new GoalSettingResult(state.Request, state.Iterations),
-                cancellationToken);
-        }
+        public override ValueTask HandleAsync(
+            GoalSettingProgress state, IWorkflowContext context, CancellationToken cancellationToken = default) =>
+            context.YieldOutputAsync(new GoalSettingResult(state.Request, state.Iterations), cancellationToken);
     }
 }

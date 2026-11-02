@@ -3,6 +3,7 @@ using Microsoft.Extensions.AI;
 
 namespace Chapter08.Memory.Demos;
 
+// Session-scoped memory: explicit facts are written by code and injected into every later model call.
 internal sealed class ConversationMemoryProvider : AIContextProvider
 {
     private readonly ProviderSessionState<ConversationMemoryState> _sessionState = new(
@@ -14,15 +15,12 @@ internal sealed class ConversationMemoryProvider : AIContextProvider
     public ConversationMemoryState GetState(AgentSession session) =>
         _sessionState.GetOrInitializeState(session);
 
-    public string LogUserLogin(AgentSession session)
+    // Explicit state update: deterministic code, not the model, decides what is remembered.
+    public void Remember(AgentSession session, string key, string value)
     {
         var state = _sessionState.GetOrInitializeState(session);
-        state.LoginCount++;
-        state.TaskStatus = "active";
-        state.LastLoginUtc = DateTimeOffset.UtcNow;
-        state.ValidationNeeded = true;
+        state.Facts[key] = value;
         _sessionState.SaveState(session, state);
-        return $"User login tracked. Total logins: {state.LoginCount}.";
     }
 
     protected override ValueTask<AIContext> ProvideAIContextAsync(
@@ -50,48 +48,18 @@ internal sealed class ConversationMemoryProvider : AIContextProvider
         });
     }
 
+    // Output-key style capture: store the latest assistant answer in session state.
     protected override ValueTask StoreAIContextAsync(
         InvokedContext context,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var state = _sessionState.GetOrInitializeState(context.Session);
-
-        foreach (var message in context.RequestMessages)
-        {
-            if (message.Role != ChatRole.User || string.IsNullOrWhiteSpace(message.Text))
-            {
-                continue;
-            }
-
-            CaptureFact(message.Text, "My name is ", "name", state);
-            CaptureFact(message.Text, "I prefer ", "travel preference", state);
-        }
-
         state.LastResponse = context.ResponseMessages?
             .LastOrDefault(message => message.Role == ChatRole.Assistant)?
             .Text;
         _sessionState.SaveState(context.Session, state);
         return ValueTask.CompletedTask;
-    }
-
-    private static void CaptureFact(
-        string input,
-        string prefix,
-        string key,
-        ConversationMemoryState state)
-    {
-        var value = input.Trim();
-        if (!value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        value = value[prefix.Length..].Trim().TrimEnd('.', '!', '?');
-        if (value.Length > 0)
-        {
-            state.Facts[key] = value;
-        }
     }
 }
 
@@ -99,8 +67,4 @@ internal sealed class ConversationMemoryState
 {
     public Dictionary<string, string> Facts { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public string? LastResponse { get; set; }
-    public int LoginCount { get; set; }
-    public string TaskStatus { get; set; } = "idle";
-    public DateTimeOffset? LastLoginUtc { get; set; }
-    public bool ValidationNeeded { get; set; }
 }

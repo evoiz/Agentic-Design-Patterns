@@ -1,52 +1,37 @@
 using AgenticDesignPatterns.Shared;
-using Chapter09.LearningAdaptation;
-using Chapter09.LearningAdaptation.Demos;
-using Microsoft.Extensions.AI;
 using Azure.Identity;
+using Chapter09.LearningAdaptation;
+using Microsoft.Extensions.AI;
 
+// Usage: [maf|foundry|all] [--iterations 1-3] [--deployment <deployment-alias>]
 var selection = "maf";
-var deploymentAlias = (string?)null;
+string? deploymentAlias = null;
 var iterations = 1;
 var selectionSeen = false;
-var invalidArguments = false;
-
-for (var index = 0; index < args.Length; index++)
+var valid = true;
+for (var index = 0; index < args.Length && valid; index++)
 {
-    if (string.Equals(args[index], "--deployment", StringComparison.OrdinalIgnoreCase))
+    var hasValue = index + 1 < args.Length && !string.IsNullOrWhiteSpace(args[index + 1]);
+    switch (args[index].ToLowerInvariant())
     {
-        if (deploymentAlias is not null || index + 1 >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]))
-        {
-            invalidArguments = true;
+        case "--deployment" when hasValue && deploymentAlias is null:
+            deploymentAlias = args[++index];
             break;
-        }
-
-        deploymentAlias = args[++index];
-    }
-    else if (string.Equals(args[index], "--iterations", StringComparison.OrdinalIgnoreCase))
-    {
-        if (index + 1 >= args.Length ||
-            !int.TryParse(args[index + 1], out iterations) ||
-            iterations is < 1 or > LearningAdaptationWorkflow.MaximumIterations)
-        {
-            invalidArguments = true;
+        case "--iterations" when hasValue && int.TryParse(args[index + 1], out iterations) &&
+                                 iterations is >= 1 and <= LearningAdaptationWorkflow.MaximumIterations:
+            index++;
             break;
-        }
-
-        index++;
-    }
-    else if (!selectionSeen && args[index] is "maf" or "foundry" or "all")
-    {
-        selection = args[index];
-        selectionSeen = true;
-    }
-    else
-    {
-        invalidArguments = true;
-        break;
+        case "maf" or "foundry" or "all" when !selectionSeen:
+            selection = args[index].ToLowerInvariant();
+            selectionSeen = true;
+            break;
+        default:
+            valid = false;
+            break;
     }
 }
 
-if (invalidArguments)
+if (!valid)
 {
     Console.Error.WriteLine(
         "Usage: dotnet run --project dotnet/src/02-ReasonAndImprove/Chapter09.LearningAdaptation " +
@@ -60,8 +45,9 @@ try
     using IChatClient chatClient = FoundryChatClientFactory.CreateChatClient(settings, deploymentAlias);
     Console.WriteLine($"Using model deployment: {settings.ResolveModelDeployment(deploymentAlias)}");
 
-    var result = await LearningAdaptationDemo.RunAsync(
+    var result = await LearningAdaptationWorkflow.RunAsync(
         chatClient,
+        LearningAdaptationWorkflow.InitialInstructions,
         iterations,
         Console.WriteLine);
     Console.WriteLine("\n--- Adaptation result ---");
@@ -78,25 +64,17 @@ try
             Console.WriteLine);
     }
 }
-catch (InvalidOperationException exception)
-{
-    Console.Error.WriteLine(exception.Message);
-    return 1;
-}
-catch (HttpRequestException exception)
-{
-    Console.Error.WriteLine($"Foundry request failed: {exception.Message}");
-    return 1;
-}
-catch (TimeoutException exception)
-{
-    Console.Error.WriteLine(exception.Message);
-    return 1;
-}
 catch (AuthenticationFailedException exception)
 {
     Console.Error.WriteLine(
         $"Foundry evaluation requires an authenticated Microsoft Entra ID session. Sign in with az login and retry. {exception.Message}");
+    return 1;
+}
+catch (Exception exception) when (exception is InvalidOperationException or HttpRequestException or TimeoutException)
+{
+    Console.Error.WriteLine(exception is HttpRequestException
+        ? $"Foundry request failed: {exception.Message}"
+        : exception.Message);
     return 1;
 }
 

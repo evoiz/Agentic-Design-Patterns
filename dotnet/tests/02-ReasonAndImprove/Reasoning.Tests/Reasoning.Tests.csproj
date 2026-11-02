@@ -4,6 +4,7 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\TestSupport\TestSupport.csproj" />
     <ProjectReference Include="..\..\..\src\02-ReasonAndImprove\Chapter17.Reasoning.Hosted\Chapter17.Reasoning.Hosted.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

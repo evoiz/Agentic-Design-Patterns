@@ -88,22 +88,7 @@ try
 
     if (selection is "deep-research" or "all")
     {
-        if (!settings.ModelDeployments.Keys.Any(alias =>
-                string.Equals(alias, researchDeploymentAlias, StringComparison.OrdinalIgnoreCase)))
-        {
-            throw new InvalidOperationException(
-                $"The Deep Research deployment alias '{researchDeploymentAlias}' is not configured. " +
-                "Add Foundry:ModelDeployments:deep-research to shared user-secrets or " +
-                "Foundry__ModelDeployments__deep-research to the environment, then run with " +
-                "--research-deployment deep-research.");
-        }
-
-        Console.WriteLine("\n=== Foundry Deep Research ===");
-        await FoundryDeepResearch.RunAsync(
-            settings,
-            researchDeploymentAlias,
-            task ?? defaultResearchQuestion,
-            Console.WriteLine);
+        await DeepResearchDemo.RunAsync(settings, researchDeploymentAlias, task ?? defaultResearchQuestion);
     }
 }
 catch (InvalidOperationException exception)

@@ -123,6 +123,47 @@ public sealed class CustomerSupportInvocationHandlerTests
         }
     }
 
+    [Fact]
+    public async Task Resolved_or_duplicated_approval_decisions_are_rejected_without_model_calls()
+    {
+        using var chatClient = new FakeApprovalChatClient(approvalCount: 2);
+        var handler = new CustomerSupportInvocationHandler(chatClient);
+        var sessionId = $"approval-replay-{Guid.NewGuid():N}";
+        const string ownerId = "approval-replay-owner";
+
+        try
+        {
+            var pending = await InvokeAsync(handler, sessionId, ownerId, CreateTaskBody());
+            var requestIds = pending.Body.GetProperty("approvals").EnumerateArray()
+                .Select(approval => approval.GetProperty("request_id").GetString())
+                .ToArray();
+
+            var duplicated = await InvokeAsync(handler, sessionId, ownerId, JsonSerializer.Serialize(new
+            {
+                approvals = new[]
+                {
+                    new { decision = "approve", requestId = requestIds[0] },
+                    new { decision = "approve", requestId = requestIds[0] }
+                }
+            }, JsonOptions));
+            Assert.Equal(StatusCodes.Status400BadRequest, duplicated.StatusCode);
+            Assert.Equal(1, chatClient.ModelCallCount);
+
+            var decisions = requestIds.Select(id => new { decision = "reject", requestId = id }).ToArray();
+            var completed = await InvokeAsync(
+                handler, sessionId, ownerId, JsonSerializer.Serialize(new { approvals = decisions }, JsonOptions));
+            Assert.Equal("completed", completed.Body.GetProperty("status").GetString());
+
+            var replayed = await InvokeAsync(
+                handler, sessionId, ownerId, JsonSerializer.Serialize(new { approvals = decisions }, JsonOptions));
+            Assert.Equal(StatusCodes.Status409Conflict, replayed.StatusCode);
+            Assert.Equal(2, chatClient.ModelCallCount);
+        }
+        finally
+        {
+            DeleteSessionFile(sessionId, ownerId);
+        }
+    }
     private static string CreateTaskBody() =>
         JsonSerializer.Serialize(new
         {

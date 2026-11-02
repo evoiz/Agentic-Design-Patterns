@@ -57,18 +57,11 @@ for (var index = 0; index < args.Length; index++)
 
 var runAllDemos = demoSelection is null ||
     string.Equals(demoSelection, "all", StringComparison.OrdinalIgnoreCase);
-var selectedDemos = runAllDemos
-    ? demos
-    : demoSelection is not null && demos.TryGetValue(demoSelection, out var selected)
-        ? new Dictionary<string, (string Name, ReasoningScenario Scenario, string Input)>(
-            StringComparer.OrdinalIgnoreCase)
-        {
-            [demoSelection] = selected
-        }
-        : null;
+var selectedDemos = demos.Where(demo => runAllDemos ||
+    string.Equals(demo.Key, demoSelection, StringComparison.OrdinalIgnoreCase)).ToArray();
 
 if (invalidArguments ||
-    (selectedDemos is null &&
+    (selectedDemos.Length == 0 &&
      demoSelection?.ToLowerInvariant() is not ("foundry-web-search" or "foundry-code-interpreter")))
 {
     Console.Error.WriteLine(
@@ -79,7 +72,7 @@ if (invalidArguments ||
 
 try
 {
-    if (selectedDemos is null)
+    if (selectedDemos.Length == 0)
     {
         var toolName = demoSelection!.ToLowerInvariant() switch
         {

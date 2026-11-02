@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
 
@@ -6,6 +8,10 @@ namespace Chapter04.Reflection;
 public static class ReflectionWorkflow
 {
     public const string TelemetrySourceName = "Chapter04.Reflection";
+    private static readonly JsonSerializerOptions ReviewJson = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter<ReflectionDecision>(allowIntegerValues: false) }
+    };
 
     public static Workflow Create(
         AIAgent generator,
@@ -18,14 +24,12 @@ public static class ReflectionWorkflow
 
         var generation = new GenerationExecutor(generator, writeOutput, cancellationToken);
         var verification = new VerificationExecutor(verifier, writeOutput, cancellationToken);
-        var decision = new DecisionExecutor();
         var completion = new CompletionExecutor();
 
         return new WorkflowBuilder(generation)
             .AddEdge(generation, verification)
-            .AddEdge(verification, decision)
-            .AddEdge<ReflectionState>(decision, generation, state => state is { Outcome: null })
-            .AddEdge<ReflectionState>(decision, completion, state => state is { Outcome: not null })
+            .AddEdge<ReflectionState>(verification, generation, state => state is { Outcome: null })
+            .AddEdge<ReflectionState>(verification, completion, state => state is { Outcome: not null })
             .WithOutputFrom(completion)
             .Build();
     }
@@ -135,6 +139,7 @@ public static class ReflectionWorkflow
             linkedCancellation.Token.ThrowIfCancellationRequested();
             var response = await verifier.RunAsync<ReflectionReview>(
                 $"Original task:\n{state.OriginalTask}\n\nDraft to verify:\n{state.Draft}",
+                serializerOptions: ReviewJson,
                 cancellationToken: linkedCancellation.Token);
             linkedCancellation.Token.ThrowIfCancellationRequested();
             var review = response.Result;
@@ -146,25 +151,14 @@ public static class ReflectionWorkflow
             }
 
             writeOutput?.Invoke($"\n--- Independent verification ---\nDecision: {verdict}\n{review.Reasoning}");
-            return state with { Review = review };
-        }
-    }
-
-    private sealed class DecisionExecutor() : Executor<ReflectionState, ReflectionState>("Decision")
-    {
-        public override ValueTask<ReflectionState> HandleAsync(
-            ReflectionState state,
-            IWorkflowContext context,
-            CancellationToken cancellationToken = default)
-        {
-            var outcome = state.Review?.Decision switch
+            var outcome = verdict switch
             {
                 ReflectionDecision.Accept => ReflectionOutcome.Accepted,
                 ReflectionDecision.Revise when state.RoundsUsed >= state.MaxRounds => ReflectionOutcome.MaxRoundsReached,
                 ReflectionDecision.Revise => (ReflectionOutcome?)null,
                 _ => throw new InvalidOperationException("The reflection decision requires a validated review.")
             };
-            return ValueTask.FromResult(state with { Outcome = outcome });
+            return state with { Review = review, Outcome = outcome };
         }
     }
 

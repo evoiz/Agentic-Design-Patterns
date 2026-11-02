@@ -22,16 +22,14 @@ public static class PlanningWorkflow
 
         var planExecutor = new PlannerExecutor(planner, writeOutput);
         var writerExecutor = new WriterExecutor(writer, writeOutput);
-        var completionExecutor = new CompletionExecutor();
         var workflow = new WorkflowBuilder(planExecutor)
             .AddEdge(planExecutor, writerExecutor)
-            .AddEdge(writerExecutor, completionExecutor)
-            .WithOutputFrom(completionExecutor)
+            .WithOutputFrom(writerExecutor)
             .Build();
 
         await using var run = await InProcessExecution.RunAsync(
             workflow,
-            new PlanningRequest(topic),
+            topic,
             cancellationToken: cancellationToken);
 
         PlanningResult? result = null;
@@ -61,23 +59,18 @@ public static class PlanningWorkflow
             ?? throw new InvalidOperationException("The planning workflow completed without a final result.");
     }
 
-    private sealed record PlanningRequest(string Topic);
-
     private sealed record PlannedTopic(string Topic, IReadOnlyList<string> Steps);
 
-    private sealed record WrittenSummary(IReadOnlyList<string> Steps, string Summary);
-
     private sealed class PlannerExecutor(AIAgent planner, Action<string>? writeOutput)
-        : Executor<PlanningRequest, PlannedTopic>("Planner")
+        : Executor<string, PlannedTopic>("Planner")
     {
         public override async ValueTask<PlannedTopic> HandleAsync(
-            PlanningRequest request,
+            string topic,
             IWorkflowContext context,
             CancellationToken cancellationToken = default)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(request.Topic);
             var response = await planner.RunAsync<PlanningPlan>(
-                request.Topic,
+                topic,
                 cancellationToken: cancellationToken);
             var steps = response.Result?.Steps;
             if (steps is null || steps.Count is < 3 or > 6 || steps.Any(string.IsNullOrWhiteSpace))
@@ -88,32 +81,25 @@ public static class PlanningWorkflow
 
             var normalizedSteps = steps.Select(step => step.Trim()).ToArray();
             writeOutput?.Invoke("\n--- Plan ---");
-            foreach (var (step, index) in normalizedSteps.Select((step, index) => (step, index + 1)))
-            {
-                writeOutput?.Invoke($"{index}. {step}");
-            }
-
-            return new PlannedTopic(request.Topic, normalizedSteps);
+            writeOutput?.Invoke(FormatPlan(normalizedSteps));
+            return new PlannedTopic(topic, normalizedSteps);
         }
     }
 
     private sealed class WriterExecutor(AIAgent writer, Action<string>? writeOutput)
-        : Executor<PlannedTopic, WrittenSummary>("Writer")
+        : Executor<PlannedTopic, PlanningResult>("Writer")
     {
-        public override async ValueTask<WrittenSummary> HandleAsync(
+        public override async ValueTask<PlanningResult> HandleAsync(
             PlannedTopic plan,
             IWorkflowContext context,
             CancellationToken cancellationToken = default)
         {
-            var numberedPlan = string.Join(
-                Environment.NewLine,
-                plan.Steps.Select((step, index) => $"{index + 1}. {step}"));
             var response = await writer.RunAsync(
                 $"""
                 Topic: {plan.Topic}
 
                 Approved plan:
-                {numberedPlan}
+                {FormatPlan(plan.Steps)}
 
                 Write an informative summary of about 200 words on the topic, following the plan.
                 Do not include a second plan section. Return only the summary text.
@@ -126,21 +112,10 @@ public static class PlanningWorkflow
 
             writeOutput?.Invoke("\n--- Summary ---");
             writeOutput?.Invoke(response.Text);
-            return new WrittenSummary(plan.Steps, response.Text);
+            return new PlanningResult(plan.Steps, response.Text);
         }
     }
 
-    [YieldsOutput(typeof(PlanningResult))]
-    private sealed class CompletionExecutor() : Executor<WrittenSummary>("Completion")
-    {
-        public override async ValueTask HandleAsync(
-            WrittenSummary result,
-            IWorkflowContext context,
-            CancellationToken cancellationToken = default)
-        {
-            await context.YieldOutputAsync(
-                new PlanningResult(result.Steps, result.Summary),
-                cancellationToken);
-        }
-    }
+    private static string FormatPlan(IReadOnlyList<string> steps) =>
+        string.Join(Environment.NewLine, steps.Select((step, index) => $"{index + 1}. {step}"));
 }

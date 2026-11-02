@@ -1,11 +1,11 @@
 using AgenticDesignPatterns.Shared;
+using AgenticDesignPatterns.Shared.Hosting;
 using A2A;
 using A2A.AspNetCore;
 using Azure.Core;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Chapter15.A2A;
-using Chapter15.A2A.Hosted;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Foundry.Hosting;
 using Microsoft.Agents.AI.Hosting.A2A;
@@ -17,30 +17,16 @@ builder.WebApplicationBuilder.Configuration
     .AddUserSecrets(typeof(FoundryChatClientFactory).Assembly)
     .AddEnvironmentVariables()
     .AddCommandLine(args);
-var settings = HostedFoundryConfiguration.LoadSettings(builder.WebApplicationBuilder.Configuration);
-var deployment = settings.ResolveModelDeployment();
+// The deployed A2A server must never fall back to a configured local API key.
 var hosted = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FOUNDRY_HOSTING_ENVIRONMENT"));
-IChatClient chatClient;
-if (!hosted && !string.IsNullOrWhiteSpace(settings.ApiKey))
-{
-    chatClient = FoundryChatClientFactory.CreateChatClient(settings);
-}
-else
-{
-    TokenCredential credential = hosted
-        ? new ManagedIdentityCredential(new ManagedIdentityCredentialOptions())
-        : new DefaultAzureCredential(new DefaultAzureCredentialOptions
-        {
-            TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID")
-        });
-    chatClient = new AzureOpenAIClient(
+var settings = HostedFoundryConfiguration.LoadSettings(builder.Configuration);
+using IChatClient modelClient = hosted
+    ? new AzureOpenAIClient(
             new Uri(settings.OpenAIEndpoint.GetLeftPart(UriPartial.Authority)),
-            credential)
-        .GetChatClient(deployment)
-        .AsIChatClient();
-}
-
-using IChatClient modelClient = chatClient;
+            new ManagedIdentityCredential(new ManagedIdentityCredentialOptions()))
+        .GetChatClient(settings.ResolveModelDeployment())
+        .AsIChatClient()
+    : HostedFoundryConfiguration.CreateChatClient(builder.Configuration);
 AIAgent agent = InterAgentAgent.Create(modelClient);
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8088";
 var publicUrl = builder.WebApplicationBuilder.Configuration["A2A_PUBLIC_URL"]
