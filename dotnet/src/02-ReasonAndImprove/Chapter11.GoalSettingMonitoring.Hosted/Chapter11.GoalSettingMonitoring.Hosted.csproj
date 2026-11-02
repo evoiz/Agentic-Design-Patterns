@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>Chapter11.GoalSettingMonitoring.Hosted</AssemblyName>
+    <RootNamespace>Chapter11.GoalSettingMonitoring.Hosted</RootNamespace>
+    <UserSecretsId>f4ec9fe6-6d20-4df7-a52a-61b3d0f7db85</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Chapter11.GoalSettingMonitoring\Chapter11.GoalSettingMonitoring.csproj" />
+    <ProjectReference Include="..\..\Shared.Hosting\Shared.Hosting.csproj" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry.Hosting" />
+  </ItemGroup>
+</Project>

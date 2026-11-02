@@ -17,7 +17,19 @@ For runnable C# examples built with Microsoft Agent Framework, start with the [.
 
 The [hosted-agent guides](dotnet/README.md#hosted-agent-companions) describe request contracts, local invocation, managed-identity permissions, and service-scoped deployment. Configure your own project endpoint and model deployment before deploying.
 
-The [Agent Harness enterprise extension](dotnet/src/Extension01.AgentHarness/README.md) adds a researched runtime meta-pattern beyond the book chapters, with a runnable MAF harness, a [Foundry-hosted agent](dotnet/src/Extension01.AgentHarness.Hosted/README.md), and guidance on combining it with the existing patterns.
+## 🧩 Pattern families
+
+New to agentic design patterns? Start with [Agentic design patterns and families](docs/design-patterns.md). It explains what agentic systems and design patterns are, the levels of agent complexity, and the principle of **control before autonomy**. It also groups the 21 patterns into five families, each answering one architectural question. The .NET solution uses the same grouping:
+
+| Family | Guiding question | Patterns (book chapter) |
+|---|---|---|
+| [01 · Flow](dotnet/src/01-Flow/README.md) | How does work move through the system? | Prompt Chaining (1), Routing (2), Parallelization (3), Planning (6), Prioritization (20), Decision Models |
+| [02 · Reason & Improve](dotnet/src/02-ReasonAndImprove/README.md) | How does the agent think about and improve its work? | Reflection (4), Learning & Adaptation (9), Goal Setting & Monitoring (11), Reasoning (17), Exploration & Discovery (21) |
+| [03 · Knowledge & Action](dotnet/src/03-KnowledgeAndAction/README.md) | What does the agent know, and what can it do? | Tool Use (5), Memory (8), MCP (10), RAG (14) |
+| [04 · Collaboration](dotnet/src/04-Collaboration/README.md) | Who participates in the work? | Multi-Agent (7), Human-in-the-Loop (13), A2A (15) |
+| [05 · Trust & Operations](dotnet/src/05-TrustAndOperations/README.md) | How does it stay safe, reliable, and affordable in production? | Exception Handling (12), Resource Optimization (16), Guardrails (18), Evaluation (19), Agent Harness |
+
+The [Agent Harness enterprise extension](dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/README.md) adds a researched runtime meta-pattern beyond the book chapters, with a runnable MAF harness, a [Foundry-hosted agent](dotnet/src/05-TrustAndOperations/Extension01.AgentHarness.Hosted/README.md), and guidance on combining it with the existing patterns.
 
 The [agentic patterns backlog](ai-research/agentic-patterns-backlog.md) proposes 11 further enterprise extensions, prioritized by missing behavioral contracts rather than duplicating existing demos. Each entry includes a C#/MAF scenario, implementation todo, acceptance criteria, dependencies, sources, and hosted-companion suitability.
 
@@ -38,15 +50,25 @@ This comprehensive guide covers 21 chapters and 7 appendices on building intelli
 .
 ├── 📄 README.md                           # This file
 ├── 📚 book/
-│   └── Agentic_Design_Patterns_Complete.pdf  # Complete book (424 pages)
-├── 💻 chapter_notebooks/                          # Chapter 
+│   ├── Agentic_Design_Patterns_Complete.pdf  # Complete book (424 pages)
+│   └── Agentic_Design_Patterns_Complete.md   # Markdown version of the book
+├── 📝 docs/
+│   └── design-patterns.md                 # Basics and the five pattern families
+├── 💻 chapter_notebooks/                  # Original Python notebooks
 │   ├── Chapter_01_Prompt_Chaining.ipynb
-│   ├── Chapter_02_Routing.ipynb
-│   ├── Chapter_03_Parallelization.ipynb
 │   ├── ...
 │   └── Appendix_G_Coding_Agents.ipynb
-
-
+├── 🔬 ai-research/                        # Research reports behind the families
+└── 🟣 dotnet/                             # C# demos (Microsoft Agent Framework + Foundry)
+    ├── AgenticDesignPatterns.slnx
+    ├── src/
+    │   ├── Shared/
+    │   ├── 01-Flow/                       # ChapterXX.Name + ChapterXX.Name.Hosted
+    │   ├── 02-ReasonAndImprove/
+    │   ├── 03-KnowledgeAndAction/
+    │   ├── 04-Collaboration/
+    │   └── 05-TrustAndOperations/
+    └── tests/                             # Mirrors the src family folders
 ```
 
 ## 📚 Table of Contents

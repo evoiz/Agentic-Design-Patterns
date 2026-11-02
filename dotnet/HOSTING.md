@@ -28,7 +28,7 @@ identity, not committed keys. The local developer identity also needs inference 
 ```powershell
 $env:Foundry__ProjectEndpoint = 'https://<account>.services.ai.azure.com/api/projects/<project>'
 $env:Foundry__ModelDeployment = '<chat-deployment>'
-dotnet run --project .\dotnet\src\Chapter04.Reflection.Hosted
+dotnet run --project .\dotnet\src\02-ReasonAndImprove\Chapter04.Reflection.Hosted
 ```
 
 Invoke the protocol endpoint documented by the selected companion from another
@@ -46,7 +46,7 @@ reader-owned values. An azd environment variable does not override a literal man
 value.
 
 ```powershell
-Set-Location .\dotnet\src\Chapter04.Reflection.Hosted
+Set-Location .\dotnet\src\02-ReasonAndImprove\Chapter04.Reflection.Hosted
 azd env select '<environment>'
 azd env set AZURE_TENANT_ID '<tenant-id>'
 azd env set AZURE_AI_PROJECT_ID '<project-arm-id>'

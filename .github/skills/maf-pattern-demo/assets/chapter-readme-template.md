@@ -19,12 +19,12 @@ flowchart LR
 
 ## Setup
 1. Prerequisites: .NET 10 SDK, a Foundry project with a model deployment and its API key.
-2. For local runs, configure shared user-secrets once (shared by all chapters) — see [dotnet/README.md](../../README.md).
+2. For local runs, configure shared user-secrets once (shared by all chapters) — see [dotnet/README.md](../../../README.md).
 3. Foundry-native variant only: <additional configuration, credentials, cost/resource side effects>.
 4. Run from the repository root:
    ```powershell
-   dotnet run --project dotnet\src\Chapter<NN>.<PatternName>          # default
-   dotnet run --project dotnet\src\Chapter<NN>.<PatternName> -- A     # single variant
+   dotnet run --project dotnet\src\<Family>\Chapter<NN>.<PatternName>          # default
+   dotnet run --project dotnet\src\<Family>\Chapter<NN>.<PatternName> -- A     # single variant
    ```
 
 State the actual default, supported options and costful/opt-in variants. Link the shared
@@ -61,7 +61,7 @@ Use stable file/method pointers, not line numbers that drift during refactoring.
 - Suitability: <supported protocol, dependencies, state/interaction model, or concrete reason for skipping>.
 - Project and deployment guide: <link to separate hosted project; preserve the console demo>.
 - Request contract: <accepted inputs, final output, conversation behavior, and streaming behavior>.
-- Common deployment, authentication/RBAC, packaging, cost and cleanup: [shared hosting guide](../../HOSTING.md).
+- Common deployment, authentication/RBAC, packaging, cost and cleanup: [shared hosting guide](../../../HOSTING.md).
 
 Keep detailed protocol contracts and service-specific commands in the companion README;
 do not repeat the common operational guide in every pattern.

@@ -182,7 +182,7 @@ Patterns:
 
 # 1. Agent Harness
 
-Implementation companion: [focused research and source references](agent-harness-pattern.md), [runnable MAF extension](../dotnet/src/Extension01.AgentHarness/README.md), and [Foundry hosted agent](../dotnet/src/Extension01.AgentHarness.Hosted/README.md). The implementation uses the real `Microsoft.Agents.AI.Harness` package and distinguishes application-owned MAF harnesses from Foundry-managed harness products.
+Implementation companion: [focused research and source references](agent-harness-pattern.md), [runnable MAF extension](../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/README.md), and [Foundry hosted agent](../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness.Hosted/README.md). The implementation uses the real `Microsoft.Agents.AI.Harness` package and distinguishes application-owned MAF harnesses from Foundry-managed harness products.
 
 ## Classification
 

@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Shared\Shared.csproj" />
-    <PackageReference Include="Microsoft.Agents.AI.Harness" />
-  </ItemGroup>
-</Project>

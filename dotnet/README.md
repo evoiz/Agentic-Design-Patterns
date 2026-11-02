@@ -33,8 +33,8 @@ Chapter 16 can optionally route to `fast`, `reasoning`, and `quality` model depl
 Select a configured name when running a chapter demo; omit it to use the default:
 
 ```powershell
-dotnet run --project dotnet/src/Chapter01.PromptChaining -- specs --deployment fast
-dotnet run --project dotnet/src/Chapter01.PromptChaining -- all --deployment quality
+dotnet run --project dotnet/src/01-Flow/Chapter01.PromptChaining -- specs --deployment fast
+dotnet run --project dotnet/src/01-Flow/Chapter01.PromptChaining -- all --deployment quality
 ```
 
 ## GitHub Actions live smoke tests
@@ -80,42 +80,61 @@ Any new test project that you add to `dotnet/AgenticDesignPatterns.slnx` is pick
 dotnet build dotnet/AgenticDesignPatterns.slnx
 ```
 
-## Chapter demos
+## Pattern families
+
+Projects are grouped into five pattern families under `src/<NN-Family>/` (tests mirror this under `tests/<NN-Family>/`). Project names and namespaces are unchanged. See [Agentic design patterns and families](../docs/design-patterns.md) for the taxonomy and when to use each family; each family folder has its own index README.
+
+Rows marked **E01** are original enterprise extensions beyond the book's 21 chapters, and **Supplement** rows are additional demos; neither is a notebook port.
+
+### [01 · Flow — how work moves](src/01-Flow/README.md)
 
 | Chapter | Pattern | Project | README |
 |---|---|---|---|
-| 01 | Prompt Chaining | `src/Chapter01.PromptChaining` | [Chapter 01 guide](src/Chapter01.PromptChaining/README.md) |
-| 02 | Routing | `src/Chapter02.Routing` | [Chapter 02 guide](src/Chapter02.Routing/README.md) |
-| 03 | Parallelization | `src/Chapter03.Parallelization` | [Chapter 03 guide](src/Chapter03.Parallelization/README.md) |
-| 04 | Reflection | `src/Chapter04.Reflection` | [Chapter 04 guide](src/Chapter04.Reflection/README.md) |
-| 05 | Tool Use | `src/Chapter05.ToolUse` | [Chapter 05 guide](src/Chapter05.ToolUse/README.md) |
-| 06 | Planning | `src/Chapter06.Planning` | [Chapter 06 guide](src/Chapter06.Planning/README.md) |
-| 07 | Multi-Agent Collaboration | `src/Chapter07.MultiAgent` | [Chapter 07 guide](src/Chapter07.MultiAgent/README.md) |
-| 08 | Memory | `src/Chapter08.Memory` | [Chapter 08 guide](src/Chapter08.Memory/README.md) |
-| 09 | Learning & Adaptation | `src/Chapter09.LearningAdaptation` | [Chapter 09 guide](src/Chapter09.LearningAdaptation/README.md) |
-| 10 | MCP | `src/Chapter10.MCP` | [Chapter 10 guide](src/Chapter10.MCP/README.md) |
-| 11 | Goal Setting & Monitoring | `src/Chapter11.GoalSettingMonitoring` | [Chapter 11 guide](src/Chapter11.GoalSettingMonitoring/README.md) |
-| 12 | Exception Handling and Recovery | `src/Chapter12.ExceptionHandling` | [Chapter 12 guide](src/Chapter12.ExceptionHandling/README.md) |
-| 13 | Human-in-the-Loop | `src/Chapter13.HumanInTheLoop` | [Chapter 13 guide](src/Chapter13.HumanInTheLoop/README.md) |
-| 14 | Retrieval-Augmented Generation (RAG) | `src/Chapter14.RAG` | [Chapter 14 guide](src/Chapter14.RAG/README.md) |
-| 15 | Inter-Agent Communication (A2A) | `src/Chapter15.A2A` | [Chapter 15 guide](src/Chapter15.A2A/README.md) |
-| 16 | Resource Optimization | `src/Chapter16.ResourceOptimization` | [Chapter 16 guide](src/Chapter16.ResourceOptimization/README.md) |
-| 17 | Reasoning | `src/Chapter17.Reasoning` | [Chapter 17 guide](src/Chapter17.Reasoning/README.md) |
-| 18 | Guardrails | `src/Chapter18.Guardrails` | [Chapter 18 guide](src/Chapter18.Guardrails/README.md) |
-| 19 | Evaluation & Monitoring | `src/Chapter19.Evaluation` | [Chapter 19 guide and evaluation-tool comparison](src/Chapter19.Evaluation/README.md) |
-| 20 | Prioritization | `src/Chapter20.Prioritization` | [Chapter 20 guide](src/Chapter20.Prioritization/README.md) |
-| 21 | Exploration & Discovery | `src/Chapter21.ExplorationDiscovery` | [Chapter 21 guide](src/Chapter21.ExplorationDiscovery/README.md) |
+| 01 | Prompt Chaining | `src/01-Flow/Chapter01.PromptChaining` | [Chapter 01 guide](src/01-Flow/Chapter01.PromptChaining/README.md) |
+| 02 | Routing | `src/01-Flow/Chapter02.Routing` | [Chapter 02 guide](src/01-Flow/Chapter02.Routing/README.md) |
+| 03 | Parallelization | `src/01-Flow/Chapter03.Parallelization` | [Chapter 03 guide](src/01-Flow/Chapter03.Parallelization/README.md) |
+| 06 | Planning | `src/01-Flow/Chapter06.Planning` | [Chapter 06 guide](src/01-Flow/Chapter06.Planning/README.md) |
+| 20 | Prioritization | `src/01-Flow/Chapter20.Prioritization` | [Chapter 20 guide](src/01-Flow/Chapter20.Prioritization/README.md) |
+| Supplement | Decision Models | `src/01-Flow/Extension02.DecisionModels` | [Microsoft-Decision-1, OpenAI Decisions, and MAF guide](src/01-Flow/Extension02.DecisionModels/README.md) |
+
+### [02 · Reason & Improve — how quality rises](src/02-ReasonAndImprove/README.md)
+
+| Chapter | Pattern | Project | README |
+|---|---|---|---|
+| 04 | Reflection | `src/02-ReasonAndImprove/Chapter04.Reflection` | [Chapter 04 guide](src/02-ReasonAndImprove/Chapter04.Reflection/README.md) |
+| 09 | Learning & Adaptation | `src/02-ReasonAndImprove/Chapter09.LearningAdaptation` | [Chapter 09 guide](src/02-ReasonAndImprove/Chapter09.LearningAdaptation/README.md) |
+| 11 | Goal Setting & Monitoring | `src/02-ReasonAndImprove/Chapter11.GoalSettingMonitoring` | [Chapter 11 guide](src/02-ReasonAndImprove/Chapter11.GoalSettingMonitoring/README.md) |
+| 17 | Reasoning | `src/02-ReasonAndImprove/Chapter17.Reasoning` | [Chapter 17 guide](src/02-ReasonAndImprove/Chapter17.Reasoning/README.md) |
+| 21 | Exploration & Discovery | `src/02-ReasonAndImprove/Chapter21.ExplorationDiscovery` | [Chapter 21 guide](src/02-ReasonAndImprove/Chapter21.ExplorationDiscovery/README.md) |
+
+### [03 · Knowledge & Action — what the agent knows and can do](src/03-KnowledgeAndAction/README.md)
+
+| Chapter | Pattern | Project | README |
+|---|---|---|---|
+| 05 | Tool Use | `src/03-KnowledgeAndAction/Chapter05.ToolUse` | [Chapter 05 guide](src/03-KnowledgeAndAction/Chapter05.ToolUse/README.md) |
+| 08 | Memory | `src/03-KnowledgeAndAction/Chapter08.Memory` | [Chapter 08 guide](src/03-KnowledgeAndAction/Chapter08.Memory/README.md) |
+| 10 | MCP | `src/03-KnowledgeAndAction/Chapter10.MCP` | [Chapter 10 guide](src/03-KnowledgeAndAction/Chapter10.MCP/README.md) |
+| 14 | Retrieval-Augmented Generation (RAG) | `src/03-KnowledgeAndAction/Chapter14.RAG` | [Chapter 14 guide](src/03-KnowledgeAndAction/Chapter14.RAG/README.md) |
+
+### [04 · Collaboration — who participates](src/04-Collaboration/README.md)
+
+| Chapter | Pattern | Project | README |
+|---|---|---|---|
+| 07 | Multi-Agent Collaboration | `src/04-Collaboration/Chapter07.MultiAgent` | [Chapter 07 guide](src/04-Collaboration/Chapter07.MultiAgent/README.md) |
+| 13 | Human-in-the-Loop | `src/04-Collaboration/Chapter13.HumanInTheLoop` | [Chapter 13 guide](src/04-Collaboration/Chapter13.HumanInTheLoop/README.md) |
+| 15 | Inter-Agent Communication (A2A) | `src/04-Collaboration/Chapter15.A2A` | [Chapter 15 guide](src/04-Collaboration/Chapter15.A2A/README.md) |
+
+### [05 · Trust & Operations — how it stays safe and production-ready](src/05-TrustAndOperations/README.md)
+
+| Chapter | Pattern | Project | README |
+|---|---|---|---|
+| 12 | Exception Handling and Recovery | `src/05-TrustAndOperations/Chapter12.ExceptionHandling` | [Chapter 12 guide](src/05-TrustAndOperations/Chapter12.ExceptionHandling/README.md) |
+| 16 | Resource Optimization | `src/05-TrustAndOperations/Chapter16.ResourceOptimization` | [Chapter 16 guide](src/05-TrustAndOperations/Chapter16.ResourceOptimization/README.md) |
+| 18 | Guardrails | `src/05-TrustAndOperations/Chapter18.Guardrails` | [Chapter 18 guide](src/05-TrustAndOperations/Chapter18.Guardrails/README.md) |
+| 19 | Evaluation & Monitoring | `src/05-TrustAndOperations/Chapter19.Evaluation` | [Chapter 19 guide and evaluation-tool comparison](src/05-TrustAndOperations/Chapter19.Evaluation/README.md) |
+| E01 | Agent Harness | `src/05-TrustAndOperations/Extension01.AgentHarness` | [Pattern, MAF implementation, and combinations](src/05-TrustAndOperations/Extension01.AgentHarness/README.md) |
 
 The decision-model supplement uses `ElBruno.AI.Decisions.Foundry` for both native decision APIs and composes typed judgments with MAF/MEAI specialists. It needs separate `Foundry:ModelDeployments:decision` (Microsoft-Decision-1) and `Foundry:ModelDeployments:openaiDecision` (gpt-6-luna) aliases; keep `Foundry:ModelDeployment` set to a generative chat model. See its guide for contracts, confidence/probability semantics, policy thresholds, and mapping to Routing, Prioritization, Guardrails, and Evaluation.
-
-## Enterprise extension patterns
-
-These are original additions beyond the book's 21 chapters, not notebook ports or additional book chapters.
-
-| Extension | Pattern | Project | Guide |
-|---|---|---|---|
-| E01 | Agent Harness | `src/Extension01.AgentHarness` | [Pattern, MAF implementation, and combinations](src/Extension01.AgentHarness/README.md) |
-| E02 | Decision Models | `src/Extension02.DecisionModels` | [Bounded judgments, native providers, and MAF routing](src/Extension02.DecisionModels/README.md) |
 
 Agent Harness demonstrates the packaged MAF runtime with todos, bounded tool use, compaction, tracing, and deterministic completion checks. Its [research note](../ai-research/agent-harness-pattern.md) cites primary sources and out-of-the-box examples. Its `AgentHarnessSmokeTests` run through the existing protected live workflow after merge.
 
@@ -125,31 +144,31 @@ For proposed additions, see the [agentic patterns backlog](../ai-research/agenti
 
 Most hosted projects expose the same MAF chapter logic through Microsoft Foundry Agent Service protocols. Chapter 15 exposes its MAF agent through Foundry's **A2A protocol** and publishes an agent card. Use these companions as starting points for deploying the patterns to your own Foundry project.
 
-| Chapter | Hosted guide | Request |
-|---|---|---|
-| 02 | [Routing](src/Chapter02.Routing.Hosted/README.md) | Booking, information, or clarification |
-| 03 | [Parallelization](src/Chapter03.Parallelization.Hosted/README.md) | `topic:` or `research:` |
-| 04 | [Reflection](src/Chapter04.Reflection.Hosted/README.md) | `fact-check:`, `product:`, or `code-review:` |
-| 05 | [Tool Use](src/Chapter05.ToolUse.Hosted/README.md) | `search:`, `calculate:`, or `stock:` |
-| 06 | [Planning](src/Chapter06.Planning.Hosted/README.md) | Topic to plan and summarize |
-| 07 | [Multi-Agent Collaboration](src/Chapter07.MultiAgent.Hosted/README.md) | `<scenario>: <task>` or a task for the default `crew` scenario |
-| 07 | [Distributed crew](src/Chapter07.MultiAgent.Distributed/README.md) | Topic sent to an orchestrator that calls separately hosted researcher and writer agents |
-| 08 | [Memory](src/Chapter08.Memory.Hosted/README.md) | Caller recall question over synthetic facts in a fresh managed-memory scope per request |
-| 09 | [Learning & Adaptation](src/Chapter09.LearningAdaptation.Hosted/README.md) | Starting prompt instructions to evaluate and revise |
-| 10 | [MCP](src/Chapter10.MCP.Hosted/README.md) | Request to the configured remote MCP server |
-| 11 | [Goal Setting & Monitoring](src/Chapter11.GoalSettingMonitoring.Hosted/README.md) | Use case and optional JSON goals/iteration budget |
-| 12 | [Exception Handling and Recovery](src/Chapter12.ExceptionHandling.Hosted/README.md) | Location address; bounded retry and area fallback |
-| 13 | [Human-in-the-Loop](src/Chapter13.HumanInTheLoop.Hosted/README.md) | Customer-support task followed by an approval decision in the same Invocations session |
-| 14 | [Retrieval-Augmented Generation](src/Chapter14.RAG.Hosted/README.md) | Plain-text question grounded in the sample corpus |
-| 15 | [Inter-Agent Communication (A2A)](src/Chapter15.A2A.Hosted/README.md) | Text request through A2A agent-card discovery, JSON-RPC, or HTTP+JSON streaming |
-| 16 | [Resource Optimization](src/Chapter16.ResourceOptimization.Hosted/README.md) | Request routed by intent; current-information requests use Foundry's Bing-backed `web_search` tool |
-| 17 | [Reasoning](src/Chapter17.Reasoning.Hosted/README.md) | `cot:`, `self-correction:`, `react:`, or `deep-search:` request |
-| 18 | [Guardrails](src/Chapter18.Guardrails.Hosted/README.md) | Request screened before the guarded assistant responds |
-| 19 | [Evaluation](src/Chapter19.Evaluation.Hosted/README.md) | Legal survey question for a structured five-criterion review |
-| 20 | [Prioritization](src/Chapter20.Prioritization.Hosted/README.md) | One task message or a JSON `tasks` array |
-| 21 | [Exploration & Discovery](src/Chapter21.ExplorationDiscovery.Hosted/README.md) | Research topic for a bounded proposal and reviewer panel |
-| E01 | [Agent Harness](src/Extension01.AgentHarness.Hosted/README.md) | Self-contained question about synthetic checkout or identity service health; read-only recommendations and completion/evidence JSON |
-| E02 | [Decision Models](src/Extension02.DecisionModels.Hosted/README.md) | Text support request; typed decisions, deterministic review gates, and an optional specialist draft |
+| Family | Chapter | Hosted guide | Request |
+|---|---|---|---|
+| Flow | 02 | [Routing](src/01-Flow/Chapter02.Routing.Hosted/README.md) | Booking, information, or clarification |
+| Flow | 03 | [Parallelization](src/01-Flow/Chapter03.Parallelization.Hosted/README.md) | `topic:` or `research:` |
+| Flow | 06 | [Planning](src/01-Flow/Chapter06.Planning.Hosted/README.md) | Topic to plan and summarize |
+| Flow | 20 | [Prioritization](src/01-Flow/Chapter20.Prioritization.Hosted/README.md) | One task message or a JSON `tasks` array |
+| Flow | E02 | [Decision Models](src/01-Flow/Extension02.DecisionModels.Hosted/README.md) | Text support request; typed decisions, deterministic review gates, and an optional specialist draft |
+| Reason & Improve | 04 | [Reflection](src/02-ReasonAndImprove/Chapter04.Reflection.Hosted/README.md) | `fact-check:`, `product:`, or `code-review:` |
+| Reason & Improve | 09 | [Learning & Adaptation](src/02-ReasonAndImprove/Chapter09.LearningAdaptation.Hosted/README.md) | Starting prompt instructions to evaluate and revise |
+| Reason & Improve | 11 | [Goal Setting & Monitoring](src/02-ReasonAndImprove/Chapter11.GoalSettingMonitoring.Hosted/README.md) | Use case and optional JSON goals/iteration budget |
+| Reason & Improve | 17 | [Reasoning](src/02-ReasonAndImprove/Chapter17.Reasoning.Hosted/README.md) | `cot:`, `self-correction:`, `react:`, or `deep-search:` request |
+| Reason & Improve | 21 | [Exploration & Discovery](src/02-ReasonAndImprove/Chapter21.ExplorationDiscovery.Hosted/README.md) | Research topic for a bounded proposal and reviewer panel |
+| Knowledge & Action | 05 | [Tool Use](src/03-KnowledgeAndAction/Chapter05.ToolUse.Hosted/README.md) | `search:`, `calculate:`, or `stock:` |
+| Knowledge & Action | 08 | [Memory](src/03-KnowledgeAndAction/Chapter08.Memory.Hosted/README.md) | Caller recall question over synthetic facts in a fresh managed-memory scope per request |
+| Knowledge & Action | 10 | [MCP](src/03-KnowledgeAndAction/Chapter10.MCP.Hosted/README.md) | Request to the configured remote MCP server |
+| Knowledge & Action | 14 | [Retrieval-Augmented Generation](src/03-KnowledgeAndAction/Chapter14.RAG.Hosted/README.md) | Plain-text question grounded in the sample corpus |
+| Collaboration | 07 | [Multi-Agent Collaboration](src/04-Collaboration/Chapter07.MultiAgent.Hosted/README.md) | `<scenario>: <task>` or a task for the default `crew` scenario |
+| Collaboration | 07 | [Distributed crew](src/04-Collaboration/Chapter07.MultiAgent.Distributed/README.md) | Topic sent to an orchestrator that calls separately hosted researcher and writer agents |
+| Collaboration | 13 | [Human-in-the-Loop](src/04-Collaboration/Chapter13.HumanInTheLoop.Hosted/README.md) | Customer-support task followed by an approval decision in the same Invocations session |
+| Collaboration | 15 | [Inter-Agent Communication (A2A)](src/04-Collaboration/Chapter15.A2A.Hosted/README.md) | Text request through A2A agent-card discovery, JSON-RPC, or HTTP+JSON streaming |
+| Trust & Operations | 12 | [Exception Handling and Recovery](src/05-TrustAndOperations/Chapter12.ExceptionHandling.Hosted/README.md) | Location address; bounded retry and area fallback |
+| Trust & Operations | 16 | [Resource Optimization](src/05-TrustAndOperations/Chapter16.ResourceOptimization.Hosted/README.md) | Request routed by intent; current-information requests use Foundry's Bing-backed `web_search` tool |
+| Trust & Operations | 18 | [Guardrails](src/05-TrustAndOperations/Chapter18.Guardrails.Hosted/README.md) | Request screened before the guarded assistant responds |
+| Trust & Operations | 19 | [Evaluation](src/05-TrustAndOperations/Chapter19.Evaluation.Hosted/README.md) | Legal survey question for a structured five-criterion review |
+| Trust & Operations | E01 | [Agent Harness](src/05-TrustAndOperations/Extension01.AgentHarness.Hosted/README.md) | Self-contained question about synthetic checkout or identity service health; read-only recommendations and completion/evidence JSON |
 
 ### Configure and deploy hosted agents
 
