@@ -74,7 +74,7 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 
 ### 6. Run the schedule assistant locally (3:30)
 
-- Show a small MAF agent using the schedule Markdown as its source and a read-only retrieval function.
+- Show a small MAF agent using the built-in `TextSearchProvider` to inject the complete schedule Markdown before answering, without a retrieval tool loop.
 - Run it from a local .NET process with live Foundry inference. Display only the final answer; do not print retrieved passages.
 - Explain the boundary in one sentence: the model formulates the response, while the application supplies the schedule evidence.
 - The example is a focused schedule demo, not a production search system or a claim that the existing chapter sample already uses this file.

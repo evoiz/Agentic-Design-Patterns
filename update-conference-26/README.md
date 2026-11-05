@@ -14,7 +14,7 @@ dotnet user-secrets set "Foundry:ApiKey" "<your-key>" --project dotnet/src/Share
 dotnet user-secrets set "Foundry:ModelDeployment" "<chat-deployment>" --project dotnet/src/Shared
 ```
 
-Use a chat model supporting tools and structured JSON output. Equivalent environment variables are `Foundry__ProjectEndpoint`, `Foundry__ApiKey`, and `Foundry__ModelDeployment`. Keep keys out of code, shell recordings, captures, and Git. Local means code, tools, and fixtures run on your machine; model inference still calls Foundry.
+Use a chat model supporting tools and structured JSON output for the shopping and speaker demos. The schedule demo needs only text generation with enough context for the complete schedule (about 75 KB). Equivalent environment variables are `Foundry__ProjectEndpoint`, `Foundry__ApiKey`, and `Foundry__ModelDeployment`. Keep keys out of code, shell recordings, captures, and Git. Local means code, tools, and fixtures run on your machine; model inference still calls Foundry.
 
 Then work **from this folder**:
 
@@ -36,9 +36,9 @@ dotnet run --project ConferenceDemos -- rag --day 2 "AI and .NET"
 dotnet run --project ConferenceDemos -- rag "unicorn astrophysics"
 ```
 
-`plain` has no schedule and must disclose that limitation. `rag` retrieves from the bundled snapshot using deterministic token matching, exposes the matching entries through one small read-only tool, and asks MAF for structured session recommendations. Code checks session IDs and exact evidence quotes, then supplies titles, times, rooms, and citations from the fixture. The console prints only the final answer, not tool traces or the retrieved JSON.
+`plain` has no schedule and must disclose that limitation. `rag` uses MAF's built-in `TextSearchProvider` in `BeforeAIInvoke` mode to supply the **complete embedded schedule Markdown** as one context result before the model runs. There is no keyword ranking, chunking, retrieval tool loop, or structured JSON response. The agent makes one model call and returns a normal answer with session titles, times, rooms, and `Update_Conference_Prague_2026_Schedule.md#s...` citations. The console prints only that final answer, not the injected document.
 
-Day 1 is November 12 and day 2 is November 13, both CET. **"Today" defaults to conference day 1**, not the computer's date; choose day 2 explicitly. There is no vector database or web search. A no-match result states the limitation; unsupported IDs/quotes fail instead of becoming recommendations. Retrieval relevance is illustrative, not semantic-search quality. This does not promise a non-overlapping agenda.
+Day 1 is November 12 and day 2 is November 13, both CET. **"Today" defaults to conference day 1**, not the computer's date; choose day 2 explicitly. Both days are supplied; instructions select the requested day. The model is instructed to disclose absent evidence instead of inventing details. Relevance, day selection, and citations are model-generated, not deterministically checked. This is full-document grounding through MAF's RAG context-provider mechanism, not semantic/vector search or a conflict-free agenda planner. It trades more input tokens for a simpler demo without retrieval-recall failures.
 
 Look at [ScheduleCorpus.cs](ConferenceDemos/ScheduleCorpus.cs) and [ScheduleDemo.cs](ConferenceDemos/ScheduleDemo.cs). The [separate Hosted Agent guide](ScheduleAgent.Hosted/README.md) covers running and deploying exactly this behavior.
 
@@ -104,6 +104,6 @@ Quotes are deliberately extractive so exact claims are checkable; this is not a 
 
 Run the four demos in talk order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.
 
-Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise actual MAF workflows/Harness and the hosted protocol with controlled model replies. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, recipe flow, schedule retrieval, and collaboration remain here.
+Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise the actual MAF context provider, workflows/Harness, and hosted protocol with controlled model replies. Schedule tests check complete-document injection, caller/day propagation, plain-text output, and explicit failures; live rehearsal is still needed to assess answer quality. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, recipe flow, schedule grounding, and collaboration remain here.
 
 Implementation sequencing and outstanding presenter-only gates are tracked in the [implementation plan](ticket-demo-implementation-plan.md). Only the schedule demo has a deployment companion; deploying it does not deploy the other three demos.

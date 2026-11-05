@@ -29,58 +29,103 @@ public sealed class LocalDemoTests
     }
 
     [Fact]
-    public void Retrieval_finds_agent_sessions_and_respects_day_and_word_boundaries()
+    public void Embedded_markdown_preserves_both_days_and_all_session_anchors()
     {
-        var corpus = new ScheduleCorpus();
-        Assert.Contains(corpus.Search("Foundry AI .NET", 1), s => s.Id == 13);
-        Assert.All(corpus.Search(ScheduleDemo.DefaultQuestion, 1), s => Assert.Equal(1, s.Day));
-        Assert.Contains(corpus.Search("inference engine", 2), s => s.Id == 42);
-        Assert.DoesNotContain(corpus.Search("AI", 1), s => s.Id == 24);
-        Assert.Empty(corpus.Search("unicorn astrophysics", 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => corpus.Search("AI", 3));
+        var markdown = ScheduleCorpus.LoadMarkdown();
+        Assert.Contains("## Day 1", markdown);
+        Assert.Contains("## Day 2", markdown);
+        Assert.All(new ScheduleCorpus().Sessions, session =>
+            Assert.Contains($"<a id=\"s{session.Id}\"></a>", markdown));
         Assert.Throws<InvalidOperationException>(() => ScheduleCorpus.Parse("not a schedule"));
     }
 
-    [Fact]
-    public async Task Schedule_agent_reads_tool_and_prints_only_validated_final_recommendations()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task Schedule_provider_injects_complete_markdown_before_one_plain_text_model_call(int day)
     {
         var calls = 0;
-        using var client = ScheduleClient(() => calls++);
+        const string expected = "A normal grounded answer without a JSON contract.";
+        using var client = new ScriptedChatClient((messages, options) =>
+        {
+            calls++;
+            var request = messages.ToArray();
+            AssertScheduleContext(request, options);
+            Assert.Contains(request, message => message.Role == ChatRole.User &&
+                message.Text.Contains(ScheduleDemo.DefaultQuestion, StringComparison.Ordinal) &&
+                message.Text.Contains($"Conference day: {day}", StringComparison.Ordinal));
+            Assert.Contains($"Use conference day {day}", options?.Instructions);
+            return new(new ChatMessage(ChatRole.Assistant, expected));
+        });
+
+        var answer = await ScheduleDemo.RunAsync(client, ScheduleDemo.DefaultQuestion, day);
+
+        Assert.Equal(1, calls);
+        Assert.Equal(expected, answer);
+    }
+
+    [Fact]
+    public async Task Schedule_agent_returns_only_the_grounded_final_text()
+    {
+        using var client = ScheduleClient();
         var answer = await ScheduleDemo.RunAsync(client, ScheduleDemo.DefaultQuestion);
-        Assert.Equal(2, calls);
         Assert.Contains("Agentic AI on Microsoft Foundry", answer);
         Assert.Contains("13:45", answer);
         Assert.Contains("Update_Conference_Prague_2026_Schedule.md#s13", answer);
-        Assert.DoesNotContain("\"SearchText\"", answer);
-        Assert.DoesNotContain("RetrieveSchedule", answer);
+        Assert.DoesNotContain("## Day 1", answer);
     }
 
     [Fact]
-    public async Task No_match_does_not_call_the_model_and_cancelled_requests_fail()
+    public async Task Unrelated_interest_reaches_the_model_with_context_and_returns_its_limitation()
+    {
+        var calls = 0;
+        using var client = ScheduleClient(() => calls++);
+        var answer = await ScheduleDemo.RunAsync(client, "unicorn astrophysics");
+        Assert.Equal(1, calls);
+        Assert.Contains("No matching session", answer);
+    }
+
+    [Fact]
+    public async Task Invalid_inputs_and_cancelled_requests_fail_before_calling_the_model()
     {
         using var client = new ScriptedChatClient((_, _) => throw new InvalidOperationException("No model call expected."));
-        Assert.Contains("No matching session", await ScheduleDemo.RunAsync(client, "unicorn astrophysics"));
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             ScheduleDemo.RunAsync(client, "unicorn", cancellationToken: new CancellationToken(true)));
         await Assert.ThrowsAsync<ArgumentException>(() => ScheduleDemo.RunAsync(client, new string('x', 4001)));
+        await Assert.ThrowsAsync<ArgumentException>(() => ScheduleDemo.RunAsync(client, " "));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => ScheduleDemo.RunAsync(client, "AI", 0));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => ScheduleDemo.RunAsync(client, "AI", 3));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task Empty_schedule_responses_fail_explicitly(string text)
+    {
+        using var client = new ScriptedChatClient((_, _) => new(new ChatMessage(ChatRole.Assistant, text)));
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => ScheduleDemo.RunAsync(client, "Foundry"));
+        Assert.Contains("empty response", error.Message);
     }
 
     [Fact]
-    public void Fabricated_session_quote_duplicate_or_wrong_day_is_rejected()
+    public async Task Schedule_inference_failure_propagates()
     {
-        var evidence = new ScheduleCorpus().Search("Foundry", 1);
-        Assert.Throws<InvalidOperationException>(() => ScheduleDemo.Format(new([new(999, "invented")]), evidence, 1));
-        Assert.Throws<InvalidOperationException>(() => ScheduleDemo.Format(new([new(13, "invented")]), evidence, 1));
-        var recommendation = new SessionRecommendation(13, evidence.Single(s => s.Id == 13).Abstract[..50]);
-        Assert.Throws<InvalidOperationException>(() => ScheduleDemo.Format(new([recommendation, recommendation]), evidence, 1));
-        Assert.Throws<InvalidOperationException>(() => ScheduleDemo.Format(new([recommendation]), evidence, 2));
+        using var client = new ScriptedChatClient((_, _) => throw new HttpRequestException("Inference failed."));
+        var error = await Assert.ThrowsAsync<HttpRequestException>(() => ScheduleDemo.RunAsync(client, "Foundry"));
+        Assert.Equal("Inference failed.", error.Message);
     }
 
     [Fact]
-    public async Task Skipping_schedule_retrieval_cannot_return_success()
+    public async Task Cancellation_during_inference_cannot_return_an_answer()
     {
-        using var client = new ScriptedChatClient((_, _) => Json(new ScheduleAnswer([new(13, "not evidence")])));
-        await Assert.ThrowsAsync<InvalidOperationException>(() => ScheduleDemo.RunAsync(client, "Foundry"));
+        using var cancellation = new CancellationTokenSource();
+        using var client = new ScriptedChatClient((_, _) =>
+        {
+            cancellation.Cancel();
+            return new(new ChatMessage(ChatRole.Assistant, "Do not return this cancelled answer."));
+        });
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            ScheduleDemo.RunAsync(client, "Foundry", cancellationToken: cancellation.Token));
     }
 
     [Fact]
@@ -143,7 +188,7 @@ public sealed class LocalDemoTests
         Assert.Equal("completed", result.RootElement.GetProperty("status").GetString());
         var answer = HostedResponses.OutputText(result.RootElement);
         Assert.Contains("#s13", answer);
-        Assert.DoesNotContain("\"SearchText\"", answer);
+        Assert.DoesNotContain("## Day 1", answer);
     }
 
     [Fact]
@@ -167,13 +212,29 @@ public sealed class LocalDemoTests
     internal static ScriptedChatClient ScheduleClient(Action? onCall = null) => new((messages, options) =>
     {
         onCall?.Invoke();
-        if (!messages.SelectMany(m => m.Contents).OfType<FunctionResultContent>().Any())
+        var request = messages.ToArray();
+        AssertScheduleContext(request, options);
+        var question = Assert.Single(request, message => message.Role == ChatRole.User &&
+            message.Text.StartsWith("Conference day:", StringComparison.Ordinal)).Text;
+        if (question.Contains("unicorn astrophysics", StringComparison.Ordinal))
         {
-            var tool = Assert.Single(options?.Tools ?? []);
-            Assert.Equal("RetrieveSchedule", tool.Name);
-            return new(new ChatMessage(ChatRole.Assistant, [new FunctionCallContent("schedule-1", tool.Name, new Dictionary<string, object?>())]));
+            Assert.DoesNotContain(ScheduleDemo.DefaultQuestion, question);
+            Assert.DoesNotContain(request, message => message.Role == ChatRole.Assistant);
+            return new(new ChatMessage(ChatRole.Assistant, "No matching session is listed for unicorn astrophysics in this schedule."));
         }
         var session = new ScheduleCorpus().Sessions.Single(s => s.Id == 13);
-        return Json(new ScheduleAnswer([new(13, session.Abstract[..80])]));
+        return new(new ChatMessage(ChatRole.Assistant,
+            $"{session.Title} - {session.When}, {session.Room}. " +
+            $"A session about agentic AI. [#s13]({session.Citation})"));
     });
+
+    private static void AssertScheduleContext(IReadOnlyList<ChatMessage> messages, ChatOptions? options)
+    {
+        Assert.Contains(messages, message =>
+            message.Text.Contains(ScheduleCorpus.LoadMarkdown(), StringComparison.Ordinal));
+        Assert.Empty(options?.Tools ?? []);
+        Assert.Null(options?.ResponseFormat);
+        Assert.DoesNotContain(messages.SelectMany(message => message.Contents),
+            content => content is FunctionCallContent or FunctionResultContent);
+    }
 }
