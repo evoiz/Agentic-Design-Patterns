@@ -26,6 +26,8 @@ flowchart LR
 
 Both completed assistant responses are printed, followed by final JSON. The formatter receives a response schema and the result is deserialized before success; neither structural typing nor valid JSON proves that extracted facts are correct.
 
+**Spec-First Agent** adds an authoritative external specification and independent semantic conformance checks, not just output shape. This example does not validate general OpenAPI contracts or generated SDKs. Keep immutable specification rules separate from model proposals; see [Chapter 11's acceptance distinction](../../02-ReasonAndImprove/Chapter11.GoalSettingMonitoring/README.md) and the [backlog composition note](../../../../ai-research/agentic-patterns-backlog.md#related-concepts-and-notes-for-existing-patterns).
+
 ## Run
 
 Use .NET 10 and the [shared Foundry configuration](../../../README.md). From the repository root:
