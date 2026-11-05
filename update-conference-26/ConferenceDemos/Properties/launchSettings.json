@@ -1,0 +1,52 @@
+{
+  "profiles": {
+    "Schedule - plain": {
+      "commandName": "Project",
+      "commandLineArgs": "plain"
+    },
+    "Schedule - RAG day 1": {
+      "commandName": "Project",
+      "commandLineArgs": "rag"
+    },
+    "Schedule - RAG day 2": {
+      "commandName": "Project",
+      "commandLineArgs": "rag --day 2 \"AI and .NET\""
+    },
+    "Schedule - no match": {
+      "commandName": "Project",
+      "commandLineArgs": "rag \"unicorn astrophysics\""
+    },
+    "Shopping - vegetarian": {
+      "commandName": "Project",
+      "commandLineArgs": "shopping vegetarian"
+    },
+    "Shopping - vegan": {
+      "commandName": "Project",
+      "commandLineArgs": "shopping vegan"
+    },
+    "Shopping - unsupported preference": {
+      "commandName": "Project",
+      "commandLineArgs": "shopping keto"
+    },
+    "Shopping - incomplete pantry": {
+      "commandName": "Project",
+      "commandLineArgs": "shopping vegetarian --incomplete"
+    },
+    "Decisions - compare": {
+      "commandName": "Project",
+      "commandLineArgs": "decisions captures\\openai-decisions.json"
+    },
+    "Decisions - record OpenAI": {
+      "commandName": "Project",
+      "commandLineArgs": "decisions-record-openai captures\\openai-decisions.json"
+    },
+    "Speaker - research": {
+      "commandName": "Project",
+      "commandLineArgs": "research"
+    },
+    "Check data": {
+      "commandName": "Project",
+      "commandLineArgs": "check-data"
+    }
+  }
+}
