@@ -1,6 +1,37 @@
 # Update Conference Talk Demo Implementation Plan
 
-> Planning document only. The demos described here have not been implemented or deployed.
+> Local implementations, deterministic checks, and the separate Hosted Agent companion are implemented. Live model rehearsal, real provider captures, and Azure/portal validation remain external acceptance gates; no deployment has been performed.
+
+## Current progress
+
+The implementation location is `update-conference-26/`, as requested, rather than a new area under `dotnet/src/`. Existing chapter demos remain unchanged.
+
+| Step | Status | Persisted work / remaining gate |
+|---|---|---|
+| 0. Prerequisites | Code setup complete; live setup pending | Projects import existing .NET build/package settings, reference Shared, and select the .NET 10 SDK feature band. No local shared credentials are configured; presenter project/model selection and live inference remain. |
+| 1. Schedule RAG | Implemented and deterministically checked | Canonical Markdown is embedded; all 48 sessions parse, including missing/plural speakers. Tests cover read-only retrieval, final-only output, valid citations, no-match, invented evidence, and cancellation. Live model rehearsal remains. |
+| 2. Hosted Agent | Implemented and locally checked | Separate Responses host, managed-identity configuration, tracing, bundled azd manifest, and project-local deployment/provenance guide exist. Publish includes the fixture and referenced dependencies; actual published HTTP host returns the explicit no-match answer. Azure deployment/portal invocation remain. |
+| 3. Shopping workflow | Implemented and deterministically checked | `WorkflowBuilder` controls recipe choice, read-only pantry accounting, and goal validation. Tests cover supported preference, no matching recipe, absent/null pantry data, extra/duplicate/missing items, and model failure. |
+| 4. Decision Models | Implemented and deterministically checked | Choice, Noul, score, provider configuration, and real-capture recording/playback are wired. Tests verify shared context, distribution contracts, capture metadata/hash, stale inputs, cancellation, and failures. No fabricated capture is included; live provider calls and real recording remain. |
+| 5. Speaker collaboration | Implemented and deterministically checked | Real Harness researcher, tool-free reviewer, one-revision workflow, exact quote/citation checks, and call limits are exercised with scripted models. Organizer snapshot only; no next event is claimed to be verified. Live rehearsal remains. |
+| 6. Validation and rehearsal | Automated/local checks complete; live rehearsal pending | Conference solution builds warning-free, 28 deterministic tests pass, published dependencies/fixture load, and the published Responses server answers a no-match request. No live inference, portal invocation, real captures, or timed rehearsal has been completed. |
+
+### Completed implementation sequence
+
+1. Restored and compiled local demos, correcting executor constructors, typed workflow input dispatch, and canonical fixture parsing.
+2. Added focused deterministic tests using the repository's scripted clients and real MAF WorkflowBuilder/Harness APIs.
+3. Added `ScheduleAgent.Hosted/` using the shared stateless adapter and official Foundry Responses package; checked published fixture/dependencies, protocol output, and request isolation.
+4. Added the [local run guide](README.md) and [project-local deployment guide](ScheduleAgent.Hosted/README.md), including exact creation provenance, identity/RBAC, portal acceptance, telemetry, and safe cleanup.
+5. Verified the conference solution, tests, and published host. Existing chapter implementations remain untouched.
+
+### Remaining presenter rehearsal gates
+
+1. Configure the chosen Foundry chat and decision deployments and rehearse all four local commands with live inference.
+2. Record and review a real Azure OpenAI Decisions capture using the documented command; rehearse the Microsoft-Decision-1 live / OpenAI captured comparison.
+3. Follow the hosted guide from its project folder, deploy with authorization, verify current runtime inference access, and obtain a grounded portal response.
+4. Prepare captures/fallbacks and rehearse the timed 50-minute content path with 10 minutes reserved for Q&A.
+
+Current environment constraints: Azure CLI and `azd` were not found during discovery; online documentation/source retrieval failed DNS resolution, and the Foundry skill could not be loaded. Existing pinned repository samples are the reference until those capabilities are available. No Azure resource or permission changes have been made.
 
 ## Goal and scope
 
@@ -19,9 +50,9 @@ Keep existing chapter samples intact unless a specific reusable helper is clearl
 | 3 | Decision Models | Local .NET app | Demonstrate choice, Noul, and score; Microsoft-Decision-1 live, Azure OpenAI Decisions captured. |
 | 4 | Speaker research with Harness and Reviewer | Local .NET app | Bounded collaboration over a verified source snapshot, with one evidence-focused revision. |
 
-## Suggested code shape
+## Implementation layout
 
-Add a clearly named conference-demo area under `dotnet/src/` with one local console entry point and explicit commands for the four demos, plus a focused test project. Keep the schedule Hosted Agent companion separate so local demos do not inherit hosting/deployment requirements. Reuse repository patterns where appropriate, but do not turn this into a shared framework or modify existing chapter behavior just to fit the talk.
+All conference-specific code lives directly under `update-conference-26/`: `ConferenceDemos/`, `ConferenceDemos.Tests/`, and separate `ScheduleAgent.Hosted/`, grouped in `ConferenceDemos.slnx`. Build/package settings import from `dotnet/`; existing Shared projects and small chapter helpers are reused. The local console does not reference the host or require deployment tooling.
 
 Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule.md) as the canonical event fixture. Package or embed it for local execution and the Hosted Agent deployment; add a check that the deployed package contains the schedule. Avoid maintaining a second manually edited copy.
 
@@ -107,11 +138,13 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 
 ## Completion checklist
 
-- [ ] Four local .NET commands are documented and runnable with configured local credentials.
-- [ ] The conference schedule is the single source fixture and is packaged for local and Hosted Agent execution.
-- [ ] The local schedule answer prints no retrieved passages.
+- [x] Four local .NET commands are implemented and documented for configured local credentials (live rehearsal remains).
+- [x] The conference schedule is the single source fixture and is packaged for local and Hosted Agent execution.
+- [x] The local schedule answer prints only final validated recommendations, not retrieved tool payloads.
+- [x] The separate host and project-local step-by-step deployment/creation guide are present.
 - [ ] The Hosted Agent is deployed and invoked successfully in the portal after model-inference access is verified.
-- [ ] Shopping goal checks and failure cases are covered by deterministic tests.
-- [ ] Decision Models covers choice, Noul, and score with the selected live/captured provider arrangement.
-- [ ] Speaker claims/citations are evidence-checked; tool and revision limits are enforced.
+- [x] Shopping goal checks and failure cases are covered by deterministic tests.
+- [x] Decision Models implements choice, Noul, and score with the selected live/captured provider arrangement.
+- [ ] Live Microsoft decisions and a real matching OpenAI capture are rehearsed.
+- [x] Speaker claims/citations are evidence-checked; tool and revision limits are enforced.
 - [ ] Captures/fallbacks and a 50-minute timed rehearsal are ready.

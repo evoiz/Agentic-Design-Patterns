@@ -1,0 +1,6 @@
+.azure/
+.env*
+bin/
+obj/
+captures/
+publish/

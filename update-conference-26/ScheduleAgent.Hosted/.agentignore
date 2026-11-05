@@ -1,0 +1,8 @@
+.azure/
+.env*
+**/secrets.json
+**/bin/
+**/obj/
+**/captures/
+**/*.pfx
+**/*.pem
