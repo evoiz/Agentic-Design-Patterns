@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="500" viewBox="0 0 1080 500" role="img" aria-labelledby="title description">
+  <title id="title">Human-in-the-loop review gate</title>
+  <desc id="description">An AI prepares a recommendation or action for a qualified human reviewer. Approval allows a controlled action; requested revision returns the work to the AI, and rejection stops it.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="1080" height="500" fill="#f7f8f6" rx="18" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="29" font-weight="700">Human-in-the-Loop: review before consequential action</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">Route high-risk, ambiguous, or policy-sensitive decisions to an accountable person</text>
+
+  <rect x="46" y="188" width="166" height="100" rx="10" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="129" y="226" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Request</text>
+  <text x="129" y="253" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">context + goal</text>
+
+  <rect x="262" y="168" width="194" height="140" rx="12" fill="#18343b" />
+  <text x="359" y="207" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" letter-spacing="1">AI AGENT</text>
+  <path d="M305 224 H413" stroke="#557279" stroke-width="1" />
+  <text x="359" y="258" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Analyze and propose</text>
+  <text x="359" y="284" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="13">recommendation / action</text>
+
+  <rect x="506" y="148" width="224" height="180" rx="12" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="618" y="190" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Human review</text>
+  <text x="618" y="220" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">qualified reviewer</text>
+  <text x="618" y="248" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">inspect evidence, context,</text>
+  <text x="618" y="270" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">and proposed action</text>
+  <text x="618" y="303" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700">approve / revise / reject</text>
+
+  <rect x="810" y="120" width="218" height="82" rx="10" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="919" y="154" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Approved</text>
+  <text x="919" y="179" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">controlled action may proceed</text>
+
+  <rect x="810" y="228" width="218" height="82" rx="10" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="919" y="262" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Revise</text>
+  <text x="919" y="287" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">return feedback to the agent</text>
+
+  <rect x="810" y="336" width="218" height="70" rx="10" fill="#fce8e7" stroke="#d58c86" stroke-width="2" />
+  <text x="919" y="366" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Reject / stop</text>
+  <text x="919" y="389" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">do not execute the action</text>
+
+  <path d="M212 238 H262 M456 238 H506 M730 195 H810 M730 238 H810 M730 282 H810" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <path d="M919 310 V430 H359 V308" fill="none" stroke="#8a999b" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)" />
+  <text x="632" y="425" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">Human review adds latency and capacity limits; minimize sensitive data and make reviewer expertise explicit.</text>
+</svg>

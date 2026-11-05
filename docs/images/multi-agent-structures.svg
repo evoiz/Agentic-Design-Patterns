@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="760" viewBox="0 0 1080 760" role="img" aria-labelledby="title description">
+  <title id="title">Multi-agent interrelationships and communication structures</title>
+  <desc id="description">Six models: single agent, peer network, supervisor hub, supervisor as a shared tool, multi-level hierarchy, and custom hybrid collaboration.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 z" fill="#52636b" />
+    </marker>
+    <marker id="arrowLight" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 z" fill="#8a999b" />
+    </marker>
+  </defs>
+  <rect width="1080" height="760" fill="#f7f8f6" rx="18" />
+  <text x="44" y="54" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="29" font-weight="700">Interrelationships &amp; Communication Structures</text>
+  <text x="44" y="83" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="15">Figure 2, redrawn: choose a topology to fit the task, autonomy, robustness, and communication budget</text>
+
+  <g font-family="Segoe UI, sans-serif">
+    <rect x="36" y="112" width="322" height="270" rx="12" fill="#ffffff" stroke="#d5dedb" stroke-width="1.5" />
+    <text x="56" y="145" fill="#18343b" font-size="18" font-weight="700">1. Single Agent</text>
+    <text x="56" y="169" fill="#52636b" font-size="13">One autonomous unit; no peer exchange</text>
+    <circle cx="197" cy="264" r="39" fill="#18343b" />
+    <text x="197" y="269" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">Agent</text>
+
+    <rect x="379" y="112" width="322" height="270" rx="12" fill="#ffffff" stroke="#d5dedb" stroke-width="1.5" />
+    <text x="399" y="145" fill="#18343b" font-size="18" font-weight="700">2. Network</text>
+    <text x="399" y="169" fill="#52636b" font-size="13">Peers communicate directly</text>
+    <path d="M480 244 L576 220 L620 293 L520 314 Z M480 244 L620 293 M576 220 L520 314" fill="none" stroke="#8a999b" stroke-width="2" />
+    <circle cx="480" cy="244" r="26" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+    <circle cx="576" cy="220" r="26" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+    <circle cx="620" cy="293" r="26" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+    <circle cx="520" cy="314" r="26" fill="#fce8e7" stroke="#d58c86" stroke-width="2" />
+    <text x="480" y="249" text-anchor="middle" fill="#18343b" font-size="12" font-weight="700">A</text>
+    <text x="576" y="225" text-anchor="middle" fill="#18343b" font-size="12" font-weight="700">B</text>
+    <text x="620" y="298" text-anchor="middle" fill="#18343b" font-size="12" font-weight="700">C</text>
+    <text x="520" y="319" text-anchor="middle" fill="#18343b" font-size="12" font-weight="700">D</text>
+
+    <rect x="722" y="112" width="322" height="270" rx="12" fill="#ffffff" stroke="#d5dedb" stroke-width="1.5" />
+    <text x="742" y="145" fill="#18343b" font-size="18" font-weight="700">3. Supervisor</text>
+    <text x="742" y="169" fill="#52636b" font-size="13">Coordinator delegates and gathers</text>
+    <path d="M883 231 V269 M828 302 L797 327 M883 302 V327 M938 302 L969 327" fill="none" stroke="#52636b" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="839" y="194" width="88" height="42" rx="9" fill="#18343b" />
+    <text x="883" y="220" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Supervisor</text>
+    <circle cx="797" cy="337" r="22" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+    <circle cx="883" cy="337" r="22" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+    <circle cx="969" cy="337" r="22" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+    <text x="797" y="342" text-anchor="middle" fill="#18343b" font-size="11" font-weight="700">A</text>
+    <text x="883" y="342" text-anchor="middle" fill="#18343b" font-size="11" font-weight="700">B</text>
+    <text x="969" y="342" text-anchor="middle" fill="#18343b" font-size="11" font-weight="700">C</text>
+
+    <rect x="36" y="408" width="322" height="270" rx="12" fill="#ffffff" stroke="#d5dedb" stroke-width="1.5" />
+    <text x="56" y="441" fill="#18343b" font-size="18" font-weight="700">4. Supervisor as a Tool</text>
+    <text x="56" y="465" fill="#52636b" font-size="13">Agents consult a shared service</text>
+    <rect x="145" y="555" width="106" height="48" rx="9" fill="#18343b" />
+    <text x="198" y="575" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">Supervisor</text>
+    <text x="198" y="591" text-anchor="middle" fill="#d5e0df" font-size="11">as a tool</text>
+    <circle cx="102" cy="520" r="22" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+    <circle cx="294" cy="520" r="22" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+    <text x="102" y="525" text-anchor="middle" fill="#18343b" font-size="11" font-weight="700">A</text>
+    <text x="294" y="525" text-anchor="middle" fill="#18343b" font-size="11" font-weight="700">B</text>
+    <path d="M115 536 L160 556 M281 536 L236 556" fill="none" stroke="#52636b" stroke-width="2" marker-end="url(#arrow)" />
+    <text x="198" y="637" text-anchor="middle" fill="#52636b" font-size="12">Guidance, data, or capability; not strict command</text>
+
+    <rect x="379" y="408" width="322" height="270" rx="12" fill="#ffffff" stroke="#d5dedb" stroke-width="1.5" />
+    <text x="399" y="441" fill="#18343b" font-size="18" font-weight="700">5. Hierarchical</text>
+    <text x="399" y="465" fill="#52636b" font-size="13">Multiple levels of delegated coordination</text>
+    <rect x="524" y="493" width="80" height="38" rx="8" fill="#18343b" />
+    <text x="564" y="517" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">Lead</text>
+    <rect x="452" y="555" width="80" height="38" rx="8" fill="#dce9e5" stroke="#76a99e" />
+    <rect x="596" y="555" width="80" height="38" rx="8" fill="#f8e6d9" stroke="#d99b76" />
+    <text x="492" y="579" text-anchor="middle" fill="#18343b" font-size="12" font-weight="700">Team A</text>
+    <text x="636" y="579" text-anchor="middle" fill="#18343b" font-size="12" font-weight="700">Team B</text>
+    <path d="M564 531 L492 555 M564 531 L636 555 M492 593 V618 M636 593 V618" fill="none" stroke="#52636b" stroke-width="2" marker-end="url(#arrow)" />
+    <circle cx="477" cy="633" r="14" fill="#e2f1ee" stroke="#76a99e" />
+    <circle cx="507" cy="633" r="14" fill="#e2f1ee" stroke="#76a99e" />
+    <circle cx="621" cy="633" r="14" fill="#fff0e8" stroke="#d99b76" />
+    <circle cx="651" cy="633" r="14" fill="#fff0e8" stroke="#d99b76" />
+
+    <rect x="722" y="408" width="322" height="270" rx="12" fill="#ffffff" stroke="#d5dedb" stroke-width="1.5" />
+    <text x="742" y="441" fill="#18343b" font-size="18" font-weight="700">6. Custom</text>
+    <text x="742" y="465" fill="#52636b" font-size="13">Hybrid designed for a specific environment</text>
+    <rect x="844" y="500" width="80" height="38" rx="8" fill="#18343b" />
+    <text x="884" y="524" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">Lead</text>
+    <circle cx="795" cy="590" r="23" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+    <circle cx="884" cy="590" r="23" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+    <circle cx="973" cy="590" r="23" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+    <text x="795" y="595" text-anchor="middle" fill="#18343b" font-size="11" font-weight="700">A</text>
+    <text x="884" y="595" text-anchor="middle" fill="#18343b" font-size="11" font-weight="700">B</text>
+    <text x="973" y="595" text-anchor="middle" fill="#18343b" font-size="11" font-weight="700">C</text>
+    <path d="M861 538 L809 569 M884 538 V566 M907 538 L959 569 M818 590 H860 M907 590 H950" fill="none" stroke="#52636b" stroke-width="2" marker-end="url(#arrowLight)" />
+  </g>
+  <text x="540" y="721" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">No single topology is universally best; tailor roles and communication to task complexity, autonomy, robustness, and overhead.</text>
+</svg>

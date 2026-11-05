@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../dotnet/src/Shared/Shared.csproj" />
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" />
+    <PackageReference Include="Microsoft.Agents.AI.Harness" />
+    <PackageReference Include="ElBruno.AI.Decisions.Foundry" />
+    <Compile Include="../../dotnet/src/01-Flow/Extension02.DecisionModels/DecisionConfiguration.cs" Link="Shared/DecisionConfiguration.cs" />
+    <Compile Include="../../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/ModelCallBudgetClient.cs" Link="Shared/ModelCallBudgetClient.cs" />
+    <EmbeddedResource Include="../Update_Conference_Prague_2026_Schedule.md" LogicalName="ConferenceDemos.Schedule.md" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="470" viewBox="0 0 960 470" role="img" aria-labelledby="title description">
+  <title id="title">Context Engineering</title>
+  <desc id="description">Relevant instructions, retrieved information, memory, and state are assembled into context for a model. The model then returns structured output.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="960" height="470" fill="#f7f8f6" rx="18" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">Context Engineering</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">Build the information environment before the model responds</text>
+
+  <rect x="48" y="130" width="238" height="66" rx="10" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="167" y="157" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Prompt engineering</text>
+  <text x="167" y="179" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">instructions and task</text>
+
+  <rect x="48" y="224" width="238" height="66" rx="10" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="167" y="251" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">RAG</text>
+  <text x="167" y="273" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">retrieved evidence</text>
+
+  <rect x="48" y="318" width="238" height="66" rx="10" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="167" y="345" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Memory &amp; state</text>
+  <text x="167" y="367" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">history and environment</text>
+
+  <rect x="348" y="157" width="264" height="218" rx="14" fill="#18343b" />
+  <text x="480" y="211" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" letter-spacing="1">ASSEMBLED CONTEXT</text>
+  <path d="M390 235 H570" stroke="#557279" stroke-width="1" />
+  <text x="480" y="278" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="23" font-weight="700">Model</text>
+  <text x="480" y="308" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="15">relevant information</text>
+  <text x="480" y="331" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="15">available at generation time</text>
+
+  <rect x="674" y="210" width="238" height="112" rx="10" fill="#fce8e7" stroke="#d58c86" stroke-width="2" />
+  <text x="793" y="250" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Structured output</text>
+  <text x="793" y="276" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">clear, usable result</text>
+  <text x="793" y="298" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">for the next step</text>
+
+  <path d="M286 163 C315 163 320 205 348 220" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <path d="M286 257 H348" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <path d="M286 351 C315 351 320 310 348 295" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <path d="M612 266 H674" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <text x="480" y="426" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Choose, package, and deliver what the task needs; validate outputs at each boundary.</text>
+</svg>

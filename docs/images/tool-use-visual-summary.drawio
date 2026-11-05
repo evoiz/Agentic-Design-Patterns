@@ -1,0 +1,24 @@
+<mxfile host="app.diagrams.net" modified="2026-11-04T00:00:00.000Z" agent="GitHub Copilot" version="24.7.17" type="device">
+  <diagram id="tool-use-summary" name="Tool Use Visual Summary">
+    <mxGraphModel dx="1080" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1080" pageHeight="470" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Tool Use: model proposes, application executes&#xa;A structured request crosses an application-controlled boundary before any external operation" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="48" y="22" width="900" height="72" as="geometry" /></mxCell>
+        <mxCell id="request" value="User request&#xa;goal or question" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="34" y="166" width="145" height="110" as="geometry" /></mxCell>
+        <mxCell id="llm" value="LLM&#xa;&#xa;decides if a tool is needed&#xa;given tool definitions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#18343B;strokeColor=#18343B;fontColor=#FFFFFF;fontSize=16;" vertex="1" parent="1"><mxGeometry x="210" y="146" width="155" height="150" as="geometry" /></mxCell>
+        <mxCell id="call" value="Structured call&#xa;tool name + args&#xa;e.g. JSON" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontColor=#18343B;fontSize=15;" vertex="1" parent="1"><mxGeometry x="397" y="166" width="145" height="110" as="geometry" /></mxCell>
+        <mxCell id="orchestrator" value="Orchestration&#xa;&#xa;validates and executes&#xa;the call&#xa;application boundary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE8E7;strokeColor=#D58C86;fontColor=#18343B;fontSize=15;" vertex="1" parent="1"><mxGeometry x="574" y="146" width="155" height="150" as="geometry" /></mxCell>
+        <mxCell id="tool" value="Tool / API&#xa;external result" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;strokeColor=#9AA8C2;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="761" y="166" width="135" height="110" as="geometry" /></mxCell>
+        <mxCell id="observe" value="Observe&#xa;then respond" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=15;" vertex="1" parent="1"><mxGeometry x="928" y="166" width="126" height="110" as="geometry" /></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="request" target="llm"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="llm" target="call"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="call" target="orchestrator"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="orchestrator" target="tool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="tool" target="observe"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" value="observation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="observe" target="llm"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="991" y="354" /><mxPoint x="287" y="354" /></Array></mxGeometry></mxCell>
+        <mxCell id="caption" value="The model requests an operation; code controls permissions, validation, and execution." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#52636B;" vertex="1" parent="1"><mxGeometry x="160" y="408" width="760" height="32" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

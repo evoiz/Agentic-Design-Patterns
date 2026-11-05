@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ConferenceDemos/ConferenceDemos.csproj" />
+    <ProjectReference Include="../ScheduleAgent.Hosted/ScheduleAgent.Hosted.csproj" />
+    <ProjectReference Include="../../dotnet/tests/TestSupport/TestSupport.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+</Project>

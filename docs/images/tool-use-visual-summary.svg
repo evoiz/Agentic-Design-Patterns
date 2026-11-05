@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="470" viewBox="0 0 1080 470" role="img" aria-labelledby="title description">
+  <title id="title">Tool Use pattern visual summary</title>
+  <desc id="description">The model receives a request and tool definitions, decides whether to use a tool, emits a structured call, and the orchestration layer validates and executes it. The result returns to the model for a response or another step.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="1080" height="470" fill="#f7f8f6" rx="18" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">Tool Use: model proposes, application executes</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">A structured request crosses an application-controlled boundary before any external operation</text>
+
+  <rect x="34" y="166" width="145" height="110" rx="10" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="106" y="208" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">User request</text>
+  <text x="106" y="235" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">goal or question</text>
+
+  <rect x="210" y="146" width="155" height="150" rx="12" fill="#18343b" />
+  <text x="287" y="185" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" letter-spacing="1">LLM</text>
+  <text x="287" y="220" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">decides if</text>
+  <text x="287" y="244" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">a tool is needed</text>
+  <text x="287" y="273" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="13">given tool definitions</text>
+
+  <rect x="397" y="166" width="145" height="110" rx="10" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="469" y="207" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Structured call</text>
+  <text x="469" y="235" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">tool name + args</text>
+  <text x="469" y="257" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">e.g. JSON</text>
+
+  <rect x="574" y="146" width="155" height="150" rx="12" fill="#fce8e7" stroke="#d58c86" stroke-width="2" />
+  <text x="651" y="186" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">Orchestration</text>
+  <text x="651" y="219" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="14">validates and</text>
+  <text x="651" y="241" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="14">executes the call</text>
+  <text x="651" y="273" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">application boundary</text>
+
+  <rect x="761" y="166" width="135" height="110" rx="10" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="828" y="207" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Tool / API</text>
+  <text x="828" y="235" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">external result</text>
+
+  <rect x="928" y="166" width="126" height="110" rx="10" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="991" y="207" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">Observe</text>
+  <text x="991" y="235" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">then respond</text>
+
+  <path d="M179 221 H210 M365 221 H397 M542 221 H574 M729 221 H761 M896 221 H928" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <path d="M991 276 V354 H287 V296" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <text x="640" y="345" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Return the observation to the model for a final answer or another tool decision</text>
+  <text x="540" y="420" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">The model requests an operation; code controls permissions, validation, and execution.</text>
+</svg>

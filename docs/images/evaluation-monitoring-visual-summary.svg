@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="570" viewBox="0 0 1080 570" role="img" aria-labelledby="title description">
+  <title id="title">Agent evaluation and monitoring</title>
+  <desc id="description">A task contract is executed by an agent or team, producing an answer and trajectory. Evaluation combines automated metrics, rubrics, human and judge review, and trajectory checks, while monitoring tracks latency, tokens, helpfulness, drift, and anomalies to inform improvement.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="1080" height="570" fill="#f7f8f6" rx="18" />
+  <text x="44" y="54" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="29" font-weight="700">Evaluation &amp; Monitoring: measure the answer and the work</text>
+  <text x="44" y="83" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="15">Evaluate quality, trajectories, and operational health; feed evidence back into improvement</text>
+
+  <rect x="42" y="122" width="210" height="90" rx="11" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="147" y="158" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Task contract</text>
+  <text x="147" y="185" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">goal + criteria + limits</text>
+
+  <rect x="344" y="122" width="210" height="90" rx="11" fill="#18343b" />
+  <text x="449" y="158" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Agent or team</text>
+  <text x="449" y="185" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="13">actions + handoffs</text>
+
+  <rect x="646" y="122" width="210" height="90" rx="11" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="751" y="158" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Answer + trajectory</text>
+  <text x="751" y="185" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">result, tool calls, events</text>
+
+  <path d="M252 167 H344 M554 167 H646" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+
+  <rect x="42" y="262" width="594" height="190" rx="12" fill="#ffffff" stroke="#d5dedb" stroke-width="1.5" />
+  <text x="64" y="294" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="19" font-weight="700">Quality evaluation</text>
+  <rect x="64" y="315" width="164" height="52" rx="8" fill="#e2f1ee" stroke="#76a99e" />
+  <rect x="244" y="315" width="164" height="52" rx="8" fill="#fff0e8" stroke="#d99b76" />
+  <rect x="424" y="315" width="188" height="52" rx="8" fill="#e9edf7" stroke="#9aa8c2" />
+  <text x="146" y="347" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700">Automated metrics</text>
+  <text x="326" y="347" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700">Rubric / LLM judge</text>
+  <text x="518" y="347" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700">Human review</text>
+  <rect x="64" y="384" width="548" height="45" rx="8" fill="#f5f6f2" stroke="#d5dedb" />
+  <text x="338" y="412" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="13">Trajectory checks: tool choice, arguments, order, handoffs, and completion</text>
+
+  <rect x="666" y="262" width="372" height="190" rx="12" fill="#ffffff" stroke="#d5dedb" stroke-width="1.5" />
+  <text x="688" y="294" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="19" font-weight="700">Operational monitoring</text>
+  <text x="692" y="332" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Latency and success / failure rates</text>
+  <text x="692" y="359" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Input / output tokens and cost</text>
+  <text x="692" y="386" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Customer helpfulness and feedback</text>
+  <text x="692" y="413" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Drift, anomalies, and compliance</text>
+
+  <path d="M751 212 V240 H338 V262 M751 240 H852 V262" fill="none" stroke="#8a999b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)" />
+
+  <rect x="246" y="482" width="588" height="56" rx="10" fill="#18343b" />
+  <text x="540" y="506" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">Compare against goals, baselines, and representative examples</text>
+  <text x="540" y="526" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="12">Investigate failures and drift; refine the contract, workflow, and tests</text>
+  <path d="M338 452 V482 M852 452 V482" fill="none" stroke="#52636b" stroke-width="2" marker-end="url(#arrow)" />
+</svg>

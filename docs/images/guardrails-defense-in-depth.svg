@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="570" viewBox="0 0 1120 570" role="img" aria-labelledby="title description">
+  <title id="title">Guardrails as defense in depth</title>
+  <desc id="description">A request passes input validation, privacy and moderation checks, a constrained agent with least-privilege tools, and output safety checks. Flagged cases can go to human review. Monitoring and privacy-aware logs span the system.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="1120" height="570" fill="#f7f8f6" rx="18" />
+  <text x="44" y="54" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="29" font-weight="700">Guardrails: layered, not a single prompt</text>
+  <text x="44" y="83" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="15">Each boundary catches different risks; deterministic policy controls access and consequential actions</text>
+
+  <rect x="34" y="175" width="126" height="96" rx="10" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="97" y="214" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Input</text>
+  <text x="97" y="240" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">request + data</text>
+
+  <rect x="190" y="144" width="185" height="158" rx="12" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="282" y="179" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Input safeguards</text>
+  <text x="282" y="211" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">validate / sanitize</text>
+  <text x="282" y="235" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">PII minimization</text>
+  <text x="282" y="259" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">moderation / scope checks</text>
+  <text x="282" y="284" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="11">block, redact, or continue</text>
+
+  <rect x="406" y="144" width="178" height="158" rx="12" fill="#18343b" />
+  <text x="495" y="179" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" letter-spacing="1">AGENT</text>
+  <path d="M435 192 H555" stroke="#557279" stroke-width="1" />
+  <text x="495" y="226" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700">Behavioral policy</text>
+  <text x="495" y="252" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="12">instructions guide;</text>
+  <text x="495" y="273" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="12">they do not authorize</text>
+
+  <rect x="615" y="144" width="178" height="158" rx="12" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="704" y="179" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Tool boundary</text>
+  <text x="704" y="211" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">allowlist + least privilege</text>
+  <text x="704" y="235" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">validate arguments</text>
+  <text x="704" y="259" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">enforce authorization</text>
+  <text x="704" y="284" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="11">code / gateway decides</text>
+
+  <rect x="824" y="144" width="170" height="158" rx="12" fill="#fce8e7" stroke="#d58c86" stroke-width="2" />
+  <text x="909" y="179" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Output safeguards</text>
+  <text x="909" y="211" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">policy / format checks</text>
+  <text x="909" y="235" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">moderation / PII filter</text>
+  <text x="909" y="259" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">redact, block, or review</text>
+  <text x="909" y="284" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="11">verify before release</text>
+
+  <rect x="1020" y="175" width="76" height="96" rx="10" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="1058" y="214" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">User</text>
+  <text x="1058" y="240" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="12">response</text>
+
+  <path d="M160 223 H190 M375 223 H406 M584 223 H615 M793 223 H824 M994 223 H1020" fill="none" stroke="#52636b" stroke-width="2.3" marker-end="url(#arrow)" />
+
+  <rect x="510" y="352" width="310" height="78" rx="11" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="665" y="382" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Human review / escalation</text>
+  <text x="665" y="406" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">for high-risk, ambiguous, or flagged cases</text>
+  <path d="M909 302 V330 H665 V352" fill="none" stroke="#52636b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)" />
+  <text x="812" y="324" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="11">flag</text>
+
+  <rect x="190" y="464" width="804" height="54" rx="10" fill="#18343b" />
+  <text x="592" y="488" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">Monitoring, testing, and privacy-aware observability span every layer</text>
+  <text x="592" y="507" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="12">log decisions, tool outcomes, errors, and metrics; minimize/redact sensitive data</text>
+  <path d="M282 464 V302 M495 464 V302 M704 464 V302 M909 464 V302" fill="none" stroke="#8a999b" stroke-width="1.5" stroke-dasharray="4 5" />
+  <text x="560" y="550" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">Defense in depth reduces risk; no individual filter guarantees safe or correct behavior.</text>
+</svg>

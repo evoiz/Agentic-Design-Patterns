@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="470" viewBox="0 0 980 470" role="img" aria-labelledby="title description">
+  <title id="title">Resource-aware optimization visual summary</title>
+  <desc id="description">A task's quality target and resource budget guide execution; measured outcomes inform later bounded adjustments.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="980" height="470" rx="18" fill="#f7f8f6" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">Resource-aware optimization: measure the tradeoff</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">Choose resources within a budget, then verify quality and operating cost</text>
+  <path d="M230 230 H320 M520 230 H610 M810 230 H870 M900 285 C900 365 140 365 140 285" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <rect x="48" y="175" width="182" height="110" rx="12" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="139" y="216" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Task contract</text>
+  <text x="139" y="245" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">quality + budget</text>
+  <rect x="320" y="175" width="200" height="110" rx="12" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="420" y="216" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Select resources</text>
+  <text x="420" y="245" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">model • tools • context</text>
+  <rect x="610" y="175" width="200" height="110" rx="12" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="710" y="216" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Execute + measure</text>
+  <text x="710" y="245" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">quality • latency • cost</text>
+  <rect x="870" y="185" width="80" height="90" rx="12" fill="#18343b" />
+  <text x="910" y="220" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">Adjust</text>
+  <text x="910" y="245" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="12">within limits</text>
+  <text x="490" y="420" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">A cheaper or faster path is not better unless it still meets the task's quality target.</text>
+</svg>

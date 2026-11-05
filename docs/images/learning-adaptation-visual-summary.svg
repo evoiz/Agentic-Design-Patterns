@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="470" viewBox="0 0 980 470" role="img" aria-labelledby="title description">
+  <title id="title">Learning and adaptation visual summary</title>
+  <desc id="description">Observed outcomes are evaluated before a reviewed update changes future behavior; updates remain bounded and reversible.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="980" height="470" rx="18" fill="#f7f8f6" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">Learning and adaptation: update from evidence</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">Feedback can change memory, strategy, or model parameters—each needs different controls</text>
+  <path d="M220 230 H300 M500 230 H580 M780 230 H850 M900 285 C900 375 140 375 140 285" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <rect x="48" y="180" width="172" height="105" rx="12" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="134" y="220" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Experience</text>
+  <text x="134" y="248" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">actions + outcomes</text>
+  <rect x="300" y="180" width="200" height="105" rx="12" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="400" y="220" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Evaluate</text>
+  <text x="400" y="248" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">quality + provenance</text>
+  <rect x="580" y="180" width="200" height="105" rx="12" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="680" y="220" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Review update</text>
+  <text x="680" y="248" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">test + approve</text>
+  <rect x="850" y="180" width="100" height="105" rx="12" fill="#18343b" />
+  <text x="900" y="220" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Adapt</text>
+  <text x="900" y="248" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="13">bounded</text>
+  <text x="490" y="430" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Keep changes observable, reversible, and independently evaluated before expanding autonomy.</text>
+</svg>

@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="../dotnet/src/Shared.Hosting/Shared.Hosting.csproj" />
+  <Project Path="../dotnet/src/Shared/Shared.csproj" />
+  <Project Path="../dotnet/tests/TestSupport/TestSupport.csproj" />
+  <Project Path="ConferenceDemos.Tests/ConferenceDemos.Tests.csproj" />
+  <Project Path="ConferenceDemos/ConferenceDemos.csproj" />
+  <Project Path="ScheduleAgent.Hosted/ScheduleAgent.Hosted.csproj" />
+</Solution>

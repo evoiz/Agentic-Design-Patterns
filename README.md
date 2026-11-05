@@ -17,6 +17,8 @@ For runnable C# examples built with Microsoft Agent Framework, start with the [.
 
 The [hosted-agent guides](dotnet/README.md#hosted-agent-companions) describe request contracts, local invocation, managed-identity permissions, and service-scoped deployment. Configure your own project endpoint and model deployment before deploying.
 
+The [Update Conference demos](update-conference-26/README.md) provide a focused local sequence: schedule RAG, shopping planning/goal checks, Decision Models, and bounded speaker collaboration, with a separate schedule Hosted Agent deployment guide.
+
 ## 🧩 Pattern families
 
 New to agentic design patterns? Start with [Agentic design patterns and families](docs/design-patterns.md). It explains what agentic systems and design patterns are, the levels of agent complexity, and the principle of **control before autonomy**. It also groups the 21 patterns into five families, each answering one architectural question. The .NET solution uses the same grouping:

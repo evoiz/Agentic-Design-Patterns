@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="500" viewBox="0 0 1080 500" role="img" aria-labelledby="title description">
+  <title id="title">Dynamic prioritization during agent execution</title>
+  <desc id="description">An agent evaluates eligible tasks against urgency, importance, dependencies, and resource cost, selects the next task, executes it, and reassesses priorities when new events or constraints appear while keeping the approved goal fixed.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="1080" height="500" fill="#f7f8f6" rx="18" />
+  <text x="44" y="56" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="29" font-weight="700">Prioritization: choose the next best action</text>
+  <text x="44" y="85" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="15">Rank competing tasks against a goal, criteria, and finite resources</text>
+
+  <rect x="34" y="175" width="176" height="112" rx="11" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="122" y="214" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Approved goal</text>
+  <text x="122" y="240" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">constraints + task list</text>
+  <text x="122" y="263" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="12">scope stays fixed</text>
+
+  <rect x="250" y="145" width="226" height="172" rx="12" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="363" y="179" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Evaluate candidates</text>
+  <text x="274" y="214" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">Urgency / deadline</text>
+  <text x="274" y="239" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">Importance to goal</text>
+  <text x="274" y="264" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">Dependencies / readiness</text>
+  <text x="274" y="289" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">Resource cost / availability</text>
+
+  <rect x="518" y="145" width="200" height="172" rx="12" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="618" y="179" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Rank / schedule</text>
+  <rect x="540" y="198" width="156" height="30" rx="6" fill="#dce9e5" />
+  <rect x="550" y="236" width="146" height="30" rx="6" fill="#f5e5d9" />
+  <rect x="562" y="274" width="134" height="30" rx="6" fill="#e6e9ef" />
+  <text x="618" y="218" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700">P1 - next</text>
+  <text x="623" y="256" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="12">P2</text>
+  <text x="629" y="294" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="12">P3</text>
+
+  <rect x="760" y="175" width="146" height="112" rx="11" fill="#18343b" />
+  <text x="833" y="215" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700">Execute</text>
+  <text x="833" y="243" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="13">selected task</text>
+  <text x="833" y="266" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="12">observe outcome</text>
+
+  <rect x="942" y="175" width="110" height="112" rx="11" fill="#fce8e7" stroke="#d58c86" stroke-width="2" />
+  <text x="997" y="212" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700">New event</text>
+  <text x="997" y="239" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="12">deadline /</text>
+  <text x="997" y="259" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="12">resource change</text>
+
+  <path d="M210 231 H250 M476 231 H518 M718 231 H760 M906 231 H942" fill="none" stroke="#52636b" stroke-width="2.3" marker-end="url(#arrow)" />
+  <path d="M997 287 V390 H363 V317" fill="none" stroke="#52636b" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)" />
+  <text x="648" y="382" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">Reassess and re-rank eligible work as conditions change</text>
+  <text x="540" y="448" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Adjust priorities within the approved objective; changing the goal itself requires authorization.</text>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="500" viewBox="0 0 980 500" role="img" aria-labelledby="title description">
+  <title id="title">Parallelization visual summary</title>
+  <desc id="description">Independent subtasks run concurrently and their results are joined before synthesis.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="980" height="500" rx="18" fill="#f7f8f6" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">Parallelization: fan out, then join</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">Run only independent work concurrently; reconcile results at a deliberate join</text>
+  <path d="M220 250 C260 250 260 155 320 155 M220 250 H320 M220 250 C260 250 260 345 320 345 M520 155 C600 155 610 250 680 250 M520 250 H680 M520 345 C600 345 610 250 680 250 M820 250 H880" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <rect x="48" y="205" width="172" height="90" rx="12" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="134" y="242" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Input</text>
+  <text x="134" y="267" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">shared context</text>
+  <rect x="320" y="115" width="200" height="80" rx="12" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="420" y="148" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Subtask A</text>
+  <text x="420" y="173" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">independent analysis</text>
+  <rect x="320" y="210" width="200" height="80" rx="12" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="420" y="243" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Subtask B</text>
+  <text x="420" y="268" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">separate data source</text>
+  <rect x="320" y="305" width="200" height="80" rx="12" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="420" y="338" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700">Subtask C</text>
+  <text x="420" y="363" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">independent lookup</text>
+  <rect x="680" y="205" width="140" height="90" rx="12" fill="#18343b" />
+  <text x="750" y="242" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Join</text>
+  <text x="750" y="267" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="14">check results</text>
+  <rect x="880" y="215" width="70" height="70" rx="12" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="915" y="245" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">Final</text>
+  <text x="915" y="265" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="12">synthesis</text>
+  <text x="490" y="450" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Define partial-failure and conflict handling; concurrency does not remove dependencies.</text>
+</svg>

@@ -1,0 +1,19 @@
+<mxfile host="app.diagrams.net" agent="GitHub Copilot" version="24.7.17" type="device">
+  <diagram id="goal-monitoring-summary" name="Goal Setting and Monitoring Visual Summary">
+    <mxGraphModel dx="980" dy="450" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="980" pageHeight="450" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Goal setting: measure progress, then adapt" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="48" y="22" width="850" height="70" as="geometry" /></mxCell>
+        <mxCell id="goal" value="Goal&#xa;desired outcome" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="48" y="170" width="172" height="100" as="geometry" /></mxCell>
+        <mxCell id="criteria" value="Define success&#xa;observable criteria" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;strokeColor=#9AA8C2;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="300" y="170" width="200" height="100" as="geometry" /></mxCell>
+        <mxCell id="measure" value="Act + measure&#xa;check evidence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="580" y="170" width="180" height="100" as="geometry" /></mxCell>
+        <mxCell id="complete" value="Complete?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#18343B;strokeColor=#18343B;fontColor=#FFFFFF;fontSize=15;" vertex="1" parent="1"><mxGeometry x="820" y="145" width="120" height="150" as="geometry" /></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="goal" target="criteria"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="criteria" target="measure"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="measure" target="complete"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" value="no: replan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="complete" target="criteria"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
