@@ -27,6 +27,19 @@ dotnet test ConferenceDemos.Tests/ConferenceDemos.Tests.csproj
 
 `check-data` and the tests need no credentials or network model calls. The canonical [schedule](Update_Conference_Prague_2026_Schedule.md) is an embedded resource, not a second edited copy. Source IDs such as `Update_Conference_Prague_2026_Schedule.md#s13` resolve to its anchors.
 
+### Launch profiles
+
+[ConferenceDemos/Properties/launchSettings.json](ConferenceDemos/Properties/launchSettings.json) provides IDE launch profiles for all four demos, the plain schedule baseline, day 2/no-match retrieval, shopping failure cases, OpenAI recording, and the offline data check. Select a profile in your IDE, or run one by name from this folder:
+
+```powershell
+dotnet run --project ConferenceDemos --launch-profile "Schedule - RAG day 1"
+dotnet run --project ConferenceDemos --launch-profile "Check data"
+```
+
+Decision profiles use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording still requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
+
+Each demo prints its user question or request before inference. Shopping also shows the pantry input, and both decision commands show the shared context and all three questions.
+
 ## 1. Schedule RAG: same question, different evidence
 
 ```powershell
@@ -36,7 +49,7 @@ dotnet run --project ConferenceDemos -- rag --day 2 "AI and .NET"
 dotnet run --project ConferenceDemos -- rag "unicorn astrophysics"
 ```
 
-`plain` has no schedule and must disclose that limitation. `rag` retrieves from the bundled snapshot using deterministic token matching, exposes the matching entries through one small read-only tool, and asks MAF for structured session recommendations. Code checks session IDs and exact evidence quotes, then supplies titles, times, rooms, and citations from the fixture. The console prints only the final answer, not tool traces or the retrieved JSON.
+`plain` has no schedule and must disclose that limitation. `rag` retrieves from the bundled snapshot using deterministic token matching, exposes the matching entries through one small read-only tool, and asks MAF for structured session recommendations. Code checks session IDs and exact evidence quotes, then supplies titles, times, rooms, and citations from the fixture. The console prints the user question followed by the final answer, not tool traces or the retrieved JSON.
 
 Day 1 is November 12 and day 2 is November 13, both CET. **"Today" defaults to conference day 1**, not the computer's date; choose day 2 explicitly. There is no vector database or web search. A no-match result states the limitation; unsupported IDs/quotes fail instead of becoming recommendations. Retrieval relevance is illustrative, not semantic-search quality. This does not promise a non-overlapping agenda.
 
