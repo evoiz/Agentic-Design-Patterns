@@ -1,0 +1,24 @@
+{
+  "FormatVersion": 2,
+  "Provider": "Illustrative fixture (not a model response)",
+  "ModelDeployment": null,
+  "CapturedAt": null,
+  "State": "Attendee interest: practical AI agents in C# and Microsoft Foundry.\nSession: Agentic AI on Microsoft Foundry: From Function Calling to Multi-Agent Systems\nAbstract: This session explores how to build LLM-based AI agents using Microsoft Foundry and the Microsoft Agent Framework. It introduces foundational Agentic AI design patterns such as tool use, reflection, planning, and multi-agent collaboration, demonstrating how they can be implemented to create context-aware and domain specific solutions.\n\nWhen discussing Agentic AI, the Model Context Protocol (MCP) is essential. Expect a brief introduction to MCP and practical guidance on how to implement it in .NET.",
+  "Results": {
+    "Choice": {
+      "Choice": "strong-fit",
+      "Probabilities": {
+        "strong-fit": 0.9,
+        "partial-fit": 0.1,
+        "not-a-fit": 0.0
+      }
+    },
+    "Noul": {
+      "Probability": 0.9
+    },
+    "Score": {
+      "Score": 2.5,
+      "LevelProbabilities": [0.0, 0.0, 0.5, 0.5]
+    }
+  }
+}
