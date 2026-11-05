@@ -138,7 +138,7 @@ The decision-model supplement uses `ElBruno.AI.Decisions.Foundry` for both nativ
 
 Agent Harness demonstrates the packaged MAF runtime with todos, bounded tool use, compaction, tracing, and deterministic completion checks. Its [research note](../ai-research/agent-harness-pattern.md) cites primary sources and out-of-the-box examples. Its `AgentHarnessSmokeTests` run through the existing protected live workflow after merge.
 
-For proposed additions, see the [agentic patterns backlog](../ai-research/agentic-patterns-backlog.md). It distinguishes existing coverage from 11 missing end-to-end contracts, with priorities, runnable C#/MAF scenarios, implementation todos, acceptance criteria, dependencies, and selective hosting guidance. Safe-Action Gateway, Durable Reactive Agent, and Governed Skill Packages are independent starting points; none of the backlog entries is implemented yet.
+For proposed additions, see the [agentic patterns backlog](../ai-research/agentic-patterns-backlog.md). It maps 11 missing end-to-end contracts to primary and related families, separates priority from readiness, and records overlapping concepts as notes rather than new demo commitments. Safe-Action Gateway, Governed Skill Packages, and Context Lifecycle are independent P1 starting points; Durable Reactive Agent needs a compatible durable backend first. Infrastructure-first scenarios can begin without MAF. No backlog entry is implemented yet; container-executor exploration remains a note within Sandbox and Promote.
 
 ## Hosted-agent companions
 

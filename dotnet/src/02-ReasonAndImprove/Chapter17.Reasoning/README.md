@@ -33,6 +33,8 @@ flowchart LR
 
 The DeepSearch notebook supplies graph wiring, not node implementations or a runnable sample. The local adaptation never claims to browse or verify citations.
 
+For **Code-Then-Execute**, use [Chapter 05's canonical explanation](../../03-KnowledgeAndAction/Chapter05.ToolUse/README.md): the native Code Interpreter mode executes generated code in a managed environment, while this chapter's local `react` mode invokes a prewritten factorial function. Neither execution nor model prose alone proves semantic correctness.
+
 ## Run
 
 Use .NET 10 and [shared Foundry settings](../../../README.md). From the repository root:

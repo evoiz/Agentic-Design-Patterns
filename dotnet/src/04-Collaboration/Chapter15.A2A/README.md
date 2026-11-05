@@ -64,6 +64,8 @@ The default mode is `sync`; the URL defaults to `A2A_AGENT_URL` or `http://local
 
 ## Tradeoffs and Foundry extensions
 
+**Awareness** describes discoverable capability/state facts, not routing decisions or permission. This chapter exposes static agent-card skills; it does not implement a live load/availability registry with freshness rules. Such facts could inform [Routing](../../01-Flow/Chapter02.Routing/README.md) or [Resource Optimization](../../05-TrustAndOperations/Chapter16.ResourceOptimization/README.md), but consumers must validate freshness and authority separately. The [backlog comparison](../../../../ai-research/agentic-patterns-backlog.md#related-concepts-and-notes-for-existing-patterns) defers a standalone Awareness demo.
+
 Network calls fail independently; cards may be stale, so validate endpoint ownership and advertised skills. Connect authenticated domain tools for real data or actions; A2A itself does not grant those permissions. Streaming improves responsiveness without proving answer quality.
 
 For Foundry-managed A2A endpoints, request semantics, and service-specific commands, see the [hosted guide](../Chapter15.A2A.Hosted/README.md). Shared deployment, inference RBAC, sensitive tracing, packaging, cost, and cleanup instructions live in [HOSTING.md](../../../HOSTING.md).

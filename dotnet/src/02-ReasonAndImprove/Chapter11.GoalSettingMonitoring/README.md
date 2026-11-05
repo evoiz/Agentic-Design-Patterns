@@ -81,6 +81,8 @@ dotnet test dotnet/tests/02-ReasonAndImprove/GoalSettingMonitoring.Tests
 
 ## Risks & Tradeoffs
 
+**Spec-First** work requires an immutable source specification and independently enforced semantic rules. This demo's model-reviewed prose goals are not that guarantee, even when the judge returns `True`. See [Chapter 01](../../01-Flow/Chapter01.PromptChaining/README.md) for output-shape validation and the [backlog notes](../../../../ai-research/agentic-patterns-backlog.md#related-concepts-and-notes-for-existing-patterns) for the distinction from action-policy and release gates.
+
 - An LLM reviewer or judge can miss defects or wrongly report success.
 - Prose goals such as "functionally correct" are not substitutes for executable checks.
 - Each round costs three model calls; latency and cost grow with the budget.

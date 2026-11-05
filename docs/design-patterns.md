@@ -10,6 +10,7 @@ This guide gives a common vocabulary for the demos in this repository. It summar
 - [Control before autonomy](#control-before-autonomy)
 - [Composing patterns](#composing-patterns)
 - [Mapping to Microsoft Agent Framework and Foundry](#mapping-to-microsoft-agent-framework-and-foundry)
+- [Proposed contracts by family](#proposed-contracts-by-family)
 - [Further reading](#further-reading)
 
 ## What is an agentic system?
@@ -161,6 +162,20 @@ When designing, ask the five guiding questions in turn. Any question that has no
 | Trust & Operations | Middleware, checkpoints, OpenTelemetry tracing, the agent harness | Guardrails and content safety, evaluation, tracing, Application Insights, identity |
 
 The [.NET guide](../dotnet/README.md) lists every demo, hosted companion, and test project by family.
+
+## Proposed contracts by family
+
+The [enterprise backlog](../ai-research/agentic-patterns-backlog.md#backlog-by-pattern-family) uses these same families. Primary ownership follows the missing contract; related-family links show composition rather than duplicate work.
+
+| Family | Primary backlog entries | Related entries |
+|---|---|---|
+| Flow | None | B02, B03, B10 |
+| Reason & Improve | None | B09, B11 |
+| Knowledge & Action | B04 Governed Skill Packages; B05 Context Lifecycle and Verified Handoff; B06 Memory Write and Lifecycle Governance | B01, B02, B07, B08 |
+| Collaboration | None | B01, B03, B05, B08 |
+| Trust & Operations | B01 Safe-Action Gateway; B02 Transactional Actuator; B03 Durable Reactive Agent; B07 Capability-Scoped Tool Authority; B08 Sandbox and Promote; B09 Trajectory Recording and Offline Replay; B10 Admission Control, Backpressure, and Bulkheads; B11 EvalOps and Controlled Rollout | B04, B05, B06 |
+
+These are proposed contracts, not implemented demos. Empty primary categories reflect the backlog's enterprise focus, not a need to invent more patterns. The [taxonomy crosswalk and related notes](../ai-research/agentic-patterns-backlog.md#related-concepts-and-notes-for-existing-patterns) explain how the Avramovic catalog overlaps with this repository, including Fusion, Awareness, Spec-First, and completion controls.
 
 ## Further reading
 

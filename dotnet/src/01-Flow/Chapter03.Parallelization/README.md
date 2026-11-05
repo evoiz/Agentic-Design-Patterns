@@ -62,4 +62,6 @@ Foundry supplies model capacity and evaluations, not a distinct native paralleli
 
 ## Tradeoffs
 
+**Parallel Fusion** is a related composition: independent candidates solve the same complete task before comparison, selection, or synthesis. These demos instead use complementary subtasks. Text-only candidates need independent sessions, not necessarily containers; agreement does not prove correctness. See the [backlog comparison](../../../../ai-research/agentic-patterns-backlog.md#related-concepts-and-notes-for-existing-patterns). No separate fusion selector is implemented here.
+
 Latency depends on the slowest branch and endpoint concurrency; throttling may erase gains. Four calls increase total usage. Attribution helps inspection but cannot prevent synthesis errors or conflicting findings. Sensitive-content tracing is enabled; restrict telemetry access and retention.
