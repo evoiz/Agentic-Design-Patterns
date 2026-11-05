@@ -1,0 +1,17 @@
+<mxfile host="app.diagrams.net" agent="GitHub Copilot" version="24.7.17" type="device">
+  <diagram id="mcp-summary" name="MCP Visual Summary">
+    <mxGraphModel dx="980" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="980" pageHeight="470" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="MCP: the host controls capability access" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="48" y="22" width="850" height="70" as="geometry" /></mxCell>
+        <mxCell id="model" value="Model&#xa;requests capability&#xa;uses returned context" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;strokeColor=#9AA8C2;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="48" y="165" width="202" height="160" as="geometry" /></mxCell>
+        <mxCell id="host" value="Application host&#xa;policy + orchestration&#xa;MCP client + transport&#xa;validate before dispatch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#18343B;strokeColor=#18343B;fontColor=#FFFFFF;fontSize=16;" vertex="1" parent="1"><mxGeometry x="355" y="145" width="250" height="200" as="geometry" /></mxCell>
+        <mxCell id="server" value="MCP server&#xa;tools + resources&#xa;prompts + results" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="700" y="165" width="230" height="160" as="geometry" /></mxCell>
+        <mxCell id="e1" value="request / response" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="model" target="host"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" value="MCP transport" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="host" target="server"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" value="result" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="server" target="host"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

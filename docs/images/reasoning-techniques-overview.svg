@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1010" viewBox="0 0 1080 1010" role="img" aria-labelledby="title description">
+  <title id="title">Reasoning techniques overview</title>
+  <desc id="description">Eleven small diagrams illustrate Chain-of-Thought, Tree-of-Thought, self-correction, program-aided reasoning, reinforcement learning with verifiable rewards, ReAct, chain and graph of debates, MASS, Deep Research, and inference-time scaling.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 z" fill="#52636b" />
+    </marker>
+    <marker id="arrowLight" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 z" fill="#8a999b" />
+    </marker>
+  </defs>
+  <rect width="1080" height="1010" fill="#f7f8f6" rx="18" />
+  <text x="36" y="48" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="28" font-weight="700">Reasoning Techniques: illustrated overview</text>
+  <text x="36" y="76" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Different ways to decompose, explore, verify, act, collaborate, or spend more inference-time compute</text>
+
+  <g font-family="Segoe UI, sans-serif">
+    <rect x="28" y="100" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="46" y="130" fill="#18343b" font-size="17" font-weight="700">1. Chain-of-Thought (CoT)</text>
+    <rect x="49" y="190" width="66" height="36" rx="7" fill="#e2f1ee" stroke="#76a99e" />
+    <rect x="139" y="190" width="66" height="36" rx="7" fill="#e9edf7" stroke="#9aa8c2" />
+    <rect x="229" y="190" width="66" height="36" rx="7" fill="#fff0e8" stroke="#d99b76" />
+    <text x="82" y="213" text-anchor="middle" fill="#18343b" font-size="12">Step 1</text>
+    <text x="172" y="213" text-anchor="middle" fill="#18343b" font-size="12">Step 2</text>
+    <text x="262" y="213" text-anchor="middle" fill="#18343b" font-size="12">Answer</text>
+    <path d="M115 208 H139 M205 208 H229" stroke="#52636b" stroke-width="2" marker-end="url(#arrow)" />
+    <text x="46" y="260" fill="#52636b" font-size="12">A problem is decomposed into an ordered path.</text>
+
+    <rect x="377" y="100" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="395" y="130" fill="#18343b" font-size="17" font-weight="700">2. Tree-of-Thought (ToT)</text>
+    <circle cx="540" cy="171" r="18" fill="#18343b" />
+    <circle cx="472" cy="218" r="16" fill="#e2f1ee" stroke="#76a99e" />
+    <circle cx="540" cy="218" r="16" fill="#fff0e8" stroke="#d99b76" />
+    <circle cx="608" cy="218" r="16" fill="#e9edf7" stroke="#9aa8c2" />
+    <circle cx="523" cy="258" r="13" fill="#d5dedb" stroke="#9aa8a6" />
+    <circle cx="557" cy="258" r="13" fill="#c7e9df" stroke="#76a99e" />
+    <path d="M528 186 L480 203 M540 189 V202 M552 186 L600 203 M540 234 L526 247 M540 234 L554 247" fill="none" stroke="#52636b" stroke-width="1.7" marker-end="url(#arrowLight)" />
+    <text x="46" y="278" fill="#52636b" font-size="12">Branch, compare candidates, prune or backtrack.</text>
+
+    <rect x="726" y="100" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="744" y="130" fill="#18343b" font-size="17" font-weight="700">3. Self-correction</text>
+    <rect x="753" y="190" width="72" height="36" rx="7" fill="#e2f1ee" stroke="#76a99e" />
+    <rect x="853" y="190" width="72" height="36" rx="7" fill="#fff0e8" stroke="#d99b76" />
+    <rect x="953" y="190" width="72" height="36" rx="7" fill="#e9edf7" stroke="#9aa8c2" />
+    <text x="789" y="213" text-anchor="middle" fill="#18343b" font-size="12">Draft</text>
+    <text x="889" y="213" text-anchor="middle" fill="#18343b" font-size="12">Critique</text>
+    <text x="989" y="213" text-anchor="middle" fill="#18343b" font-size="12">Revise</text>
+    <path d="M825 208 H853 M925 208 H953 M989 226 V247 H789 V226" fill="none" stroke="#52636b" stroke-width="1.8" marker-end="url(#arrowLight)" />
+    <text x="744" y="270" fill="#52636b" font-size="12">Review against criteria; improvement is not guaranteed.</text>
+
+    <rect x="28" y="310" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="46" y="340" fill="#18343b" font-size="17" font-weight="700">4. Program-Aided Reasoning (PAL)</text>
+    <rect x="54" y="394" width="88" height="42" rx="7" fill="#18343b" />
+    <rect x="167" y="394" width="88" height="42" rx="7" fill="#e9edf7" stroke="#9aa8c2" />
+    <rect x="280" y="394" width="52" height="42" rx="7" fill="#e2f1ee" stroke="#76a99e" />
+    <text x="98" y="420" text-anchor="middle" fill="#ffffff" font-size="12">LLM writes code</text>
+    <text x="211" y="420" text-anchor="middle" fill="#18343b" font-size="12">Execute</text>
+    <text x="306" y="420" text-anchor="middle" fill="#18343b" font-size="12">Result</text>
+    <path d="M142 415 H167 M255 415 H280" stroke="#52636b" stroke-width="2" marker-end="url(#arrow)" />
+    <text x="46" y="470" fill="#52636b" font-size="12">Use deterministic tools for exact computation.</text>
+
+    <rect x="377" y="310" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="395" y="340" fill="#18343b" font-size="17" font-weight="700">5. RL with Verifiable Rewards (RLVR)</text>
+    <rect x="400" y="394" width="76" height="42" rx="7" fill="#e2f1ee" stroke="#76a99e" />
+    <rect x="507" y="394" width="76" height="42" rx="7" fill="#fff0e8" stroke="#d99b76" />
+    <rect x="614" y="394" width="66" height="42" rx="7" fill="#e9edf7" stroke="#9aa8c2" />
+    <text x="438" y="420" text-anchor="middle" fill="#18343b" font-size="11">Candidate</text>
+    <text x="545" y="420" text-anchor="middle" fill="#18343b" font-size="11">Verifier</text>
+    <text x="647" y="420" text-anchor="middle" fill="#18343b" font-size="11">Reward</text>
+    <path d="M476 415 H507 M583 415 H614 M647 436 V458 H438 V436" fill="none" stroke="#52636b" stroke-width="1.8" marker-end="url(#arrowLight)" />
+    <text x="395" y="480" fill="#52636b" font-size="12">Training feedback from checkable outcomes.</text>
+
+    <rect x="726" y="310" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="744" y="340" fill="#18343b" font-size="17" font-weight="700">6. ReAct: Reason + Act</text>
+    <circle cx="814" cy="418" r="27" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+    <circle cx="889" cy="418" r="27" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+    <circle cx="964" cy="418" r="27" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+    <text x="814" y="422" text-anchor="middle" fill="#18343b" font-size="11">Thought</text>
+    <text x="889" y="422" text-anchor="middle" fill="#18343b" font-size="11">Action</text>
+    <text x="964" y="422" text-anchor="middle" fill="#18343b" font-size="11">Observe</text>
+    <path d="M841 418 H862 M916 418 H937 M964 445 V465 H814 V445" fill="none" stroke="#52636b" stroke-width="1.8" marker-end="url(#arrowLight)" />
+    <text x="744" y="485" fill="#52636b" font-size="12">Tool results inform the next reasoning step.</text>
+
+    <rect x="28" y="520" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="46" y="550" fill="#18343b" font-size="17" font-weight="700">7. Chain of Debates (CoD)</text>
+    <rect x="55" y="595" width="76" height="40" rx="7" fill="#e2f1ee" stroke="#76a99e" />
+    <rect x="153" y="595" width="76" height="40" rx="7" fill="#fff0e8" stroke="#d99b76" />
+    <rect x="251" y="595" width="76" height="40" rx="7" fill="#e9edf7" stroke="#9aa8c2" />
+    <text x="93" y="620" text-anchor="middle" fill="#18343b" font-size="11">Propose</text>
+    <text x="191" y="620" text-anchor="middle" fill="#18343b" font-size="11">Critique</text>
+    <text x="289" y="620" text-anchor="middle" fill="#18343b" font-size="11">Synthesize</text>
+    <path d="M131 615 H153 M229 615 H251" stroke="#52636b" stroke-width="1.8" marker-end="url(#arrow)" />
+    <text x="46" y="680" fill="#52636b" font-size="12">Distinct models exchange arguments and counterpoints.</text>
+
+    <rect x="377" y="520" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="395" y="550" fill="#18343b" font-size="17" font-weight="700">8. Graph of Debates (GoD)</text>
+    <path d="M438 614 L520 590 L601 622 L544 663 L438 614 M520 590 L544 663 M520 590 L640 580 M601 622 L640 580" fill="none" stroke="#8a999b" stroke-width="1.8" />
+    <circle cx="438" cy="614" r="15" fill="#e2f1ee" stroke="#76a99e" />
+    <circle cx="520" cy="590" r="15" fill="#fff0e8" stroke="#d99b76" />
+    <circle cx="601" cy="622" r="15" fill="#e9edf7" stroke="#9aa8c2" />
+    <circle cx="544" cy="663" r="15" fill="#fce8e7" stroke="#d58c86" />
+    <circle cx="640" cy="580" r="15" fill="#e2f1ee" stroke="#76a99e" />
+    <text x="395" y="690" fill="#52636b" font-size="12">Arguments branch; links represent support or refutation.</text>
+
+    <rect x="726" y="520" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="744" y="550" fill="#18343b" font-size="17" font-weight="700">9. MASS: Multi-Agent System Search</text>
+    <rect x="750" y="600" width="82" height="46" rx="7" fill="#e2f1ee" stroke="#76a99e" />
+    <rect x="850" y="600" width="82" height="46" rx="7" fill="#fff0e8" stroke="#d99b76" />
+    <rect x="950" y="600" width="82" height="46" rx="7" fill="#e9edf7" stroke="#9aa8c2" />
+    <text x="791" y="620" text-anchor="middle" fill="#18343b" font-size="10">Block prompts</text>
+    <text x="891" y="620" text-anchor="middle" fill="#18343b" font-size="10">Topology</text>
+    <text x="991" y="620" text-anchor="middle" fill="#18343b" font-size="10">Workflow prompt</text>
+    <path d="M832 623 H850 M932 623 H950" stroke="#52636b" stroke-width="1.8" marker-end="url(#arrow)" />
+    <text x="744" y="680" fill="#52636b" font-size="12">Optimize agent roles, connections, then the whole system.</text>
+
+    <rect x="28" y="730" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="46" y="760" fill="#18343b" font-size="17" font-weight="700">10. Deep Research / DeepSearch</text>
+    <rect x="50" y="807" width="58" height="36" rx="7" fill="#e2f1ee" stroke="#76a99e" />
+    <rect x="133" y="807" width="58" height="36" rx="7" fill="#e9edf7" stroke="#9aa8c2" />
+    <rect x="216" y="807" width="58" height="36" rx="7" fill="#fff0e8" stroke="#d99b76" />
+    <rect x="283" y="807" width="52" height="36" rx="7" fill="#e2f1ee" stroke="#76a99e" />
+    <text x="79" y="830" text-anchor="middle" fill="#18343b" font-size="10">Plan</text>
+    <text x="162" y="830" text-anchor="middle" fill="#18343b" font-size="10">Search</text>
+    <text x="245" y="830" text-anchor="middle" fill="#18343b" font-size="10">Reflect</text>
+    <text x="309" y="830" text-anchor="middle" fill="#18343b" font-size="10">Report</text>
+    <path d="M108 825 H133 M191 825 H216 M274 825 H283 M245 843 V866 H162 V843" fill="none" stroke="#52636b" stroke-width="1.7" marker-end="url(#arrowLight)" />
+    <text x="46" y="895" fill="#52636b" font-size="12">Search, find gaps, follow up, and cite results.</text>
+
+    <rect x="377" y="730" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="395" y="760" fill="#18343b" font-size="17" font-weight="700">11. Inference-time scaling</text>
+    <path d="M433 875 V803 M433 875 H651" fill="none" stroke="#52636b" stroke-width="1.6" marker-end="url(#arrow)" />
+    <path d="M445 861 C482 842 514 823 547 817 C580 811 610 810 642 810" fill="none" stroke="#d58c86" stroke-width="3" />
+    <text x="544" y="895" text-anchor="middle" fill="#52636b" font-size="11">more test-time compute</text>
+    <text x="410" y="831" transform="rotate(-90 410 831)" text-anchor="middle" fill="#52636b" font-size="11">quality (task-dependent)</text>
+    <text x="395" y="912" fill="#52636b" font-size="11">Potential gains have cost and diminishing returns.</text>
+
+    <rect x="726" y="730" width="326" height="190" rx="11" fill="#ffffff" stroke="#d5dedb" />
+    <text x="744" y="760" fill="#18343b" font-size="17" font-weight="700">What do agents think?</text>
+    <rect x="765" y="817" width="70" height="38" rx="7" fill="#e2f1ee" stroke="#76a99e" />
+    <rect x="850" y="817" width="70" height="38" rx="7" fill="#fff0e8" stroke="#d99b76" />
+    <rect x="935" y="817" width="70" height="38" rx="7" fill="#e9edf7" stroke="#9aa8c2" />
+    <text x="800" y="841" text-anchor="middle" fill="#18343b" font-size="11">Thought</text>
+    <text x="885" y="841" text-anchor="middle" fill="#18343b" font-size="11">Action</text>
+    <text x="970" y="841" text-anchor="middle" fill="#18343b" font-size="11">Observe</text>
+    <path d="M835 836 H850 M920 836 H935 M970 855 V878 H800 V855" fill="none" stroke="#52636b" stroke-width="1.8" marker-end="url(#arrowLight)" />
+    <text x="744" y="905" fill="#52636b" font-size="12">Operational loop, not a faithful transcript of hidden thought.</text>
+  </g>
+</svg>

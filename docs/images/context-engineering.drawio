@@ -1,0 +1,21 @@
+<mxfile host="app.diagrams.net" modified="2026-11-04T00:00:00.000Z" agent="GitHub Copilot" version="24.7.17" type="device">
+  <diagram id="context-engineering" name="Context Engineering">
+    <mxGraphModel dx="960" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="470" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Context Engineering&#xa;Build the information environment before the model responds" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="48" y="22" width="800" height="72" as="geometry" /></mxCell>
+        <mxCell id="prompt" value="Prompt engineering&#xa;instructions and task" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="48" y="130" width="238" height="66" as="geometry" /></mxCell>
+        <mxCell id="rag" value="RAG&#xa;retrieved evidence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="48" y="224" width="238" height="66" as="geometry" /></mxCell>
+        <mxCell id="state" value="Memory &amp; state&#xa;history and environment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;strokeColor=#9AA8C2;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="48" y="318" width="238" height="66" as="geometry" /></mxCell>
+        <mxCell id="model" value="ASSEMBLED CONTEXT&#xa;&#xa;Model&#xa;relevant information available at generation time" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#18343B;strokeColor=#18343B;fontColor=#FFFFFF;fontSize=18;" vertex="1" parent="1"><mxGeometry x="348" y="157" width="264" height="218" as="geometry" /></mxCell>
+        <mxCell id="output" value="Structured output&#xa;clear, usable result&#xa;for the next step" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE8E7;strokeColor=#D58C86;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="674" y="210" width="238" height="112" as="geometry" /></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="prompt" target="model"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="rag" target="model"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="state" target="model"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="model" target="output"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="caption" value="Choose, package, and deliver what the task needs; validate outputs at each boundary." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#52636B;" vertex="1" parent="1"><mxGeometry x="100" y="410" width="760" height="32" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

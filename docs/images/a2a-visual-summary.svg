@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="470" viewBox="0 0 980 470" role="img" aria-labelledby="title description">
+  <title id="title">Agent-to-Agent communication visual summary</title>
+  <desc id="description">An agent discovers another agent's capabilities, sends an authenticated task, and receives status and artifacts.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="980" height="470" rx="18" fill="#f7f8f6" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">A2A: collaborate across agent boundaries</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">Discovery describes capabilities; tasks and artifacts carry the work</text>
+  <path d="M240 210 H370 M610 210 H740 M740 280 H610 M370 280 H240" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <rect x="48" y="160" width="192" height="170" rx="14" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="144" y="204" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Agent A</text>
+  <text x="144" y="236" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">discover + authenticate</text>
+  <text x="144" y="262" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">create task</text>
+  <text x="144" y="288" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">consume result</text>
+  <rect x="370" y="160" width="240" height="170" rx="14" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="490" y="204" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Agent Card</text>
+  <text x="490" y="236" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">identity + endpoint</text>
+  <text x="490" y="262" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">skills + auth modes</text>
+  <text x="490" y="288" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">not a place for secrets</text>
+  <rect x="740" y="160" width="192" height="170" rx="14" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="836" y="204" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Agent B</text>
+  <text x="836" y="236" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">accept task</text>
+  <text x="836" y="262" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">report status</text>
+  <text x="836" y="288" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">return artifacts</text>
+  <text x="490" y="405" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Protect discovery and endpoints; define task lifecycle, authentication, and trust boundaries.</text>
+</svg>

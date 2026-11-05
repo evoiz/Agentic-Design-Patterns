@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="470" viewBox="0 0 980 470" role="img" aria-labelledby="title description">
+  <title id="title">Model Context Protocol visual summary</title>
+  <desc id="description">The host mediates model requests through an MCP client to a server exposing tools, resources, or prompts.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="980" height="470" rx="18" fill="#f7f8f6" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">MCP: the host controls capability access</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">The protocol connects an application to independently implemented servers</text>
+  <path d="M250 205 H355 M605 205 H700 M700 290 H605 M355 290 H250" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <rect x="48" y="165" width="202" height="160" rx="14" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="149" y="208" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Model</text>
+  <text x="149" y="238" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">requests a capability</text>
+  <text x="149" y="263" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">uses returned context</text>
+  <rect x="355" y="145" width="250" height="200" rx="14" fill="#18343b" />
+  <text x="480" y="190" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" letter-spacing="1">APPLICATION HOST</text>
+  <text x="480" y="230" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Policy + orchestration</text>
+  <text x="480" y="262" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="15">MCP client + transport</text>
+  <text x="480" y="294" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="14">validate before dispatch</text>
+  <rect x="700" y="165" width="230" height="160" rx="14" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="815" y="208" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">MCP server</text>
+  <text x="815" y="238" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">tools • resources</text>
+  <text x="815" y="263" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">prompts • results</text>
+  <text x="490" y="405" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">MCP standardizes access; the host remains responsible for authorization and safe use.</text>
+</svg>

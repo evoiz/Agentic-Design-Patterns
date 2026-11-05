@@ -1,0 +1,24 @@
+<mxfile host="app.diagrams.net" modified="2026-11-05T00:00:00.000Z" agent="GitHub Copilot" version="24.7.17" type="device">
+  <diagram id="hitl-review" name="Human-in-the-Loop Review Gate">
+    <mxGraphModel dx="1080" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1080" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Human-in-the-Loop: review before consequential action&#xa;Route high-risk, ambiguous, or policy-sensitive decisions to an accountable person" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="48" y="22" width="950" height="72" as="geometry" /></mxCell>
+        <mxCell id="request" value="Request&#xa;context + goal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="46" y="188" width="166" height="100" as="geometry" /></mxCell>
+        <mxCell id="agent" value="AI AGENT&#xa;&#xa;Analyze and propose&#xa;recommendation / action" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#18343B;strokeColor=#18343B;fontColor=#FFFFFF;fontSize=16;" vertex="1" parent="1"><mxGeometry x="262" y="168" width="194" height="140" as="geometry" /></mxCell>
+        <mxCell id="review" value="Human review&#xa;qualified reviewer&#xa;inspect evidence, context, and proposed action&#xa;approve / revise / reject" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontColor=#18343B;fontSize=15;" vertex="1" parent="1"><mxGeometry x="506" y="148" width="224" height="180" as="geometry" /></mxCell>
+        <mxCell id="approved" value="Approved&#xa;controlled action may proceed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="810" y="120" width="218" height="82" as="geometry" /></mxCell>
+        <mxCell id="revise" value="Revise&#xa;return feedback to the agent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;strokeColor=#9AA8C2;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="810" y="228" width="218" height="82" as="geometry" /></mxCell>
+        <mxCell id="reject" value="Reject / stop&#xa;do not execute the action" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE8E7;strokeColor=#D58C86;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="810" y="336" width="218" height="70" as="geometry" /></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="request" target="agent"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="agent" target="review"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="approveEdge" value="approve" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="review" target="approved"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="reviseEdge" value="revise" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="review" target="revise"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="rejectEdge" value="reject" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="review" target="reject"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="feedback" value="feedback" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#8A999B;strokeWidth=2;dashed=1;" edge="1" parent="1" source="revise" target="agent"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="919" y="430" /><mxPoint x="359" y="430" /></Array></mxGeometry></mxCell>
+        <mxCell id="caption" value="Human review adds latency and capacity limits; minimize sensitive data and make reviewer expertise explicit." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#52636B;" vertex="1" parent="1"><mxGeometry x="120" y="438" width="840" height="32" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

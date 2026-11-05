@@ -1,0 +1,18 @@
+<mxfile host="app.diagrams.net" modified="2026-11-05T00:00:00.000Z" agent="GitHub Copilot" version="24.7.17" type="device">
+  <diagram id="exception-recovery" name="Exception Handling and Recovery">
+    <mxGraphModel dx="1080" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1080" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Exception Handling &amp; Recovery&#xa;Move from detecting a failure to a safe response and a stable state" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="48" y="22" width="900" height="72" as="geometry" /></mxCell>
+        <mxCell id="detection" value="1. Error Detection&#xa;&#xa;Notice signals such as:&#xa;tool or API errors&#xa;unavailable service / timeout&#xa;malformed output&#xa;monitoring alerts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;strokeColor=#9AA8C2;fontColor=#18343B;fontSize=15;align=left;spacingLeft=20;" vertex="1" parent="1"><mxGeometry x="46" y="145" width="292" height="226" as="geometry" /></mxCell>
+        <mxCell id="handling" value="2. Error Handling&#xa;&#xa;Choose a controlled response:&#xa;log details for diagnosis&#xa;bounded retry for transient errors&#xa;fallback or graceful degradation&#xa;notify user / operator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontColor=#18343B;fontSize=15;align=left;spacingLeft=20;" vertex="1" parent="1"><mxGeometry x="394" y="145" width="292" height="226" as="geometry" /></mxCell>
+        <mxCell id="recovery" value="3. Recovery&#xa;&#xa;Restore safe operation:&#xa;rollback to a stable state&#xa;self-correct or replan&#xa;escalate when needed&#xa;resume or fail explicitly" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=15;align=left;spacingLeft=20;" vertex="1" parent="1"><mxGeometry x="742" y="145" width="292" height="226" as="geometry" /></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="detection" target="handling"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="handling" target="recovery"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="feedback" value="safe restart only" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#8A999B;strokeWidth=2;dashed=1;" edge="1" parent="1" source="recovery" target="detection"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="890" y="414" /><mxPoint x="190" y="414" /></Array></mxGeometry></mxCell>
+        <mxCell id="caption" value="Retries must be bounded and safe to repeat; otherwise use a fallback, rollback, escalation, or explicit failure." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#52636B;" vertex="1" parent="1"><mxGeometry x="120" y="438" width="840" height="32" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="470" viewBox="0 0 980 470" role="img" aria-labelledby="title description">
+  <title id="title">Reflection visual summary</title>
+  <desc id="description">A draft is evaluated against criteria, revised when needed, and stopped when it passes or reaches an iteration bound.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="980" height="470" rx="18" fill="#f7f8f6" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">Reflection: critique, revise, or stop</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">Use explicit criteria and a bounded loop rather than open-ended self-review</text>
+  <path d="M220 235 H310 M490 235 H570 M730 235 H820 M650 300 C650 380 400 380 400 300" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <rect x="48" y="185" width="172" height="100" rx="12" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="134" y="225" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Draft</text>
+  <text x="134" y="253" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">initial answer</text>
+  <rect x="310" y="185" width="180" height="100" rx="12" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="400" y="225" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Critique</text>
+  <text x="400" y="253" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">compare to criteria</text>
+  <path d="M650 155 L730 235 L650 315 L570 235 Z" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="650" y="228" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Pass or</text>
+  <text x="650" y="250" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">limit reached?</text>
+  <rect x="820" y="185" width="112" height="100" rx="12" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="876" y="225" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Return</text>
+  <text x="876" y="253" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">or escalate</text>
+  <text x="752" y="220" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">yes</text>
+  <text x="505" y="370" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">no: revise</text>
+  <text x="490" y="430" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">A separate critic can add perspective, but does not guarantee objectivity.</text>
+</svg>

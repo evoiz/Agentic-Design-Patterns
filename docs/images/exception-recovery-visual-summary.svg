@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="500" viewBox="0 0 1080 500" role="img" aria-labelledby="title description">
+  <title id="title">Exception handling and recovery</title>
+  <desc id="description">Three stages: detect an operational failure, handle it with logging, bounded retries, fallback, degradation, or notification, then recover with rollback, self-correction, or escalation.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="1080" height="500" fill="#f7f8f6" rx="18" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="29" font-weight="700">Exception Handling &amp; Recovery</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">Move from detecting a failure to a safe response and a stable state</text>
+
+  <rect x="46" y="145" width="292" height="226" rx="12" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <circle cx="80" cy="183" r="18" fill="#18343b" />
+  <text x="80" y="189" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">1</text>
+  <text x="110" y="189" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="20" font-weight="700">Error Detection</text>
+  <text x="70" y="231" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="15">Notice signals such as:</text>
+  <text x="78" y="262" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; tool or API errors</text>
+  <text x="78" y="289" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; unavailable service / timeout</text>
+  <text x="78" y="316" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; malformed or unexpected output</text>
+  <text x="78" y="343" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; monitoring or anomaly alerts</text>
+
+  <rect x="394" y="145" width="292" height="226" rx="12" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <circle cx="428" cy="183" r="18" fill="#18343b" />
+  <text x="428" y="189" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">2</text>
+  <text x="458" y="189" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="20" font-weight="700">Error Handling</text>
+  <text x="418" y="231" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="15">Choose a controlled response:</text>
+  <text x="426" y="262" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; log details for diagnosis</text>
+  <text x="426" y="289" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; bounded retry for transient errors</text>
+  <text x="426" y="316" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; fallback or graceful degradation</text>
+  <text x="426" y="343" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; notify user / operator</text>
+
+  <rect x="742" y="145" width="292" height="226" rx="12" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <circle cx="776" cy="183" r="18" fill="#18343b" />
+  <text x="776" y="189" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">3</text>
+  <text x="806" y="189" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="20" font-weight="700">Recovery</text>
+  <text x="766" y="231" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="15">Restore safe operation:</text>
+  <text x="774" y="262" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; rollback to a stable state</text>
+  <text x="774" y="289" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; self-correct or replan</text>
+  <text x="774" y="316" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; escalate when needed</text>
+  <text x="774" y="343" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">&#8226; resume or fail explicitly</text>
+
+  <path d="M338 258 H394 M686 258 H742" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <path d="M890 371 V414 H190 V371" fill="none" stroke="#8a999b" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)" />
+  <text x="540" y="441" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Recovery may restart work only from a known safe point; retries must be bounded and safe to repeat.</text>
+</svg>

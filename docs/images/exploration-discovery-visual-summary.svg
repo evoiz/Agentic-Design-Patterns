@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="500" viewBox="0 0 1080 500" role="img" aria-labelledby="title description">
+  <title id="title">Exploration and discovery workflow</title>
+  <desc id="description">An open-ended question leads to candidate hypotheses, critique and ranking, then literature search or experiments. Evidence is reviewed, hypotheses are refined, and a human researcher can guide validation.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="1080" height="500" fill="#f7f8f6" rx="18" />
+  <text x="44" y="56" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="29" font-weight="700">Exploration &amp; Discovery: investigate the unknown</text>
+  <text x="44" y="85" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="15">Generate possibilities, seek evidence, test, and refine; a promising hypothesis is not yet a finding</text>
+
+  <rect x="38" y="192" width="160" height="104" rx="11" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="118" y="230" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Open question</text>
+  <text x="118" y="257" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">unknown solution space</text>
+
+  <rect x="244" y="166" width="184" height="156" rx="12" fill="#18343b" />
+  <text x="336" y="204" text-anchor="middle" fill="#c7e9df" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" letter-spacing="1">GENERATE</text>
+  <path d="M275 219 H397" stroke="#557279" stroke-width="1" />
+  <text x="336" y="254" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Candidate ideas</text>
+  <text x="336" y="282" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="13">hypotheses / approaches</text>
+  <text x="336" y="303" text-anchor="middle" fill="#d5e0df" font-family="Segoe UI, sans-serif" font-size="12">from sources and prior knowledge</text>
+
+  <rect x="474" y="177" width="170" height="134" rx="11" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="559" y="215" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">Review and rank</text>
+  <text x="559" y="244" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">critique, compare,</text>
+  <text x="559" y="266" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">select what to test</text>
+  <text x="559" y="291" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="11">specialists can contribute</text>
+
+  <rect x="690" y="166" width="184" height="156" rx="12" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="782" y="204" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" letter-spacing="1">INVESTIGATE</text>
+  <path d="M721 219 H843" stroke="#aab3c3" stroke-width="1" />
+  <text x="782" y="253" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">Search / experiment</text>
+  <text x="782" y="281" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">gather evidence</text>
+  <text x="782" y="303" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="12">literature, data, tests</text>
+
+  <rect x="920" y="177" width="128" height="134" rx="11" fill="#fce8e7" stroke="#d58c86" stroke-width="2" />
+  <text x="984" y="215" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">Validate</text>
+  <text x="984" y="244" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="12">evidence +</text>
+  <text x="984" y="264" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="12">expert review</text>
+  <text x="984" y="288" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700">not just plausibility</text>
+
+  <path d="M198 244 H244 M428 244 H474 M644 244 H690 M874 244 H920" fill="none" stroke="#52636b" stroke-width="2.3" marker-end="url(#arrow)" />
+  <path d="M984 311 V399 H336 V322" fill="none" stroke="#52636b" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)" />
+  <text x="650" y="390" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">Results update hypotheses and guide the next exploration cycle</text>
+
+  <rect x="350" y="431" width="380" height="40" rx="9" fill="#18343b" />
+  <text x="540" y="456" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700">Human researcher guides goals, methods, and validation</text>
+</svg>

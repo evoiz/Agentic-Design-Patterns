@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="450" viewBox="0 0 980 450" role="img" aria-labelledby="title description">
+  <title id="title">Goal setting and monitoring visual summary</title>
+  <desc id="description">A goal is made measurable, progress is checked against evidence, and the system completes or replans.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#52636b" />
+    </marker>
+  </defs>
+  <rect width="980" height="450" rx="18" fill="#f7f8f6" />
+  <text x="48" y="58" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">Goal setting: measure progress, then adapt</text>
+  <text x="48" y="88" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="16">A goal needs observable success criteria and an independent completion check</text>
+  <path d="M220 220 H300 M500 220 H580 M760 220 H830 M670 290 C670 360 400 360 400 290" fill="none" stroke="#52636b" stroke-width="2.5" marker-end="url(#arrow)" />
+  <rect x="48" y="170" width="172" height="100" rx="12" fill="#e2f1ee" stroke="#76a99e" stroke-width="2" />
+  <text x="134" y="210" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Goal</text>
+  <text x="134" y="238" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">desired outcome</text>
+  <rect x="300" y="170" width="200" height="100" rx="12" fill="#e9edf7" stroke="#9aa8c2" stroke-width="2" />
+  <text x="400" y="210" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Define success</text>
+  <text x="400" y="238" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">observable criteria</text>
+  <rect x="580" y="170" width="180" height="100" rx="12" fill="#fff0e8" stroke="#d99b76" stroke-width="2" />
+  <text x="670" y="210" text-anchor="middle" fill="#18343b" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Act + measure</text>
+  <text x="670" y="238" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">check evidence</text>
+  <path d="M880 145 L930 220 L880 295 L830 220 Z" fill="#18343b" />
+  <text x="880" y="215" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, sans-serif" font-size="15" font-weight="700">Complete?</text>
+  <text x="803" y="205" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">yes</text>
+  <text x="495" y="355" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="13">no: adapt or replan</text>
+  <text x="490" y="410" text-anchor="middle" fill="#52636b" font-family="Segoe UI, sans-serif" font-size="14">Do not treat the agent's own completion claim as evidence that the goal was met.</text>
+</svg>
