@@ -36,9 +36,9 @@ dotnet run --project ConferenceDemos --launch-profile "Schedule - RAG day 1"
 dotnet run --project ConferenceDemos --launch-profile "Check data"
 ```
 
-Decision profiles use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording still requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
+The **Decisions - compare** profile uses the bundled illustrative JSON sample, so no recording is needed. **Decisions - record OpenAI** and **Decisions - compare recorded OpenAI** use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
 
-Each demo prints its user question or request before inference. Shopping also shows the pantry input, and both decision commands show the shared context and all three questions.
+Each demo prints its user question or request before inference. Shopping also shows the pantry input, and both decision commands show the shared session and attendee interest. Decision questions, choices, and the score scale are supplied directly at their respective method calls.
 
 ## 1. Schedule RAG: same question, different evidence
 
@@ -68,9 +68,9 @@ dotnet run --project ConferenceDemos -- shopping vegetarian --incomplete
 
 A passing run prints the meal, missing items only, and `Goal check PASS`. Unsupported preferences, unknown pantry data, or invalid choices print `FAIL`, return exit code 1, and never show a completed shopping list. `keto` intentionally demonstrates no matching recipe. No pricing, budget, route, recipe service, or deployment is involved.
 
-## 3. Decision Models: live Microsoft, captured OpenAI
+## 3. Decision Models: live Microsoft, sample or captured OpenAI
 
-Configure two additional deployment aliases from the repository root:
+Configure the Microsoft decision deployment alias from the repository root. Add the OpenAI alias only if recording real OpenAI output:
 
 ```powershell
 dotnet user-secrets set "Foundry:ModelDeployments:decision" "<Microsoft-Decision-1-deployment>" --project dotnet/src/Shared
@@ -79,14 +79,24 @@ dotnet user-secrets set "Foundry:ModelDeployments:openaiDecision" "<Azure-OpenAI
 
 Or use `Foundry__ModelDeployments__decision` and `Foundry__ModelDeployments__openaiDecision`. Deploy the selected decision models in advance; an ordinary chat deployment is not interchangeable. This demo reuses the chapter's provider configuration and the pinned Decisions client, rather than imitating a decision model with chat prompts.
 
-From this folder, **record real OpenAI output before the talk**:
+From this folder, run with the bundled sample (only the Microsoft deployment is called live):
 
 ```powershell
-dotnet run --project ConferenceDemos -- decisions-record-openai captures/openai-decisions.json
-dotnet run --project ConferenceDemos -- decisions captures/openai-decisions.json
+dotnet run --project ConferenceDemos -- decisions
 ```
 
-The recording command makes three live OpenAI Decisions calls, validates the responses, and creates a new file without overwriting an existing capture. Review it before presenting. Captures are ignored by Git; no fabricated provider response is supplied. The presentation command validates the capture first, then calls **Microsoft-Decision-1 live** for all three shapes and displays **Azure OpenAI Decisions - CAPTURED**, with model and capture timestamp.
+The checked-in [openai-decisions.sample.json](ConferenceDemos/Samples/openai-decisions.sample.json) contains all three output shapes in one file. It is copied to build and publish output and resolved relative to the executable, not the working directory. Its values are **illustrative, not recorded model output**, and the console explicitly labels them that way. `check-data` also validates this file offline.
+
+**Why JSON?** Only to replay the comparison output without making a second set of live model calls. Neither provider requires a JSON file for inference. The sample removes the recording prerequisite; a real capture is useful for presenting actual OpenAI behavior.
+
+To replace the illustration with **real OpenAI output**, record it before the talk:
+
+```powershell
+dotnet run --project ConferenceDemos -- decisions-record-openai captures\openai-decisions.json
+dotnet run --project ConferenceDemos -- decisions captures\openai-decisions.json
+```
+
+The recording command makes three live OpenAI Decisions calls, validates the responses, and creates a new file without overwriting an existing capture. Review it before presenting. Real captures are ignored by Git; the illustrative sample is committed. With an explicit capture path, the presentation command validates the file first, then calls **Microsoft-Decision-1 live** for all three shapes and displays **Azure OpenAI Decisions - CAPTURED**, with model and capture timestamp. A missing explicit path fails; it never silently falls back to the sample.
 
 [DecisionDemo.cs](ConferenceDemos/DecisionDemo.cs) uses the same session #13 abstract and stated AI/C#/Foundry attendee interest for:
 
@@ -96,7 +106,7 @@ The recording command makes three live OpenAI Decisions calls, validates the res
 | Noul (binary) | `AssessAsync` | `AssessmentDecision.Probability` |
 | Ordered score | `ScoreAsync` | Zero-based expected score and level probabilities on a four-level scale |
 
-These are the library's normalized typed outputs, not identical raw provider wire formats. The Microsoft adapter uses SystemOne; the OpenAI adapter uses the Decisions endpoint. The capture includes the full context/questions/scale, a matching SHA-256 contract hash, provider/model, and timestamp. These checks detect stale/mismatched inputs, not cryptographic proof of provider origin: create captures only with the recording command.
+These are the library's normalized typed outputs, not identical raw provider wire formats. The Microsoft adapter uses SystemOne; the OpenAI adapter uses the Decisions endpoint. Only the session and attendee interest are shared; each question and its options or scale are inline in `EvaluateAsync`. JSON includes this shared input, all three results, and a task-contract version. Real captures also include provider/model and timestamp; the sample deliberately has no model or timestamp. Input equality, contract version, provenance fields, and result distributions are checked, but do not prove provider origin: create real captures only with the recording command. Older version-1 captures must be re-recorded for this version-2 format.
 
 Missing/mismatched captures and malformed distributions fail explicitly. This is an API/output illustration, **not an accuracy benchmark**; neither model scores nor probabilities are calibrated real-world certainty. Schedule existence and time lookup stay deterministic.
 

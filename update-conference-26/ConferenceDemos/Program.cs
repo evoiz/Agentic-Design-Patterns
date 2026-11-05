@@ -17,7 +17,7 @@ public static class Program
                   dotnet run --project ConferenceDemos -- rag [--day 1|2] [question]
                   dotnet run --project ConferenceDemos -- plain [question]
                   dotnet run --project ConferenceDemos -- shopping [preference] [--incomplete]
-                  dotnet run --project ConferenceDemos -- decisions <verified-openai-capture.json>
+                  dotnet run --project ConferenceDemos -- decisions [openai-capture.json]
                   dotnet run --project ConferenceDemos -- decisions-record-openai <new-capture.json>
                   dotnet run --project ConferenceDemos -- research [request]
                   dotnet run --project ConferenceDemos -- check-data
@@ -39,27 +39,33 @@ public static class Program
                     throw new ArgumentException("check-data takes no arguments.");
                 }
                 var sessions = new ScheduleCorpus().Sessions;
-                _ = DecisionDemo.Context();
+                _ = DecisionDemo.ReadCapture(DecisionDemo.SamplePath, DecisionDemo.State());
                 _ = SpeakerDemo.Sources();
-                Console.WriteLine($"{sessions.Count} schedule sessions loaded from the embedded canonical fixture; decision and speaker sources resolved.");
+                Console.WriteLine($"{sessions.Count} schedule sessions loaded from the embedded canonical fixture; decision JSON sample and speaker sources resolved.");
                 return 0;
             }
             if (command is "decisions" or "decisions-record-openai")
             {
-                if (options.Length != 1 || string.IsNullOrWhiteSpace(options[0]))
+                if (options.Length > 1 || (command == "decisions-record-openai" && options.Length != 1) ||
+                    (options.Length == 1 && string.IsNullOrWhiteSpace(options[0])))
                 {
-                    throw new ArgumentException("Supply exactly one capture file path.");
+                    throw new ArgumentException("decisions accepts an optional JSON path; decisions-record-openai requires one new capture path.");
                 }
-                var context = DecisionDemo.Context();
-                Console.WriteLine("Context and questions:\n" + JsonSerializer.Serialize(context, DecisionDemo.JsonOptions));
-                var capture = command == "decisions" ? DecisionDemo.ReadCapture(options[0], context) : null;
+                var state = DecisionDemo.State();
+                Console.WriteLine("Shared session and attendee interest:\n" + state);
+                var capture = command == "decisions"
+                    ? DecisionDemo.ReadCapture(options.SingleOrDefault() ?? DecisionDemo.SamplePath, state) : null;
+                if (capture?.Provider == DecisionDemo.SampleProvider)
+                {
+                    Console.WriteLine("\nUsing bundled ILLUSTRATIVE SAMPLE, not a recorded OpenAI response.");
+                }
                 var settings = FoundryChatClientFactory.LoadSettings();
                 using var decisions = DecisionConfiguration.CreateClient(settings, command == "decisions" ? "microsoft" : "openai");
-                var result = await DecisionDemo.EvaluateAsync(decisions, context, cancellation.Token);
+                var result = await DecisionDemo.EvaluateAsync(decisions, state, cancellation.Token);
                 if (command == "decisions-record-openai")
                 {
-                    var recorded = DecisionDemo.Capture(result, context, settings.ResolveModelDeployment("openaiDecision"));
-                    DecisionDemo.ValidateCapture(recorded, context);
+                    var recorded = DecisionDemo.Capture(result, state, settings.ResolveModelDeployment("openaiDecision"));
+                    DecisionDemo.ValidateCapture(recorded, state);
                     var path = Path.GetFullPath(options[0]);
                     Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                     await using var file = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
@@ -70,7 +76,10 @@ public static class Program
                 {
                     Console.WriteLine("\nMicrosoft-Decision-1 - LIVE (Choice / Noul / Score):\n" +
                         JsonSerializer.Serialize(result, DecisionDemo.JsonOptions));
-                    Console.WriteLine($"\nAzure OpenAI Decisions - CAPTURED ({capture!.CapturedAt:O}, model {capture.ModelDeployment}):\n" +
+                    var label = capture!.Provider == DecisionDemo.SampleProvider
+                        ? "ILLUSTRATIVE SAMPLE - not a model response"
+                        : $"Azure OpenAI Decisions - CAPTURED ({capture.CapturedAt:O}, model {capture.ModelDeployment})";
+                    Console.WriteLine($"\n{label}:\n" +
                         JsonSerializer.Serialize(capture.Results, DecisionDemo.JsonOptions));
                     Console.WriteLine("\nAPI/output illustration only. Scores are not calibrated certainty or an accuracy benchmark.");
                 }

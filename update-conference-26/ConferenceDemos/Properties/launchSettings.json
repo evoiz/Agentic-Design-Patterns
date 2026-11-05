@@ -34,6 +34,10 @@
     },
     "Decisions - compare": {
       "commandName": "Project",
+      "commandLineArgs": "decisions"
+    },
+    "Decisions - compare recorded OpenAI": {
+      "commandName": "Project",
       "commandLineArgs": "decisions captures\\openai-decisions.json"
     },
     "Decisions - record OpenAI": {
