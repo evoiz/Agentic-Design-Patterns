@@ -27,6 +27,19 @@ dotnet test ConferenceDemos.Tests/ConferenceDemos.Tests.csproj
 
 `check-data` and the tests need no credentials or network model calls. The canonical [schedule](Update_Conference_Prague_2026_Schedule.md) is an embedded resource, not a second edited copy. Source IDs such as `Update_Conference_Prague_2026_Schedule.md#s13` resolve to its anchors.
 
+### Launch profiles
+
+[ConferenceDemos/Properties/launchSettings.json](ConferenceDemos/Properties/launchSettings.json) provides IDE launch profiles for all four demos, the plain schedule baseline, day 2/no-match retrieval, shopping failure cases, OpenAI recording, and the offline data check. Select a profile in your IDE, or run one by name from this folder:
+
+```powershell
+dotnet run --project ConferenceDemos --launch-profile "Schedule - RAG day 1"
+dotnet run --project ConferenceDemos --launch-profile "Check data"
+```
+
+Decision profiles use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording still requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
+
+Each demo prints its user question or request before inference. Shopping also shows the pantry input, and both decision commands show the shared context and all three questions.
+
 ## 1. Schedule RAG: same question, different evidence
 
 ```powershell
@@ -36,7 +49,7 @@ dotnet run --project ConferenceDemos -- rag --day 2 "AI and .NET"
 dotnet run --project ConferenceDemos -- rag "unicorn astrophysics"
 ```
 
-`plain` has no schedule and must disclose that limitation. `rag` uses MAF's built-in `TextSearchProvider` in `BeforeAIInvoke` mode to supply the **complete embedded schedule Markdown** as one context result before the model runs. There is no keyword ranking, chunking, retrieval tool loop, or structured JSON response. The agent makes one model call and returns a normal answer with session titles, times, rooms, and `Update_Conference_Prague_2026_Schedule.md#s...` citations. The console prints only that final answer, not the injected document.
+`plain` has no schedule and must disclose that limitation. `rag` uses MAF's built-in `TextSearchProvider` in `BeforeAIInvoke` mode to supply the **complete embedded schedule Markdown** as one context result before the model runs. There is no keyword ranking, chunking, retrieval tool loop, or structured JSON response. The agent makes one model call and returns a normal answer with session titles, times, rooms, and `Update_Conference_Prague_2026_Schedule.md#s...` citations. The console prints the user question followed by the final answer, not the injected document.
 
 Day 1 is November 12 and day 2 is November 13, both CET. **"Today" defaults to conference day 1**, not the computer's date; choose day 2 explicitly. Both days are supplied; instructions select the requested day. The model is instructed to disclose absent evidence instead of inventing details. Relevance, day selection, and citations are model-generated, not deterministically checked. This is full-document grounding through MAF's RAG context-provider mechanism, not semantic/vector search or a conflict-free agenda planner. It trades more input tokens for a simpler demo without retrieval-recall failures.
 

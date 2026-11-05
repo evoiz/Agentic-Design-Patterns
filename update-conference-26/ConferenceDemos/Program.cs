@@ -51,6 +51,7 @@ public static class Program
                     throw new ArgumentException("Supply exactly one capture file path.");
                 }
                 var context = DecisionDemo.Context();
+                Console.WriteLine("Context and questions:\n" + JsonSerializer.Serialize(context, DecisionDemo.JsonOptions));
                 var capture = command == "decisions" ? DecisionDemo.ReadCapture(options[0], context) : null;
                 var settings = FoundryChatClientFactory.LoadSettings();
                 using var decisions = DecisionConfiguration.CreateClient(settings, command == "decisions" ? "microsoft" : "openai");
@@ -67,7 +68,6 @@ public static class Program
                 }
                 else
                 {
-                    Console.WriteLine("Context and tasks:\n" + JsonSerializer.Serialize(context, DecisionDemo.JsonOptions));
                     Console.WriteLine("\nMicrosoft-Decision-1 - LIVE (Choice / Noul / Score):\n" +
                         JsonSerializer.Serialize(result, DecisionDemo.JsonOptions));
                     Console.WriteLine($"\nAzure OpenAI Decisions - CAPTURED ({capture!.CapturedAt:O}, model {capture.ModelDeployment}):\n" +
@@ -94,18 +94,23 @@ public static class Program
             {
                 throw new ArgumentException("Unsupported option. Use --help for the supported command shape.");
             }
+            var question = options.Length == 0
+                ? command == "research" ? SpeakerDemo.DefaultRequest : ScheduleDemo.DefaultQuestion
+                : string.Join(" ", options);
+            if (command != "shopping")
+            {
+                Console.WriteLine($"User question: {question}\n");
+            }
             using IChatClient client = FoundryChatClientFactory.CreateChatClient(FoundryChatClientFactory.LoadSettings());
             switch (command)
             {
                 case "rag":
-                    Console.WriteLine(await ScheduleDemo.RunAsync(client,
-                        options.Length == 0 ? ScheduleDemo.DefaultQuestion : string.Join(" ", options), day, cancellation.Token));
+                    Console.WriteLine(await ScheduleDemo.RunAsync(client, question, day, cancellation.Token));
                     break;
                 case "plain":
                     var agent = new ChatClientAgent(client, name: "NoSchedule",
                         instructions: "You have no current Update Conference schedule. State this limitation explicitly; do not invent event sessions or times.");
-                    Console.WriteLine((await agent.RunAsync(
-                        options.Length == 0 ? ScheduleDemo.DefaultQuestion : string.Join(" ", options),
+                    Console.WriteLine((await agent.RunAsync(question,
                         cancellationToken: cancellation.Token)).Text);
                     break;
                 case "shopping":
@@ -119,6 +124,8 @@ public static class Program
                     {
                         request = request with { Pantry = request.Pantry.ToDictionary(p => p.Key, p => p.Key == "tomato" ? null : p.Value) };
                     }
+                    Console.WriteLine($"User request: Choose a {request.Preference} dinner and list only the missing ingredients.\n" +
+                        $"Pantry (true = present, false = missing, null = unknown):\n{JsonSerializer.Serialize(request.Pantry, DecisionDemo.JsonOptions)}\n");
                     var shopping = await ShoppingDemo.RunAsync(client, request, cancellation.Token);
                     Console.WriteLine(shopping.Status);
                     if (!shopping.Passed)
@@ -129,8 +136,7 @@ public static class Program
                         (shopping.Missing.Count == 0 ? "Nothing to buy." : string.Join("\n", shopping.Missing)));
                     break;
                 case "research":
-                    Console.WriteLine(SpeakerDemo.Format(await SpeakerDemo.RunAsync(client,
-                        options.Length == 0 ? SpeakerDemo.DefaultRequest : string.Join(" ", options), cancellation.Token)));
+                    Console.WriteLine(SpeakerDemo.Format(await SpeakerDemo.RunAsync(client, question, cancellation.Token)));
                     break;
             }
             return 0;

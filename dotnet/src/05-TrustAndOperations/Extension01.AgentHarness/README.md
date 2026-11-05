@@ -74,6 +74,12 @@ The JSON result contains `status`, `answer`, `modelCalls`, `todos`, `evidence` a
 ran, not that prose interpreted it correctly. Provider retries may occur inside a
 counted model call, so the call cap is not an exact token or billing budget.
 
+### Completion controls: related concepts
+
+A **Stop Hook** intercepts a completion attempt and can return deterministic validation failures for further work. Here, `TodoCompletionLoopEvaluator` provides bounded continuation for unfinished todos, while `RunAsync` checks matching evidence after the run. Post-run rejection is not interception of every completion attempt; see the [premature-success regression](../../../tests/05-TrustAndOperations/AgentHarness.Tests/HarnessTests.cs).
+
+The **Ralph Wiggum Loop** places the definition of done in the environment rather than letting an agent declare success. It is conceptual guidance here, not a new repair mode: acceptance criteria should remain immutable, attempts/deadlines bounded, and exhaustion explicitly incomplete. Passing checks only proves their tested contract. [Goal monitoring](../../02-ReasonAndImprove/Chapter11.GoalSettingMonitoring/README.md) and [Evaluation](../Chapter19.Evaluation/README.md) illustrate adjacent techniques, not an infinite repair loop. The [backlog notes](../../../../ai-research/agentic-patterns-backlog.md#related-concepts-and-notes-for-existing-patterns) keep these concepts separate from new project commitments.
+
 ## When to use / when not to use
 
 Use for multistep work needing explicit state, bounded tools and observable completion.
