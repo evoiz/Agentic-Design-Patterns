@@ -17,7 +17,9 @@ The `maf-pattern-demo` skill supplied repository conventions. The actual agent a
 
 ## Request, credentials, and state
 
-Send a plain-text question, up to 4,000 characters, such as `What should I attend today if I'm interested in AI and .NET?`. Each request gets fresh agent/tool state and a two-minute deadline. The host always uses **conference day 1 (November 12, CET)**; the local console additionally supports `--day 2`. The latest user message is the request; prior conversation messages do not provide business memory. The adapter buffers the completed answer for protocol streaming. No durable conversation store is part of the demo's business logic; the protocol server may retain response artifacts independently.
+Send a plain-text question, up to 4,000 characters, such as `What should I attend today if I'm interested in AI and .NET?`. Each request gets fresh agent/context-provider state and a two-minute deadline. MAF's built-in `TextSearchProvider` injects the complete embedded schedule before one text-generation call; there is no keyword search, retrieval tool loop, or JSON answer contract. The host always uses **conference day 1 (November 12, CET)**; the local console additionally supports `--day 2`. Both days are in context, with the selected day specified in instructions. Recommendations, citations, and absence-of-evidence answers are model-generated, not deterministically validated.
+
+The latest user message is the request; prior conversation messages do not provide business memory. The adapter buffers the completed answer for protocol streaming. No durable conversation store is part of the demo's business logic; the protocol server may retain response artifacts independently.
 
 The host reads environment/command-line configuration, not local user-secrets, and explicitly ignores `Foundry:ApiKey`. Local host inference uses `DefaultAzureCredential` (for example Azure CLI login); Azure execution uses its runtime managed identity. Console demos retain their existing shared API-key path.
 
@@ -34,7 +36,7 @@ azd extension install azure.ai.agents
 azd ai agent --help
 ```
 
-Choose a reader-owned existing Foundry project with hosted-agent availability/capacity in its region and a deployed chat model supporting tools and structured output. Prepare these before presenting; do not provision projects/models live. Hosted execution, inference, and telemetry can incur charges.
+Choose a reader-owned existing Foundry project with hosted-agent availability/capacity in its region and a deployed chat model with enough context for the complete schedule (about 75 KB). This agent does not require tools or structured output. Prepare these before presenting; do not provision projects/models live. Hosted execution, inference, and telemetry can incur charges.
 
 You need permission to deploy agents to that project, local model-inference access, and an authorized administrator able to grant runtime inference access at the **actual model-hosting account**. Deployment access is not inference access; do not solve missing rights with broader subscription roles.
 
@@ -139,7 +141,7 @@ That role is **Cognitive Services OpenAI User**, scoped to the model-hosting acc
 azd ai agent invoke update-schedule --protocol responses "What should I attend today if I'm interested in AI and .NET?"
 ```
 
-In the Foundry portal, open the same project, go to Agents, select **Update Conference Schedule / update-schedule** and its active hosted version, and open the available agent playground/test view. Send the same question. Confirm the final answer references real fixture sessions, times, and source IDs without dumping retrieved JSON. Also ask `unicorn astrophysics` and confirm the explicit no-match answer.
+In the Foundry portal, open the same project, go to Agents, select **Update Conference Schedule / update-schedule** and its active hosted version, and open the available agent playground/test view. Send the same question. Confirm the final answer references real fixture sessions, times, and source IDs without dumping the schedule. Also ask `unicorn astrophysics` and confirm the model explains that the schedule has no relevant session.
 
 An active version or successful upload alone is not acceptance: obtain an actual response **in the portal** during rehearsal and prepare a short capture. If your portal/project does not offer hosted invocation, resolve that prerequisite before the talk; CLI invocation is a diagnostic, not a substitute for the portal acceptance gate.
 
@@ -152,7 +154,7 @@ azd env set ENABLE_SENSITIVE_TELEMETRY 'true'
 azd deploy update-schedule --no-prompt
 ```
 
-Sensitive traces can include questions, tool evidence, and responses. Restrict access/retention and set the flag back to `false` before handling private input. Recheck the new runtime identity's inference access after redeploying. Trace export requires the host/environment's configured telemetry destination; console final-answer filtering does not redact telemetry.
+Sensitive traces can include questions, injected schedule context, and responses. Restrict access/retention and set the flag back to `false` before handling private input. Recheck the new runtime identity's inference access after redeploying. Trace export requires the host/environment's configured telemetry destination; console final-answer filtering does not redact telemetry.
 
 Timebox onstage deployment/invocation; switch to a prepared capture and the previously deployed version instead of changing permissions or provisioning infrastructure live. Do not automatically start evaluation suites; they are separate, billable work requiring a dataset and an explicit decision.
 

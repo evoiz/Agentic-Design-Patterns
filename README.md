@@ -33,7 +33,7 @@ New to agentic design patterns? Start with [Agentic design patterns and families
 
 The [Agent Harness enterprise extension](dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/README.md) adds a researched runtime meta-pattern beyond the book chapters, with a runnable MAF harness, a [Foundry-hosted agent](dotnet/src/05-TrustAndOperations/Extension01.AgentHarness.Hosted/README.md), and guidance on combining it with the existing patterns.
 
-The [agentic patterns backlog](ai-research/agentic-patterns-backlog.md) proposes 11 further enterprise extensions, prioritized by missing behavioral contracts rather than duplicating existing demos. Each entry includes a C#/MAF scenario, implementation todo, acceptance criteria, dependencies, sources, and hosted-companion suitability.
+The [agentic patterns backlog](ai-research/agentic-patterns-backlog.md) maps 11 proposed enterprise contracts to these families, with priorities, readiness, dependencies, acceptance criteria, and selective hosting guidance. Its taxonomy comparison folds overlapping concepts into existing-pattern notes rather than adding duplicate demos. Infrastructure-first scenarios can use deterministic .NET with an optional MAF caller; none of these proposals is implemented yet.
 
 ## 🎯 What You'll Learn
 

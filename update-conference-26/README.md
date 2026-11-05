@@ -14,7 +14,7 @@ dotnet user-secrets set "Foundry:ApiKey" "<your-key>" --project dotnet/src/Share
 dotnet user-secrets set "Foundry:ModelDeployment" "<chat-deployment>" --project dotnet/src/Shared
 ```
 
-Use a chat model supporting tools and structured JSON output. Equivalent environment variables are `Foundry__ProjectEndpoint`, `Foundry__ApiKey`, and `Foundry__ModelDeployment`. Keep keys out of code, shell recordings, captures, and Git. Local means code, tools, and fixtures run on your machine; model inference still calls Foundry.
+Use a chat model supporting tools and structured JSON output for the shopping and speaker demos. The schedule demo needs only text generation with enough context for the complete schedule (about 75 KB). Equivalent environment variables are `Foundry__ProjectEndpoint`, `Foundry__ApiKey`, and `Foundry__ModelDeployment`. Keep keys out of code, shell recordings, captures, and Git. Local means code, tools, and fixtures run on your machine; model inference still calls Foundry.
 
 Then work **from this folder**:
 
@@ -27,6 +27,19 @@ dotnet test ConferenceDemos.Tests/ConferenceDemos.Tests.csproj
 
 `check-data` and the tests need no credentials or network model calls. The canonical [schedule](Update_Conference_Prague_2026_Schedule.md) is an embedded resource, not a second edited copy. Source IDs such as `Update_Conference_Prague_2026_Schedule.md#s13` resolve to its anchors.
 
+### Launch profiles
+
+[ConferenceDemos/Properties/launchSettings.json](ConferenceDemos/Properties/launchSettings.json) provides IDE launch profiles for all four demos, the plain schedule baseline, day 2/no-match retrieval, shopping failure cases, OpenAI recording, and the offline data check. Select a profile in your IDE, or run one by name from this folder:
+
+```powershell
+dotnet run --project ConferenceDemos --launch-profile "Schedule - RAG day 1"
+dotnet run --project ConferenceDemos --launch-profile "Check data"
+```
+
+The **Decisions - compare** profile uses the bundled illustrative JSON sample, so no recording is needed. **Decisions - record OpenAI** and **Decisions - compare recorded OpenAI** use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
+
+Each demo prints its user question or request before inference. Shopping also shows the pantry input, and both decision commands show the shared session and attendee interest. Decision questions, choices, and the score scale are supplied directly at their respective method calls.
+
 ## 1. Schedule RAG: same question, different evidence
 
 ```powershell
@@ -36,9 +49,9 @@ dotnet run --project ConferenceDemos -- rag --day 2 "AI and .NET"
 dotnet run --project ConferenceDemos -- rag "unicorn astrophysics"
 ```
 
-`plain` has no schedule and must disclose that limitation. `rag` retrieves from the bundled snapshot using deterministic token matching, exposes the matching entries through one small read-only tool, and asks MAF for structured session recommendations. Code checks session IDs and exact evidence quotes, then supplies titles, times, rooms, and citations from the fixture. The console prints only the final answer, not tool traces or the retrieved JSON.
+`plain` has no schedule and must disclose that limitation. `rag` uses MAF's built-in `TextSearchProvider` in `BeforeAIInvoke` mode to supply the **complete embedded schedule Markdown** as one context result before the model runs. There is no keyword ranking, chunking, retrieval tool loop, or structured JSON response. The agent makes one model call and returns a normal answer with session titles, times, rooms, and `Update_Conference_Prague_2026_Schedule.md#s...` citations. The console prints the user question followed by the final answer, not the injected document.
 
-Day 1 is November 12 and day 2 is November 13, both CET. **"Today" defaults to conference day 1**, not the computer's date; choose day 2 explicitly. There is no vector database or web search. A no-match result states the limitation; unsupported IDs/quotes fail instead of becoming recommendations. Retrieval relevance is illustrative, not semantic-search quality. This does not promise a non-overlapping agenda.
+Day 1 is November 12 and day 2 is November 13, both CET. **"Today" defaults to conference day 1**, not the computer's date; choose day 2 explicitly. Both days are supplied; instructions select the requested day. The model is instructed to disclose absent evidence instead of inventing details. Relevance, day selection, and citations are model-generated, not deterministically checked. This is full-document grounding through MAF's RAG context-provider mechanism, not semantic/vector search or a conflict-free agenda planner. It trades more input tokens for a simpler demo without retrieval-recall failures.
 
 Look at [ScheduleCorpus.cs](ConferenceDemos/ScheduleCorpus.cs) and [ScheduleDemo.cs](ConferenceDemos/ScheduleDemo.cs). The [separate Hosted Agent guide](ScheduleAgent.Hosted/README.md) covers running and deploying exactly this behavior.
 
@@ -55,9 +68,9 @@ dotnet run --project ConferenceDemos -- shopping vegetarian --incomplete
 
 A passing run prints the meal, missing items only, and `Goal check PASS`. Unsupported preferences, unknown pantry data, or invalid choices print `FAIL`, return exit code 1, and never show a completed shopping list. `keto` intentionally demonstrates no matching recipe. No pricing, budget, route, recipe service, or deployment is involved.
 
-## 3. Decision Models: live Microsoft, captured OpenAI
+## 3. Decision Models: live Microsoft, sample or captured OpenAI
 
-Configure two additional deployment aliases from the repository root:
+Configure the Microsoft decision deployment alias from the repository root. Add the OpenAI alias only if recording real OpenAI output:
 
 ```powershell
 dotnet user-secrets set "Foundry:ModelDeployments:decision" "<Microsoft-Decision-1-deployment>" --project dotnet/src/Shared
@@ -66,14 +79,24 @@ dotnet user-secrets set "Foundry:ModelDeployments:openaiDecision" "<Azure-OpenAI
 
 Or use `Foundry__ModelDeployments__decision` and `Foundry__ModelDeployments__openaiDecision`. Deploy the selected decision models in advance; an ordinary chat deployment is not interchangeable. This demo reuses the chapter's provider configuration and the pinned Decisions client, rather than imitating a decision model with chat prompts.
 
-From this folder, **record real OpenAI output before the talk**:
+From this folder, run with the bundled sample (only the Microsoft deployment is called live):
 
 ```powershell
-dotnet run --project ConferenceDemos -- decisions-record-openai captures/openai-decisions.json
-dotnet run --project ConferenceDemos -- decisions captures/openai-decisions.json
+dotnet run --project ConferenceDemos -- decisions
 ```
 
-The recording command makes three live OpenAI Decisions calls, validates the responses, and creates a new file without overwriting an existing capture. Review it before presenting. Captures are ignored by Git; no fabricated provider response is supplied. The presentation command validates the capture first, then calls **Microsoft-Decision-1 live** for all three shapes and displays **Azure OpenAI Decisions - CAPTURED**, with model and capture timestamp.
+The checked-in [openai-decisions.sample.json](ConferenceDemos/Samples/openai-decisions.sample.json) contains all three output shapes in one file. It is copied to build and publish output and resolved relative to the executable, not the working directory. Its values are **illustrative, not recorded model output**, and the console explicitly labels them that way. `check-data` also validates this file offline.
+
+**Why JSON?** Only to replay the comparison output without making a second set of live model calls. Neither provider requires a JSON file for inference. The sample removes the recording prerequisite; a real capture is useful for presenting actual OpenAI behavior.
+
+To replace the illustration with **real OpenAI output**, record it before the talk:
+
+```powershell
+dotnet run --project ConferenceDemos -- decisions-record-openai captures\openai-decisions.json
+dotnet run --project ConferenceDemos -- decisions captures\openai-decisions.json
+```
+
+The recording command makes three live OpenAI Decisions calls, validates the responses, and creates a new file without overwriting an existing capture. Review it before presenting. Real captures are ignored by Git; the illustrative sample is committed. With an explicit capture path, the presentation command validates the file first, then calls **Microsoft-Decision-1 live** for all three shapes and displays **Azure OpenAI Decisions - CAPTURED**, with model and capture timestamp. A missing explicit path fails; it never silently falls back to the sample.
 
 [DecisionDemo.cs](ConferenceDemos/DecisionDemo.cs) uses the same session #13 abstract and stated AI/C#/Foundry attendee interest for:
 
@@ -83,7 +106,7 @@ The recording command makes three live OpenAI Decisions calls, validates the res
 | Noul (binary) | `AssessAsync` | `AssessmentDecision.Probability` |
 | Ordered score | `ScoreAsync` | Zero-based expected score and level probabilities on a four-level scale |
 
-These are the library's normalized typed outputs, not identical raw provider wire formats. The Microsoft adapter uses SystemOne; the OpenAI adapter uses the Decisions endpoint. The capture includes the full context/questions/scale, a matching SHA-256 contract hash, provider/model, and timestamp. These checks detect stale/mismatched inputs, not cryptographic proof of provider origin: create captures only with the recording command.
+These are the library's normalized typed outputs, not identical raw provider wire formats. The Microsoft adapter uses SystemOne; the OpenAI adapter uses the Decisions endpoint. Only the session and attendee interest are shared; each question and its options or scale are inline in `EvaluateAsync`. JSON includes this shared input, all three results, and a task-contract version. Real captures also include provider/model and timestamp; the sample deliberately has no model or timestamp. Input equality, contract version, provenance fields, and result distributions are checked, but do not prove provider origin: create real captures only with the recording command. Older version-1 captures must be re-recorded for this version-2 format.
 
 Missing/mismatched captures and malformed distributions fail explicitly. This is an API/output illustration, **not an accuracy benchmark**; neither model scores nor probabilities are calibrated real-world certainty. Schedule existence and time lookup stay deterministic.
 
@@ -104,6 +127,6 @@ Quotes are deliberately extractive so exact claims are checkable; this is not a 
 
 Run the four demos in talk order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.
 
-Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise actual MAF workflows/Harness and the hosted protocol with controlled model replies. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, recipe flow, schedule retrieval, and collaboration remain here.
+Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise the actual MAF context provider, workflows/Harness, and hosted protocol with controlled model replies. Schedule tests check complete-document injection, caller/day propagation, plain-text output, and explicit failures; live rehearsal is still needed to assess answer quality. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, recipe flow, schedule grounding, and collaboration remain here.
 
 Implementation sequencing and outstanding presenter-only gates are tracked in the [implementation plan](ticket-demo-implementation-plan.md). Only the schedule demo has a deployment companion; deploying it does not deploy the other three demos.

@@ -11,32 +11,32 @@ public sealed class DecisionTests
     [Fact]
     public async Task All_three_shapes_use_exactly_the_same_session_and_interest()
     {
-        var context = DecisionDemo.Context();
-        var client = new ScriptedDecisions(context);
-        var result = await DecisionDemo.EvaluateAsync(client, context);
+        var state = DecisionDemo.State();
+        var client = new ScriptedDecisions(state);
+        var result = await DecisionDemo.EvaluateAsync(client, state);
         Assert.Equal(["choice", "noul", "score"], client.Calls);
         Assert.Equal("strong-fit", result.Choice.Choice);
         Assert.Equal(0.9, result.Noul.Probability);
         Assert.Equal(2.5, result.Score.Score);
-        Assert.Contains("Attendee interest:", context.State);
-        Assert.Contains("Agentic AI on Microsoft Foundry", context.State);
+        Assert.Contains("Attendee interest:", state);
+        Assert.Contains("Agentic AI on Microsoft Foundry", state);
     }
 
     [Fact]
     public async Task Capture_roundtrip_keeps_all_results_metadata_and_input_contract()
     {
-        var context = DecisionDemo.Context();
-        var result = await DecisionDemo.EvaluateAsync(new ScriptedDecisions(context), context);
-        var capture = DecisionDemo.Capture(result, context, "fixture-openai-deployment");
-        DecisionDemo.ValidateCapture(capture, context);
+        var state = DecisionDemo.State();
+        var result = await DecisionDemo.EvaluateAsync(new ScriptedDecisions(state), state);
+        var capture = DecisionDemo.Capture(result, state, "fixture-openai-deployment");
+        DecisionDemo.ValidateCapture(capture, state);
         var path = Path.Combine(Path.GetTempPath(), $"conference-capture-{Guid.NewGuid():N}.json");
         try
         {
             await File.WriteAllTextAsync(path, JsonSerializer.Serialize(capture, DecisionDemo.JsonOptions));
-            var read = DecisionDemo.ReadCapture(path, context);
+            var read = DecisionDemo.ReadCapture(path, state);
             Assert.Equal("Azure OpenAI Decisions", read.Provider);
             Assert.Equal("fixture-openai-deployment", read.ModelDeployment);
-            Assert.Equal(capture.ContextHash, read.ContextHash);
+            Assert.Equal(capture.State, read.State);
             Assert.Equal(0.9, read.Results.GetProperty("Noul").GetProperty("Probability").GetDouble());
             Assert.Equal(2.5, read.Results.GetProperty("Score").GetProperty("Score").GetDouble());
         }
@@ -49,18 +49,48 @@ public sealed class DecisionTests
     [Fact]
     public async Task Captures_cannot_silently_change_context_provider_version_or_timestamp()
     {
-        var context = DecisionDemo.Context();
-        var result = await DecisionDemo.EvaluateAsync(new ScriptedDecisions(context), context);
-        var capture = DecisionDemo.Capture(result, context, "fixture-deployment");
-        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { FormatVersion = 2 }, context));
-        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { Provider = "Microsoft" }, context));
-        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { ModelDeployment = "" }, context));
-        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { CapturedAt = default }, context));
-        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { CapturedAt = DateTimeOffset.UtcNow.AddDays(1) }, context));
-        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { ContextHash = "fabricated" }, context));
-        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture, context with { State = "different input" }));
-        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { Context = context with { NoulQuestion = "different question" } }, context));
-        Assert.Throws<FileNotFoundException>(() => DecisionDemo.ReadCapture(Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json"), context));
+        var state = DecisionDemo.State();
+        var result = await DecisionDemo.EvaluateAsync(new ScriptedDecisions(state), state);
+        var capture = DecisionDemo.Capture(result, state, "fixture-deployment");
+        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { FormatVersion = 1 }, state));
+        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { Provider = "Microsoft" }, state));
+        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { ModelDeployment = "" }, state));
+        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { CapturedAt = null }, state));
+        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { CapturedAt = DateTimeOffset.MinValue }, state));
+        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { CapturedAt = DateTimeOffset.UtcNow.AddDays(1) }, state));
+        Assert.Throws<InvalidOperationException>(() => DecisionDemo.ValidateCapture(capture with { State = "different input" }, state));
+        Assert.Throws<FileNotFoundException>(() => DecisionDemo.ReadCapture(Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json"), state));
+    }
+
+    [Fact]
+    public async Task Bundled_sample_contains_all_three_shapes_without_claiming_provider_provenance()
+    {
+        var state = DecisionDemo.State();
+        var sample = DecisionDemo.ReadCapture(DecisionDemo.SamplePath, state);
+        Assert.Equal(DecisionDemo.SampleProvider, sample.Provider);
+        Assert.Null(sample.ModelDeployment);
+        Assert.Null(sample.CapturedAt);
+        Assert.Throws<InvalidOperationException>(() =>
+            DecisionDemo.ValidateCapture(sample with { Provider = "Azure OpenAI Decisions" }, state));
+        Assert.Throws<InvalidOperationException>(() =>
+            DecisionDemo.ValidateCapture(sample with { ModelDeployment = "invented" }, state));
+        Assert.Throws<InvalidOperationException>(() =>
+            DecisionDemo.ValidateCapture(sample with { CapturedAt = DateTimeOffset.UtcNow }, state));
+
+        var expected = await DecisionDemo.EvaluateAsync(new ScriptedDecisions(state), state);
+        Assert.Equal(JsonSerializer.SerializeToElement(expected).GetProperty("Choice").GetProperty("Choice").GetString(),
+            sample.Results.GetProperty("Choice").GetProperty("Choice").GetString());
+        Assert.Equal(expected.Noul.Probability, sample.Results.GetProperty("Noul").GetProperty("Probability").GetDouble());
+        Assert.Equal(expected.Score.Score, sample.Results.GetProperty("Score").GetProperty("Score").GetDouble());
+        Assert.Equal(0, await Program.Main(["check-data"]));
+    }
+
+    [Fact]
+    public async Task Missing_capture_and_invalid_arguments_fail_before_live_inference()
+    {
+        Assert.Equal(1, await Program.Main(["decisions", Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json")]));
+        Assert.Equal(1, await Program.Main(["decisions-record-openai"]));
+        Assert.Equal(1, await Program.Main(["decisions", "one.json", "two.json"]));
     }
 
     [Theory]
@@ -70,8 +100,8 @@ public sealed class DecisionTests
     [InlineData("scale")]
     public async Task Malformed_results_are_not_accepted_as_verified_captures(string corruption)
     {
-        var context = DecisionDemo.Context();
-        var result = await DecisionDemo.EvaluateAsync(new ScriptedDecisions(context), context);
+        var state = DecisionDemo.State();
+        var result = await DecisionDemo.EvaluateAsync(new ScriptedDecisions(state), state);
         var json = JsonSerializer.SerializeToNode(result)!.AsObject();
         switch (corruption)
         {
@@ -81,20 +111,20 @@ public sealed class DecisionTests
             case "scale": json["Score"]!["LevelProbabilities"] = new JsonArray(1.0, 0.0); break;
         }
         Assert.Throws<InvalidOperationException>(() =>
-            DecisionDemo.ValidateResults(JsonSerializer.SerializeToElement(json), context));
+            DecisionDemo.ValidateResults(JsonSerializer.SerializeToElement(json)));
     }
 
     [Fact]
     public async Task Provider_failure_and_cancellation_propagate_without_capture()
     {
-        var context = DecisionDemo.Context();
+        var state = DecisionDemo.State();
         await Assert.ThrowsAsync<DecisionException>(() =>
-            DecisionDemo.EvaluateAsync(new ScriptedDecisions(context, fail: true), context));
+            DecisionDemo.EvaluateAsync(new ScriptedDecisions(state, fail: true), state));
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            DecisionDemo.EvaluateAsync(new ScriptedDecisions(context), context, new CancellationToken(true)));
+            DecisionDemo.EvaluateAsync(new ScriptedDecisions(state), state, new CancellationToken(true)));
     }
 
-    private sealed class ScriptedDecisions(DecisionContext context, bool fail = false) : IDecisionClient
+    private sealed class ScriptedDecisions(string state, bool fail = false) : IDecisionClient
     {
         public List<string> Calls { get; } = [];
 
@@ -106,8 +136,13 @@ public sealed class DecisionTests
             {
                 throw new DecisionException("Synthetic failure.");
             }
-            Assert.Equal(context.ChoiceQuestion, instructions);
-            Assert.Equal(context.Choices, options);
+            Assert.Equal("Which relevance label best fits the attendee's stated interest?", instructions);
+            Assert.Equal(new Dictionary<string, string?>
+            {
+                ["strong-fit"] = "Directly relevant to practical C# agent development and Foundry.",
+                ["partial-fit"] = "Some relevant ideas but not primarily this interest.",
+                ["not-a-fit"] = "Not relevant to the stated interest."
+            }, options);
             Calls.Add("choice");
             return Task.FromResult(new ChoiceDecision("strong-fit", new Dictionary<string, double>
             {
@@ -118,7 +153,7 @@ public sealed class DecisionTests
         public Task<AssessmentDecision> AssessAsync(string input, string proposition, CancellationToken cancellationToken = default)
         {
             Check(input, cancellationToken);
-            Assert.Equal(context.NoulQuestion, proposition);
+            Assert.Equal("Is this session relevant to practical AI agents in C# and Microsoft Foundry?", proposition);
             Calls.Add("noul");
             return Task.FromResult(new AssessmentDecision(0.9));
         }
@@ -127,8 +162,8 @@ public sealed class DecisionTests
             IReadOnlyList<string> rubric, CancellationToken cancellationToken = default)
         {
             Check(input, cancellationToken);
-            Assert.Equal(context.ScoreQuestion, instructions);
-            Assert.Equal(context.Scale, rubric);
+            Assert.Equal("How relevant is this abstract to the stated attendee interest on this ordered scale?", instructions);
+            Assert.Equal(["Not relevant", "Slightly relevant", "Relevant", "Very relevant"], rubric);
             Calls.Add("score");
             return Task.FromResult(new ScoreDecision([0, 0, 0.5, 0.5]));
         }
@@ -136,7 +171,7 @@ public sealed class DecisionTests
         private void Check(string input, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
-            Assert.Equal(context.State, input);
+            Assert.Equal(state, input);
         }
     }
 }

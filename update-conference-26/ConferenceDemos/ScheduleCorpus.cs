@@ -5,7 +5,7 @@ namespace ConferenceDemos;
 
 public sealed record ScheduleSession(
     int Id, string Title, int Day, string When, string Room, string? Speaker,
-    string Url, string Abstract, string SearchText)
+    string Url, string Abstract)
 {
     public string Citation => $"Update_Conference_Prague_2026_Schedule.md#s{Id}";
 }
@@ -15,12 +15,14 @@ public sealed class ScheduleCorpus
     public IReadOnlyList<ScheduleSession> Sessions { get; }
     public const string Retrieved = "2026-11-05";
 
-    public ScheduleCorpus()
+    public ScheduleCorpus() => Sessions = Parse(LoadMarkdown());
+
+    public static string LoadMarkdown()
     {
         using var stream = typeof(ScheduleCorpus).Assembly.GetManifestResourceStream("ConferenceDemos.Schedule.md")
             ?? throw new InvalidOperationException("The canonical schedule is missing from the demo package.");
         using var reader = new StreamReader(stream);
-        Sessions = Parse(reader.ReadToEnd());
+        return reader.ReadToEnd();
     }
 
     public static IReadOnlyList<ScheduleSession> Parse(string markdown)
@@ -48,8 +50,7 @@ public sealed class ScheduleCorpus
                 int.Parse(section.Groups["id"].Value, CultureInfo.InvariantCulture),
                 heading.Groups["title"].Value.Trim(),
                 int.Parse(day.Groups["day"].Value, CultureInfo.InvariantCulture),
-                when, Field(body, "Room"), Speaker(body), Field(body, "Link"),
-                abstractText, heading.Value + "\n" + body[..(abstractStart + "**Abstract**".Length)] + "\n" + abstractText));
+                when, Field(body, "Room"), Speaker(body), Field(body, "Link"), abstractText));
         }
 
         if (sessions.Count == 0 || sessions.Select(s => s.Id).Distinct().Count() != sessions.Count)
@@ -58,33 +59,6 @@ public sealed class ScheduleCorpus
         }
 
         return sessions;
-    }
-
-    public IReadOnlyList<ScheduleSession> Search(string interest, int day, int limit = 8)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(interest);
-        if (day is not (1 or 2))
-        {
-            throw new ArgumentOutOfRangeException(nameof(day), "Use conference day 1 or 2, not the machine's current date.");
-        }
-        if (limit is < 1 or > 12)
-        {
-            throw new ArgumentOutOfRangeException(nameof(limit));
-        }
-
-        var stopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "what", "should", "i", "attend", "today", "if", "interested", "in", "and",
-            "the", "a", "an", "is", "about", "me", "my", "for", "please", "sessions", "session"
-        };
-        var terms = Regex.Matches(interest, @"\.NET\b|[\p{L}\p{N}]+", RegexOptions.IgnoreCase)
-            .Select(m => m.Value).Where(t => !stopWords.Contains(t)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        return Sessions.Where(s => s.Day == day)
-            .Select(s => (Session: s, Score: terms.Count(t => Regex.IsMatch(
-                s.SearchText, $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(t)}(?![\p{{L}}\p{{N}}])",
-                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))))
-            .Where(s => s.Score > 0).OrderByDescending(s => s.Score).ThenBy(s => s.Session.Id)
-            .Take(limit).Select(s => s.Session).ToArray();
     }
 
     private static string Field(string text, string name)

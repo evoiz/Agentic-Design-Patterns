@@ -31,6 +31,8 @@ flowchart LR
 
 Calculator requests remain natural language or arithmetic text. The model translates them into typed calls; compound expressions require multiple calls. Factorial accepts integers 0–27; divide-by-zero, overflow, and unsupported operations fail. No model-generated code runs on the application host.
 
+**Code-Then-Execute** is the generated-code form of this pattern: `foundry-code` uses managed Code Interpreter, whereas `calculator` calls prewritten functions. This chapter is the canonical reference; [Chapter 17](../../02-ReasonAndImprove/Chapter17.Reasoning/README.md) composes execution with reasoning. Generated code, output, and artifacts remain untrusted. **Dynamic Scaffolding** would additionally create, invoke, and discard a temporary task-specific tool; that lifecycle is not implemented here. It remains an optional [B08 exploration](../../../../ai-research/agentic-patterns-backlog.md#exploratory-note-choosing-the-execution-boundary), not another demo commitment.
+
 ## Run
 
 Use .NET 10 and [shared Foundry configuration](../../../README.md). From the repository root:

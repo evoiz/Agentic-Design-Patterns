@@ -9,12 +9,12 @@ The implementation location is `update-conference-26/`, as requested, rather tha
 | Step | Status | Persisted work / remaining gate |
 |---|---|---|
 | 0. Prerequisites | Code setup complete; live setup pending | Projects import existing .NET build/package settings, reference Shared, and select the .NET 10 SDK feature band. No local shared credentials are configured; presenter project/model selection and live inference remain. |
-| 1. Schedule RAG | Implemented and deterministically checked | Canonical Markdown is embedded; all 48 sessions parse, including missing/plural speakers. Tests cover read-only retrieval, final-only output, valid citations, no-match, invented evidence, and cancellation. Live model rehearsal remains. |
-| 2. Hosted Agent | Implemented and locally checked | Separate Responses host, managed-identity configuration, tracing, bundled azd manifest, and project-local deployment/provenance guide exist. Publish includes the fixture and referenced dependencies; actual published HTTP host returns the explicit no-match answer. Azure deployment/portal invocation remain. |
+| 1. Schedule RAG | Full-document grounding | Canonical Markdown is embedded; the schedule agent receives the complete document through MAF's built-in `TextSearchProvider` before ordinary text generation. Session parsing remains for other demos. Relevance and citations are model-generated rather than exact-quote validated. |
+| 2. Hosted Agent | Shared schedule behavior | Separate Responses host, managed-identity configuration, tracing, bundled azd manifest, and project-local deployment/provenance guide exist. Publish must include the complete embedded fixture and referenced dependencies. The host delegates to the same full-document schedule agent. |
 | 3. Shopping workflow | Implemented and deterministically checked | `WorkflowBuilder` controls recipe choice, read-only pantry accounting, and goal validation. Tests cover supported preference, no matching recipe, absent/null pantry data, extra/duplicate/missing items, and model failure. |
 | 4. Decision Models | Implemented and deterministically checked | Choice, Noul, score, provider configuration, and real-capture recording/playback are wired. Tests verify shared context, distribution contracts, capture metadata/hash, stale inputs, cancellation, and failures. No fabricated capture is included; live provider calls and real recording remain. |
 | 5. Speaker collaboration | Implemented and deterministically checked | Real Harness researcher, tool-free reviewer, one-revision workflow, exact quote/citation checks, and call limits are exercised with scripted models. Organizer snapshot only; no next event is claimed to be verified. Live rehearsal remains. |
-| 6. Validation and rehearsal | Automated/local checks complete; live rehearsal pending | Conference solution builds warning-free, 28 deterministic tests pass, published dependencies/fixture load, and the published Responses server answers a no-match request. No live inference, portal invocation, real captures, or timed rehearsal has been completed. |
+| 6. Validation and rehearsal | Separate automated and presenter gates | Build the conference solution, run deterministic tests, and check published dependencies/fixture loading. Rehearse live answers separately from scripted checks; portal invocation, real provider captures, and timed rehearsal remain presenter gates. |
 
 ### Completed implementation sequence
 
@@ -68,11 +68,11 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 
 ### 1. Build the schedule-backed RAG demo first
 
-- Add a local MAF agent that uses the Markdown schedule through a small, read-only retrieval function.
-- Keep retrieval inspectable and proportionate to this small corpus; a vector database is not a prerequisite. Preserve session title, time, and source reference so the final answer can be grounded.
+- Add a local MAF agent that uses the complete Markdown schedule through the built-in `TextSearchProvider` in `BeforeAIInvoke` mode.
+- Supply one full-document context result without keyword ranking, chunking, or a model-driven retrieval tool. A vector database is not a prerequisite; allow enough model context for the document.
 - Accept the user's interest and request as input. The first run should answer the basic "What should I attend today if I'm interested in AI and .NET?" question; the flow/review prompts in the talk are motivation cards, not promises of extra finished features.
 - Run from a local .NET process using the selected Foundry inference deployment. Print only the final answer, with concise source references if supported; do not print retrieved passages or internal tool output.
-- Test that relevant schedule entries can be retrieved, the response does not invent an unavailable session, and source references point to the canonical fixture. Add a no-match case that returns an explicit limitation instead of a success-shaped guess.
+- Test complete-document injection, caller/day propagation, plain-text output, cancellation, input limits, and explicit failures. Instruct the model to cite schedule anchors and disclose absent evidence; assess factuality and day/relevance selection during live rehearsal rather than claiming deterministic answer validation.
 
 **Acceptance gate:** a presenter can run the demo from a clean checkout after configuring credentials, ask the basic question, and get a schedule-grounded final response without exposing retrieval output.
 
@@ -80,7 +80,7 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 
 - Host the custom C# agent behavior as a Microsoft Foundry Hosted Agent; do not substitute a Prompt Agent or describe the local console as deployed.
 - Use the Azure Developer CLI (`azd`) deployment path for the prepared project. Keep the Foundry project, model deployment, and hosting prerequisites ready before the talk; do not provision resources live.
-- Ensure the Markdown fixture is included in the Hosted Agent package and that the hosted implementation uses the same retrieval/answer behavior as the local demo where practical.
+- Ensure the Markdown fixture is included in the Hosted Agent package and that the hosted implementation uses the same context-provider/answer behavior as the local demo.
 - Resolve the deployed runtime identity and verify its model-inference permission at the model-hosting resource scope during setup. Recheck effective access after the final deployment rehearsal. Do not create or change role assignments onstage.
 - Invoke the deployed agent from the Foundry portal after deployment. A successful code deployment alone is not the acceptance test.
 - Prepare a short capture of deployment and a verified portal invocation. During the talk, cap the live deployment/invocation at the outline's allotted time; switch to the capture and a previously deployed agent if it runs long or fails.
@@ -122,7 +122,7 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 ### 6. Rehearse the full talk path
 
 - Test each local command independently from a clean checkout; then rehearse transitions, prompts, and output framing in the exact talk order.
-- Run deterministic tests for parsing/retrieval, workflow goal checks, all three decision shapes, harness/tool limits, revision limits, and citation validation.
+- Run deterministic tests for schedule parsing/context injection, workflow goal checks, all three decision shapes, harness/tool limits, revision limits, and speaker citation validation.
 - Separately smoke-test live inference for the local demos and the portal invocation for the Hosted Agent. Keep these checks separate from deterministic tests.
 - Prepare captures for each live dependency, especially Hosted Agent deployment/invocation, Microsoft-Decision-1, and speaker research.
 - Enforce the 50-minute content budget and preserve the 10-minute Q&A. If behind, shorten explanation or switch to captures; do not add features or cut the portal invocation acceptance check from pre-talk rehearsal.
@@ -131,7 +131,7 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 
 | Demo | Data and tools | Visible result | Explicit non-goals |
 |---|---|---|---|
-| Schedule RAG | Canonical schedule Markdown; local read-only retrieval | Final schedule-grounded answer only | No vector-store deployment, no printed retrieval trace, no broad production-search claim |
+| Schedule RAG | Complete canonical Markdown via MAF `TextSearchProvider` | Final plain-text answer with model-generated citations | No vector-store deployment, printed context, deterministic factuality guarantee, or broad production-search claim |
 | Shopping planner | Fixed recipes, preferences, pantry; local fake/read-only functions | Missing-items shopping list and concise goal-check status | No hosted app, live recipe lookup, route, or budget |
 | Decision Models | One session abstract and attendee interest; one live provider and one capture | Choice, Noul, and ordered score examples | No accuracy benchmark; no model for exact schedule facts |
 | Speaker collaboration | Pre-verified local source snapshot; read-only researcher tools | Cited summary, bounded review, at most one revision | No live web search, unverified future-event claims, inferred "passion," or reviewer tools |
@@ -140,7 +140,7 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 
 - [x] Four local .NET commands are implemented and documented for configured local credentials (live rehearsal remains).
 - [x] The conference schedule is the single source fixture and is packaged for local and Hosted Agent execution.
-- [x] The local schedule answer prints only final validated recommendations, not retrieved tool payloads.
+- [x] The local schedule answer prints only final text, not the injected schedule; relevance and citations are model-generated.
 - [x] The separate host and project-local step-by-step deployment/creation guide are present.
 - [ ] The Hosted Agent is deployed and invoked successfully in the portal after model-inference access is verified.
 - [x] Shopping goal checks and failure cases are covered by deterministic tests.
