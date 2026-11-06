@@ -1,11 +1,11 @@
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using AgenticDesignPatterns.Shared;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using OpenAI;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ConferenceDemos;
 
@@ -50,7 +50,8 @@ public static class SpeakerPageDemo
             FileAccessStore = new FileSystemAgentFileStore(outputDirectory), // the only folder it can write to
             FileAccessProviderOptions = new FileAccessProviderOptions
             {
-                DisableReadOnlyToolApproval = true, DisableWriteToolApproval = true // the sandbox is the boundary
+                DisableReadOnlyToolApproval = true,
+                DisableWriteToolApproval = true // the sandbox is the boundary
             },
             DisableWebSearch = !webSearch,  // hosted web_search tool, executed by Foundry
             DisableAgentModeProvider = true // just execute; no plan-then-approve stop
@@ -146,7 +147,7 @@ public static class SpeakerPageDemo
         return checks;
     }
 
-/// <summary>The agent supplies only a username; code builds the URL, checks the image, and saves it in the sandbox.</summary>
+    /// <summary>The agent supplies only a username; code builds the URL, checks the image, and saves it in the sandbox.</summary>
     public static async Task<string> DownloadGitHubAvatarAsync(string username, string outputDirectory, CancellationToken cancellationToken)
     {
         if (!Regex.IsMatch(username ?? "", "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$"))
@@ -173,7 +174,13 @@ public static class SpeakerPageDemo
     public static string ListSessions([Description("Conference day: 1 or 2.")] int day) =>
         JsonSerializer.Serialize(Schedule.Sessions.Where(s => s.Day == day).OrderBy(s => s.Start).Select(s => new
         {
-            s.Id, Start = s.Start.ToString("HH:mm"), End = s.End.ToString("HH:mm"), s.Room, s.Title, s.Tracks, s.Speaker
+            s.Id,
+            Start = s.Start.ToString("HH:mm"),
+            End = s.End.ToString("HH:mm"),
+            s.Room,
+            s.Title,
+            s.Tracks,
+            s.Speaker
         }));
 
     [Description("Get one session with its day, abstract, and official URL.")]
