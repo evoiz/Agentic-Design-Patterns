@@ -85,10 +85,9 @@ Inspect the final output for real schedule titles/times and `#s...` references. 
 ```powershell
 dotnet test ../ConferenceDemos.Tests/ConferenceDemos.Tests.csproj
 dotnet publish ScheduleAgent.Hosted.csproj -c Release -o publish
-dotnet exec --runtimeconfig publish/ScheduleAgent.Hosted.runtimeconfig.json --depsfile publish/ScheduleAgent.Hosted.deps.json publish/ConferenceDemos.dll check-data
 ```
 
-The last command loads the **published assembly's** embedded canonical fixture using the host's runtime/dependency context (including ASP.NET Core); running the referenced console DLL directly from a web publish does not use that context. Check that `publish` contains `ScheduleAgent.Hosted.dll`, `ConferenceDemos.dll`, `AgenticDesignPatterns.Shared.dll`, `AgenticDesignPatterns.Shared.Hosting.dll`, the host `.deps.json`, and `.runtimeconfig.json`. Keep the repository checkout intact: source project references cross back into `dotnet/`. Do not upload just this source folder or point azd's `project` at `publish`.
+The tests cover the embedded canonical fixture and hosted request behavior. Check that `publish` contains `ScheduleAgent.Hosted.dll`, `ConferenceDemos.dll`, `AgenticDesignPatterns.Shared.dll`, `AgenticDesignPatterns.Shared.Hosting.dll`, the host `.deps.json`, and `.runtimeconfig.json`. Keep the repository checkout intact: source project references cross back into `dotnet/`. Do not upload just this source folder or point azd's `project` at `publish`.
 
 ## 3. Configure an azd environment here
 

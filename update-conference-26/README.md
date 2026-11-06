@@ -1,6 +1,6 @@
 # Update Conference: local C# demos
 
-Start with three small Microsoft Agent Framework (MAF) demos: **agent + tool -> workflow basics -> schedule RAG workflow**. Then explore the separate planning/goal-monitoring workflow, decision-model, and Harness agent demos. These are focused examples, not one integrated agenda product. All conference-specific code lives here; existing chapter implementations stay unchanged.
+The six demos are presented in this order: **1. Prague weather**, **2. Simple MAF workflow**, **3. Schedule RAG with TextSearchProvider**, **4. Planning and goal monitoring**, **5. Decision Model**, and **6. Harness**. These are focused examples, not one integrated agenda product. All conference-specific code lives here; existing chapter implementations stay unchanged.
 
 ## Setup
 
@@ -21,28 +21,44 @@ Then work **from this folder**:
 ```powershell
 Set-Location update-conference-26
 dotnet build ConferenceDemos.slnx
-dotnet run --project ConferenceDemos -- check-data
 dotnet test ConferenceDemos.Tests\ConferenceDemos.Tests.csproj
 ```
 
-`check-data` and the tests need no credentials or network model calls. The canonical [schedule](Update_Conference_Prague_2026_Schedule.md) is an embedded resource, not a second edited copy. Source IDs such as `Update_Conference_Prague_2026_Schedule.md#s13` resolve to its anchors.
+The tests need no credentials or network model calls. The canonical [schedule](Update_Conference_Prague_2026_Schedule.md) is an embedded resource, not a second edited copy. Source IDs such as `Update_Conference_Prague_2026_Schedule.md#s13` resolve to its anchors.
 
 ### Launch profiles
 
-[ConferenceDemos/Properties/launchSettings.json](ConferenceDemos/Properties/launchSettings.json) starts with **Getting started 1 - Agent and tool**, **Getting started 2 - Workflow basics**, and **Getting started 3 - RAG workflow**, in presentation order. Existing profiles remain available for the other demos, the plain schedule baseline, day 2/no-match retrieval, the planning graph and escalation path, the Harness page with and without web search, OpenAI recording, and the offline data check. Select a profile in your IDE, or run one by name from this folder:
+[ConferenceDemos/Properties/launchSettings.json](ConferenceDemos/Properties/launchSettings.json) lists the demos in presentation order:
+
+| Profile | Purpose |
+|---|---|
+| **1. Prague weather** | Agent + weather tool |
+| **2. Simple MAF workflow** | Deterministic session recommendation |
+| **3. Schedule RAG (TextSearchProvider)** | Schedule-grounded answers |
+| **4. Planning and goal monitoring** | Plan, check, and revise an agenda |
+| **5.1 Decision Model - compare sample** | Live Microsoft output and illustrative OpenAI sample |
+| **5.2 Decision Model - compare recorded OpenAI** | Live Microsoft output and recorded OpenAI output |
+| **5.3 Decision Model - record OpenAI** | Prepare a real OpenAI capture |
+| **6. Harness** | Build a speaker page without web search |
+| **6.1 Harness + web search** | Build a speaker page with web search |
+
+The supplemental **Planning - one round (escalation path)** profile limits the
+budget to one round; escalation occurs only if goals remain unmet.
+The [flow diagrams](demo-flows.md) cover demos **2**, **4**, **6**, and **6.1**.
+Select a profile in your IDE, or run one by name from this folder:
 
 ```powershell
-dotnet run --project ConferenceDemos --launch-profile "Schedule - RAG day 1"
-dotnet run --project ConferenceDemos --launch-profile "Check data"
+dotnet run --project ConferenceDemos --launch-profile "3. Schedule RAG (TextSearchProvider)"
+dotnet run --project ConferenceDemos --launch-profile "6.1 Harness + web search"
 ```
 
-The **Decisions - compare** profile uses the bundled illustrative JSON sample, so no recording is needed. **Decisions - record OpenAI** and **Decisions - compare recorded OpenAI** use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
+The **5.1 Decision Model - compare sample** profile uses the bundled illustrative JSON sample, so no recording is needed. **5.3 Decision Model - record OpenAI** and **5.2 Decision Model - compare recorded OpenAI** use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
 
 Model-backed demos print their user question or request before inference. The planning demo prints its SMART goals first, and both decision commands show the shared session and attendee interest. Decision questions, choices, and the score scale are supplied directly at their respective method calls.
 
-## Getting started: arrive in Prague, then choose a session
+## Demos in presentation order
 
-Run these three commands **from this folder**, in order:
+Run these first three commands **from this folder**, in order:
 
 ```powershell
 dotnet run --project ConferenceDemos -- agent
@@ -50,7 +66,7 @@ dotnet run --project ConferenceDemos -- workflow Alex
 dotnet run --project ConferenceDemos -- rag
 ```
 
-### 1. Agent + tool: a question, then Prague weather
+### 1. Prague weather: agent + tool
 
 [AgentDemo.cs](ConferenceDemos/AgentDemo.cs) creates one `ChatClientAgent` from the shared `IChatClient`, gives it short instructions, and calls `RunAsync` twice:
 
@@ -63,41 +79,37 @@ Expect two question/answer pairs, with `Tool call: GetPragueWeather -> Fixed dem
 
 **Concepts:** `IChatClient` connects to the model; an agent adds instructions and tools; `RunAsync` runs an interaction; a tool lets the model request application code.
 
-### 2. Workflow basics: welcome an attendee
+### 2. Simple MAF workflow: recommend a session
 
-[WelcomeWorkflowDemo.cs](ConferenceDemos/WelcomeWorkflowDemo.cs) builds `PrepareAttendee -> CreateWelcome`. The first executor trims and validates the attendee name; the second creates the conference welcome. This demo makes **no model calls** and works without Foundry credentials.
+[WelcomeWorkflowDemo.cs](ConferenceDemos/WelcomeWorkflowDemo.cs) builds `GetAttendeeProfile -> RecommendSession -> CreateRecommendation`. Three delegate executors construct a .NET/AI attendee profile, select a session with a string check, and format the recommendation. This demo makes **no model calls** and works without Foundry credentials. See the [demo 2 flow](demo-flows.md#demo-2-simple-maf-workflow).
 
 ```powershell
-dotnet run --project ConferenceDemos -- workflow " Alex "
+dotnet run --project ConferenceDemos -- workflow Alex
 ```
 
 ```text
-Step 2: Workflow basics (no model calls)
-PrepareAttendee -> CreateWelcome
+2. Simple MAF workflow (no model calls)
+GetAttendeeProfile -> RecommendSession -> CreateRecommendation
 
-ExecutorCompletedEvent: PrepareAttendee
-ExecutorCompletedEvent: CreateWelcome
-WorkflowOutputEvent: final answer
-
-Welcome, Alex, to Update Conference in Prague!
+GetAttendeeProfile: Alex: .NET Developer interested in AI
+RecommendSession: Building Agentic AI with Microsoft Foundry
+CreateRecommendation: Recommended session: Building Agentic AI with Microsoft Foundry
+Completed workflow.
 ```
 
-**Concepts:** an `Executor<TInput, TOutput>` does one piece of work; `AddEdge` passes its result to the next executor; `WithOutputFrom` selects the final output. The shared [ConferenceWorkflow.cs](ConferenceDemos/ConferenceWorkflow.cs) runs the graph with `InProcessExecution.RunAsync`, reads its events after execution, and propagates errors. Completion events identify finished steps; `WorkflowOutputEvent` carries the final result. Events are observations, not the edges that route messages.
+**Concepts:** `BindAsExecutor` turns a delegate into a workflow step; `AddEdge` passes its result to the next executor; `WithOutputFrom` selects the final output. The demo runs the graph with `InProcessExecution.RunAsync` and prints each executor's result from completion events.
 
-Omitting the name uses `Alex`; an explicit blank name fails. A workflow controls application execution and does not inherently need an agent or an LLM.
+Omitting the CLI name uses `Alex`. A workflow controls application execution and does not inherently need an agent or an LLM.
 
-### 3. Schedule RAG: put an agent inside a workflow
+### 3. Schedule RAG with TextSearchProvider: put an agent inside a workflow
 
-Now ask "What should I attend today if I'm interested in AI and .NET?" The optional `plain` baseline demonstrates the missing-evidence problem before running the same question with grounding:
+Ask "What should I attend today if I'm interested in AI and .NET?" with schedule grounding:
 
 ```powershell
-dotnet run --project ConferenceDemos -- plain "What should I attend today if I'm interested in AI and .NET?"
 dotnet run --project ConferenceDemos -- rag "What should I attend today if I'm interested in AI and .NET?"
-dotnet run --project ConferenceDemos -- rag --day 2 "AI and .NET"
-dotnet run --project ConferenceDemos -- rag "unicorn astrophysics"
 ```
 
-`plain` has no schedule and must disclose that limitation. `rag` now runs the explicit workflow in [ScheduleWorkflowDemo.cs](ConferenceDemos/ScheduleWorkflowDemo.cs): **PrepareQuestion -> AnswerFromSchedule**. The first executor validates and passes along the question and day; the second calls the existing grounded agent. The console shows the question, graph, executor-completion labels, and one final answer, never the injected document.
+`rag` runs the explicit workflow in [ScheduleWorkflowDemo.cs](ConferenceDemos/ScheduleWorkflowDemo.cs): **PrepareQuestion -> AnswerFromSchedule**. The first executor validates and passes along the question; the second calls the existing grounded agent. The console shows the question, executor sequence, executor-completion labels, and one final answer, never the injected document.
 
 Inside that second executor, [ScheduleDemo.cs](ConferenceDemos/ScheduleDemo.cs) uses MAF's built-in `TextSearchProvider` in `BeforeAIInvoke` mode to supply the **complete embedded schedule Markdown** as one context result before the model runs. There is no keyword ranking, chunking, retrieval tool loop, or structured JSON response. The agent makes one model call and returns a normal answer with session titles, times, rooms, and `Update_Conference_Prague_2026_Schedule.md#s...` citations.
 
@@ -107,41 +119,18 @@ Day 1 is November 12 and day 2 is November 13, both CET. **"Today" defaults to c
 
 Look at [ScheduleWorkflowDemo.cs](ConferenceDemos/ScheduleWorkflowDemo.cs), [ScheduleDemo.cs](ConferenceDemos/ScheduleDemo.cs), and [ScheduleCorpus.cs](ConferenceDemos/ScheduleCorpus.cs). The [separate Hosted Agent guide](ScheduleAgent.Hosted/README.md) still runs and deploys the same reusable grounded agent; the new console workflow does not change its hosting contract.
 
-This is the getting-started stopping point: **an agent chooses a tool, a workflow controls steps, and a grounded agent can be one of those steps**. The examples follow the official [add-tools guide](https://learn.microsoft.com/en-us/agent-framework/get-started/add-tools?pivots=programming-language-csharp) and [first-workflow guide](https://learn.microsoft.com/en-us/agent-framework/get-started/workflows?pivots=programming-language-csharp), using this repository's pinned SDK and shared configuration.
+After demo 3, **an agent chooses a tool, a workflow controls steps, and a grounded agent can be one of those steps**. The examples follow the official [add-tools guide](https://learn.microsoft.com/en-us/agent-framework/get-started/add-tools?pivots=programming-language-csharp) and [first-workflow guide](https://learn.microsoft.com/en-us/agent-framework/get-started/workflows?pivots=programming-language-csharp), using this repository's pinned SDK and shared configuration.
 
-## Follow-on 1. Planning + goal monitoring: a self-correcting agenda workflow
+### 4. Planning and goal monitoring: a self-correcting agenda workflow
 
 Getting started showed linear edges. This workflow combines **planning, parallelization, reflection, routing, and goal monitoring** in one graph, in the spirit of the Chapter 11 `GoalSettingWorkflow` loop: set SMART goals, plan, monitor, and revise until the goals are met or the budget is spent.
 
 ```powershell
-dotnet run --project ConferenceDemos -- plan --graph      # graph only: no model, no credentials
 dotnet run --project ConferenceDemos -- plan              # live run (max 3 rounds)
-dotnet run --project ConferenceDemos -- plan --rounds 1   # tight budget: shows the escalation path
+dotnet run --project ConferenceDemos -- plan --rounds 1   # may escalate if goals remain unmet
 ```
 
-```mermaid
-flowchart TD
-  ReadGoals["ReadGoals (Start)"];
-  PlanAgenda["PlanAgenda"];
-  CheckConstraints["CheckConstraints"];
-  CritiqueFit["CritiqueFit"];
-  MonitorGoals["MonitorGoals"];
-  PublishAgenda["PublishAgenda"];
-  Escalate["Escalate"];
-
-  fan_in((fan-in))
-  CheckConstraints --> fan_in;
-  CritiqueFit --> fan_in;
-  fan_in --> MonitorGoals;
-  ReadGoals -->|SMART goals| PlanAgenda;
-  PlanAgenda -->|draft agenda| CheckConstraints;
-  PlanAgenda -->|draft agenda| CritiqueFit;
-  MonitorGoals -. goals unmet: revise .-> PlanAgenda;
-  MonitorGoals -. all goals met .-> PublishAgenda;
-  MonitorGoals -. budget exhausted .-> Escalate;
-```
-
-The graph above is produced by `WorkflowVisualizer.ToMermaidString` (`plan --graph` prints it), so the slide always matches the code in [AgendaPlanningDemo.cs](ConferenceDemos/AgendaPlanningDemo.cs).
+The [demo 4 flow diagram](demo-flows.md#demo-4-planning-and-goal-monitoring) documents the graph in [AgendaPlanningDemo.cs](ConferenceDemos/AgendaPlanningDemo.cs); the CLI runs the workflow without printing Mermaid.
 
 | Executor | Pattern | Role |
 |---|---|---|
@@ -152,7 +141,7 @@ The graph above is produced by `WorkflowVisualizer.ToMermaidString` (`plan --gra
 | conditional edges | Routing | `goals unmet: revise` loops back with concrete feedback (for example `#1/#2 both at 09:15 (keep one)`); `all goals met` → `PublishAgenda`; `budget exhausted` → `Escalate` to a human with the best draft |
 
 The console streams the run (`RunStreamingAsync`) through a custom `AgendaProgressEvent`, so the audience sees each draft, the two parallel checks, the goal table, and the chosen route. Code, not the model, decides whether the hard goals are met; the critic only owns the subjective fit goal. A `ModelCallBudgetClient` caps the run at two model calls per round. Live models often satisfy all goals in round 1. In rehearsal, round 1 also produced an overlap plus a booked 12:30 slot and needed revision, so both paths are realistic. `--rounds 1` makes escalation reachable on demand. A successful run exits 0, an escalation exits 2, and failures exit 1.
-## Follow-on 2. Decision Models: live Microsoft, sample or captured OpenAI
+### 5. Decision Model: live Microsoft, sample or captured OpenAI
 
 Configure the Microsoft decision deployment alias from the repository root. Add the OpenAI alias only if recording real OpenAI output:
 
@@ -169,11 +158,11 @@ From this folder, run with the bundled sample (only the Microsoft deployment is 
 dotnet run --project ConferenceDemos -- decisions
 ```
 
-The checked-in [openai-decisions.sample.json](ConferenceDemos/Samples/openai-decisions.sample.json) contains all three output shapes in one file. It is copied to build and publish output and resolved relative to the executable, not the working directory. Its values are **illustrative, not recorded model output**, and the console explicitly labels them that way. `check-data` also validates this file offline.
+The checked-in [openai-decisions.sample.json](ConferenceDemos/Samples/openai-decisions.sample.json) contains all three output shapes in one file. It is copied to build and publish output and resolved relative to the executable, not the working directory. Its values are **illustrative, not recorded model output**, and the console explicitly labels them that way. The decision tests validate this file offline.
 
 **Why JSON?** Only to replay the comparison output without making a second set of live model calls. Neither provider requires a JSON file for inference. The sample removes the recording prerequisite; a real capture is useful for presenting actual OpenAI behavior.
 
-To replace the illustration with **real OpenAI output**, record it before the talk:
+Demo **5.1** uses the sample. To replace it with **real OpenAI output**, record it with **5.3** before running the comparison in **5.2**:
 
 ```powershell
 dotnet run --project ConferenceDemos -- decisions-record-openai captures\openai-decisions.json
@@ -194,9 +183,9 @@ These are the library's normalized typed outputs, not identical raw provider wir
 
 Missing/mismatched captures and malformed distributions fail explicitly. This is an API/output illustration, **not an accuracy benchmark**; neither model scores nor probabilities are calibrated real-world certainty. Schedule existence and time lookup stay deterministic.
 
-## Follow-on 3. Harness agent: build my speaker agenda page (HTML)
+### 6. Harness: build my speaker agenda page (HTML)
 
-One MAF `HarnessAgent` turns the schedule into a personal web page: Cédric's photo, his own talk, a day timeline of fitting sessions, and (with `--web`) further reading found by live web search. The layout may differ between runs; the console ends with a short success summary.
+One MAF `HarnessAgent` turns the schedule into a personal web page: Cédric's photo, his own talk, a day timeline of fitting sessions, and (with `--web`, demo **6.1**) further reading found by live web search. The layout may differ between runs; the console ends with a short success summary. See the [demo 6 / 6.1 flow](demo-flows.md#demos-6-and-61-harness-agent) for the tool loop and final verification.
 
 ```powershell
 dotnet run --project ConferenceDemos -- speaker-page --open        # out\speaker-page\agenda.html
@@ -226,7 +215,7 @@ A typical tool trace: `load_skill` → `GetSession(13)` → `ListSessions(1)` �
 The speaker profile is [Samples/speaker-profile.json](ConferenceDemos/Samples/speaker-profile.json). The same code checks back the agent's `CheckPage` tool and, after the run, print the success summary: page saved, speaker name, photo, own talk on the timeline, only real schedule sessions, no overlapping sessions, and web links when `--web` is set. A failing check exits 1.
 ## Rehearsal and boundaries
 
-Run the three getting-started steps first, then the follow-on demos in talk order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.
+Run demos 1–3 first, then demos 4–6 in order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.
 
 Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise actual MAF function calling, workflow events, the context provider, workflows/Harness, and the hosted protocol with controlled model replies. Schedule tests check complete-document injection, caller/day propagation, plain-text output, and explicit failures; live rehearsal is still needed to assess answer quality. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, the agenda workflow, schedule grounding, the page skill, and the Harness setup remain here.
 

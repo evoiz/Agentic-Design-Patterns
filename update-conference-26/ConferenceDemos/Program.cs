@@ -1,6 +1,5 @@
 using AgenticDesignPatterns.Shared;
 using Extension02.DecisionModels;
-using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 using System.Text.Json;
@@ -15,17 +14,17 @@ public static class Program
         {
             Console.WriteLine("""
                 Conference demos (run from update-conference-26):
-                  Getting started (in order):
-                  dotnet run --project ConferenceDemos -- agent
-                  dotnet run --project ConferenceDemos -- workflow [attendee name]
-                  dotnet run --project ConferenceDemos -- rag [question]
-                  Additional demos:
-                  dotnet run --project ConferenceDemos -- plain [question]
-                  dotnet run --project ConferenceDemos -- plan [--graph] [--rounds 1-5]
-                  dotnet run --project ConferenceDemos -- decisions [openai-capture.json]
-                  dotnet run --project ConferenceDemos -- decisions-record-openai <new-capture.json>
-                  dotnet run --project ConferenceDemos -- speaker-page [--web] [--open]
-                  dotnet run --project ConferenceDemos -- check-data
+                  Presentation order:
+                  1. Prague weather: dotnet run --project ConferenceDemos -- agent
+                  2. Simple MAF workflow: dotnet run --project ConferenceDemos -- workflow [attendee name]
+                  3. Schedule RAG: dotnet run --project ConferenceDemos -- rag [question]
+                  4. Planning and goal monitoring: dotnet run --project ConferenceDemos -- plan [--rounds 1-5]
+                  5.1 Decision Model - compare sample: dotnet run --project ConferenceDemos -- decisions
+                  5.2 Decision Model - compare recorded OpenAI: dotnet run --project ConferenceDemos -- decisions <openai-capture.json>
+                  5.3 Decision Model - record OpenAI: dotnet run --project ConferenceDemos -- decisions-record-openai <new-capture.json>
+                  6. Harness: dotnet run --project ConferenceDemos -- speaker-page [--open]
+                  6.1 Harness + web search: dotnet run --project ConferenceDemos -- speaker-page --web [--open]
+                See demo-flows.md for diagrams for demos 2, 4, 6, and 6.1.
                 See README.md for credentials, recording, and project-local hosted deployment.
                 """);
             return 0;
@@ -43,7 +42,7 @@ public static class Program
                 {
                     throw new ArgumentException("workflow accepts an optional attendee name, not options.");
                 }
-                Console.WriteLine("Step 2: Workflow basics (no model calls)\nPrepareAttendee -> CreateWelcome\n");
+                Console.WriteLine("2. Simple MAF workflow (no model calls)\nGetAttendeeProfile -> RecommendSession -> CreateRecommendation\n");
                 var attendee = options.Length == 0 ? "Alex" : string.Join(" ", options);
                 Console.WriteLine(await WelcomeWorkflowDemo.RunAsync(attendee, cancellation.Token, PrintWorkflowEvent));
                 return 0;
@@ -54,23 +53,9 @@ public static class Program
                 {
                     throw new ArgumentException("agent takes no arguments; it runs the welcome and Prague weather questions.");
                 }
-                Console.WriteLine("Step 1: Agent + tool\nWeather is fixed demo data, not a live forecast.\n");
+                Console.WriteLine("1. Prague weather: agent + tool\nWeather is fixed demo data, not a live forecast.\n");
                 using var agentClient = FoundryChatClientFactory.CreateChatClient(FoundryChatClientFactory.LoadSettings());
                 await AgentDemo.RunAsync(agentClient, Console.Out, cancellation.Token);
-                return 0;
-            }
-            if (command == "check-data")
-            {
-                if (options.Length != 0)
-                {
-                    throw new ArgumentException("check-data takes no arguments.");
-                }
-                var schedule = new ScheduleCorpus();
-                _ = DecisionDemo.ReadCapture(DecisionDemo.SamplePath, DecisionDemo.State());
-                _ = SpeakerPageDemo.LoadProfile();
-                _ = AgendaPlanningDemo.BuildWorkflow(null, schedule);
-                Console.WriteLine($"{schedule.Sessions.Count} schedule sessions loaded from the embedded canonical fixture; " +
-                    "decision JSON sample, agenda workflow graph, and speaker profile resolved.");
                 return 0;
             }
             if (command == "plan")
@@ -89,7 +74,12 @@ public static class Program
                     throw new ArgumentException("decisions accepts an optional JSON path; decisions-record-openai requires one new capture path.");
                 }
                 var state = DecisionDemo.State();
-                Console.WriteLine("Shared session and attendee interest:\n" + state);
+                var demo = command == "decisions-record-openai"
+                    ? "5.3 Decision Model - record OpenAI"
+                    : options.Length == 0
+                        ? "5.1 Decision Model - compare sample"
+                        : "5.2 Decision Model - compare recorded OpenAI";
+                Console.WriteLine($"{demo}\nShared session and attendee interest:\n{state}");
                 var capture = command == "decisions"
                     ? DecisionDemo.ReadCapture(options.SingleOrDefault() ?? DecisionDemo.SamplePath, state) : null;
                 if (capture?.Provider == DecisionDemo.SampleProvider)
@@ -123,7 +113,7 @@ public static class Program
                 return 0;
             }
 
-            if (command is not ("rag" or "plain"))
+            if (command != "rag")
             {
                 throw new ArgumentException($"Unknown command '{command}'. Use --help.");
             }
@@ -134,20 +124,9 @@ public static class Program
             var question = options.Length == 0 ? ScheduleDemo.DefaultQuestion : string.Join(" ", options);
             Console.WriteLine($"User question: {question}\n");
             using IChatClient client = FoundryChatClientFactory.CreateChatClient(FoundryChatClientFactory.LoadSettings());
-            switch (command)
-            {
-                case "rag":
-                    Console.WriteLine("Step 3: Schedule RAG workflow\nPrepareQuestion -> AnswerFromSchedule\n");
-                    Console.WriteLine(await ScheduleWorkflowDemo.RunAsync(
-                        client, question, cancellation.Token, PrintWorkflowEvent));
-                    break;
-                case "plain":
-                    var agent = new ChatClientAgent(client, name: "NoSchedule",
-                        instructions: "You have no current Update Conference schedule. State this limitation explicitly; do not invent event sessions or times.");
-                    Console.WriteLine((await agent.RunAsync(question,
-                        cancellationToken: cancellation.Token)).Text);
-                    break;
-            }
+            Console.WriteLine("3. Schedule RAG (TextSearchProvider)\nPrepareQuestion -> AnswerFromSchedule\n");
+            Console.WriteLine(await ScheduleWorkflowDemo.RunAsync(
+                client, question, cancellation.Token, PrintWorkflowEvent));
             Pause();
             return 0;
         }
@@ -163,30 +142,21 @@ public static class Program
     private static async Task<int> RunPlanAsync(string[] options, CancellationToken cancellationToken)
     {
         var request = AgendaPlanningDemo.DefaultRequest;
-        var graphOnly = false;
         for (var i = 0; i < options.Length; i++)
         {
             switch (options[i])
             {
-                case "--graph":
-                    graphOnly = true;
-                    break;
                 case "--rounds" when i + 1 < options.Length && int.TryParse(options[i + 1], out var rounds) && rounds is >= 1 and <= 5:
                     request = request with { MaxIterations = rounds };
                     i++;
                     break;
                 default:
-                    throw new ArgumentException("plan accepts --graph and --rounds 1-5.");
+                    throw new ArgumentException("plan accepts only --rounds 1-5.");
             }
         }
 
         var schedule = new ScheduleCorpus();
-        Console.WriteLine("Planning + goal monitoring workflow (Mermaid, generated by WorkflowVisualizer):\n");
-        Console.WriteLine(WorkflowVisualizer.ToMermaidString(AgendaPlanningDemo.BuildWorkflow(null, schedule)));
-        if (graphOnly)
-        {
-            return 0;
-        }
+        Console.WriteLine("4. Planning and goal monitoring\n");
 
         Console.WriteLine($"\nGoal: plan {request.Attendee}'s day {request.Day} at Update Conference Prague 2026.\nInterests: {request.Interests}\n");
         using var client = FoundryChatClientFactory.CreateChatClient(FoundryChatClientFactory.LoadSettings());
@@ -213,7 +183,7 @@ public static class Program
         return result.Achieved ? 0 : 2;
     }
 
-private static async Task<int> RunSpeakerPageAsync(string[] options, CancellationToken cancellationToken)
+    private static async Task<int> RunSpeakerPageAsync(string[] options, CancellationToken cancellationToken)
     {
         if (options.Except(["--web", "--open"]).Any())
         {
@@ -223,7 +193,8 @@ private static async Task<int> RunSpeakerPageAsync(string[] options, Cancellatio
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         var profile = SpeakerPageDemo.LoadProfile();
         var output = SpeakerPageDemo.DefaultOutputDirectory;
-        Console.WriteLine($"HarnessAgent: build {profile.Name}'s speaker page (web search {(web ? "ON" : "off")})\n\nHarness tool calls:");
+        var demo = web ? "6.1 Harness + web search" : "6. Harness";
+        Console.WriteLine($"{demo}: build {profile.Name}'s speaker page\n\nHarness tool calls:");
 
         using var client = SpeakerPageDemo.CreateClient(FoundryChatClientFactory.LoadSettings());
         var checks = await SpeakerPageDemo.RunAsync(client, profile, output, web, Console.WriteLine, cancellationToken);

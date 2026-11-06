@@ -17,7 +17,7 @@ For runnable C# examples built with Microsoft Agent Framework, start with the [.
 
 The [hosted-agent guides](dotnet/README.md#hosted-agent-companions) describe request contracts, local invocation, managed-identity permissions, and service-scoped deployment. Configure your own project endpoint and model deployment before deploying.
 
-The [Update Conference demos](update-conference-26/README.md) provide a focused local sequence: schedule RAG, a goal-monitored agenda planning workflow (fan-out/fan-in, critic, conditional routing), Decision Models, and a Harness agent that builds a verified HTML speaker page, with a separate schedule Hosted Agent deployment guide.
+The [Update Conference demos](update-conference-26/README.md) provide six ordered local examples: Prague weather, a simple MAF workflow, schedule RAG with TextSearchProvider, planning and goal monitoring, Decision Model, and Harness, with a separate schedule Hosted Agent deployment guide.
 
 ## 🧩 Pattern families
 

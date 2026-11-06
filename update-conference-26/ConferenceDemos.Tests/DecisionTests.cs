@@ -82,7 +82,6 @@ public sealed class DecisionTests
             sample.Results.GetProperty("Choice").GetProperty("Choice").GetString());
         Assert.Equal(expected.Noul.Probability, sample.Results.GetProperty("Noul").GetProperty("Probability").GetDouble());
         Assert.Equal(expected.Score.Score, sample.Results.GetProperty("Score").GetProperty("Score").GetDouble());
-        Assert.Equal(0, await Program.Main(["check-data"]));
     }
 
     [Fact]
