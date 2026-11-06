@@ -129,18 +129,19 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 
 - New request: "Turn my checked agenda into a page I can share: photo, my talk, chosen sessions, why they fit, and a few current links."
 - Contrast with slide 11: there the **code** owned the steps. Here one agent plans its own steps inside a harness, and the code owns its capabilities, limits, and final acceptance.
-- Show the finished `agenda.html` (hero with photo, my talk, timeline, verified goals, further reading) as the target.
+- Show the finished `agenda.html` (hero with photo, my talk, timeline, further reading) as the target. The layout may change per run; the content contract does not.
 
 ### 15. What the harness adds (2:00)
 
-- One capability card per harness feature: **todos + loop evaluator** (plan and finish), **skill** `speaker-agenda-page` (page contract via progressive disclosure), **sandboxed file tools** (`out\speaker-page` only), **domain tools** (`ListSessions`, `GetSession`, `CheckAgenda` reusing the slide-11 goal monitor), **web search** (opt-in through the Foundry Responses API), and **budgets** (60 model calls, 8 minutes, one tool call per turn).
+- Show the whole agent as one `AsHarnessAgent(new HarnessAgentOptions { ... })` snippet: two schedule tools, the **skill** `speaker-agenda-page` (steps and page rules, loaded on demand), a **sandbox folder** for the file tools (`out\speaker-page` only), **web search** on/off, and no plan-approval mode.
+- Point out what came for free from the harness: the agent loop, todos, skill tools, file tools, and the hosted `web_search` tool, which Foundry runs server-side and returns as text with citations.
 - Explain that the harness constrains and equips one agent. It is not multi-agent collaboration, and it does not decide whether the result is correct.
 
 ### 16. Run the Harness demo live (7:00)
 
-- Run `speaker-page --web --open`. Narrate the tool trace: `load_skill`, `todos_add`, schedule tools, `CheckAgenda` going from 6/8 to 8/8, `web_search`, `read_skill_resource`, `file_access_write`, and `todos_complete`.
-- Open the generated page in the browser, then show the code-owned acceptance table: self-contained HTML, speaker and talk, agenda goals, grounded titles, photo, web links, and todos.
-- Fallback: `speaker-page` without `--web` (no search dependency), `--no-photo`, or a previously generated page.
+- Run `speaker-page --web --open`. Narrate the live tool trace: `load_skill`, `GetSession`/`ListSessions`, `web_search`, `read_skill_resource`, `file_access_write`, and `file_access_read`.
+- Open the generated page in the browser, then show the green success summary: page saved, speaker, photo, own talk, real sessions, no overlaps, and web links.
+- Fallback: `speaker-page` without `--web` (no search dependency) or a previously generated page.
 ### 17. Composition, resources, and close (4:00)
 
 - Return to the agenda assistant as a conceptual composition: grounded schedule data, a goal-monitored planning workflow, and a harnessed agent that turns the result into a verified artifact.

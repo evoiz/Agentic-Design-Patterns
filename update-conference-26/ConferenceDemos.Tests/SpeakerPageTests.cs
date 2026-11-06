@@ -1,93 +1,75 @@
+using System.Text.Json;
 using ConferenceDemos;
+using Microsoft.Extensions.AI;
 using Xunit;
 
 namespace ConferenceDemos.Tests;
 
 public sealed class SpeakerPageTests
 {
-    private static readonly int[] Agenda = [1, 6, 13, 17, 22];
-
     [Fact]
-    public void Profile_and_skill_resolve_from_the_build_output()
+    public void Profile_skill_and_prompt_are_ready()
     {
         var profile = SpeakerPageDemo.LoadProfile();
         Assert.Equal(13, profile.TalkId);
-        Assert.False(string.IsNullOrWhiteSpace(profile.Name));
+        Assert.StartsWith("https://", profile.Photo);
         var skill = File.ReadAllText(Path.Combine(SpeakerPageDemo.SkillsDirectory, "speaker-agenda-page", "SKILL.md"));
         Assert.Contains("name: speaker-agenda-page", skill);
-        Assert.Contains("data-session-id", skill);
+        Assert.Contains("Use web search", SpeakerPageDemo.Prompt(profile, webSearch: true));
+        Assert.Contains("Web search is off", SpeakerPageDemo.Prompt(profile, webSearch: false));
     }
 
     [Fact]
-    public void Prompt_switches_further_reading_with_web_search()
+    public void Schedule_tools_return_real_sessions()
     {
-        var profile = SpeakerPageDemo.LoadProfile();
-        Assert.Contains("Web search is enabled", SpeakerPageDemo.Prompt(profile, AgendaPlanningDemo.DefaultRequest, true));
-        Assert.Contains("do not invent links", SpeakerPageDemo.Prompt(profile, AgendaPlanningDemo.DefaultRequest, false));
+        var day = JsonDocument.Parse(SpeakerPageDemo.GetSession(13)).RootElement.GetProperty("Day").GetInt32();
+        Assert.Contains(JsonDocument.Parse(SpeakerPageDemo.ListSessions(day)).RootElement.EnumerateArray(),
+            s => s.GetProperty("Id").GetInt32() == 13);
+        Assert.Contains("does not exist", SpeakerPageDemo.GetSession(999));
     }
 
     [Fact]
-    public void Validator_accepts_a_grounded_self_contained_page()
-    {
-        using var dir = new TempDir();
-        File.WriteAllBytes(Path.Combine(dir.Path, "speaker.png"), [1, 2, 3]);
-        var schedule = new ScheduleCorpus();
-        var profile = SpeakerPageDemo.LoadProfile();
-        var html = Page(schedule, profile, Agenda, """<img src="speaker.png" alt="photo">""",
-            """<a href="https://learn.microsoft.com/agent-framework">MAF docs</a>""");
-
-        var checks = SpeakerPageDemo.ValidatePage(html, html.Length, profile, AgendaPlanningDemo.DefaultRequest, schedule,
-            dir.Path, "speaker.png", webSearch: true);
-
-        Assert.All(checks, c => Assert.True(c.Passed, $"{c.Check}: {c.Evidence}"));
-        Assert.Contains(checks, c => c.Check == "Web links");
-    }
-
-    [Fact]
-    public void Validator_rejects_scripts_broken_images_unmet_goals_and_invented_titles()
+    public void Harness_agent_is_built_from_options()
     {
         using var dir = new TempDir();
-        var schedule = new ScheduleCorpus();
+        var agent = SpeakerPageDemo.CreateAgent(new FakeClient(), dir.Path, webSearch: true);
+        Assert.Equal("SpeakerPageBuilder", agent.Name);
+    }
+
+    [Fact]
+    public void Verify_shows_success_for_a_good_page_and_failures_for_a_bad_one()
+    {
+        using var dir = new TempDir();
         var profile = SpeakerPageDemo.LoadProfile();
-        var html = Page(schedule, profile, [1, 2, 10], """<img src="https://example.com/me.png"><script>alert(1)</script>""", "")
-            .Replace(schedule.Sessions.Single(s => s.Id == 1).Title, "A made-up keynote", StringComparison.Ordinal);
+        var path = Path.Combine(dir.Path, SpeakerPageDemo.PageFile);
+        Assert.False(SpeakerPageDemo.Verify(path, profile, false).Single().Passed);
 
-        var checks = SpeakerPageDemo.ValidatePage(html, html.Length, profile, AgendaPlanningDemo.DefaultRequest, schedule,
-            dir.Path, null, webSearch: true).ToDictionary(c => c.Check);
+        File.WriteAllText(path, Page(profile, profile.Photo!, [1, 6, 13], """<a href="https://learn.microsoft.com/agent-framework">MAF</a>"""));
+        Assert.All(SpeakerPageDemo.Verify(path, profile, webSearch: true), c => Assert.True(c.Passed, $"{c.Check}: {c.Evidence}"));
 
-        Assert.False(checks["Self-contained"].Passed);
+        File.WriteAllText(path, Page(profile, "other.png", [1, 2, 999], ""));
+        var checks = SpeakerPageDemo.Verify(path, profile, webSearch: true).ToDictionary(c => c.Check);
         Assert.False(checks["Photo"].Passed);
-        Assert.False(checks["Agenda goals"].Passed);
-        Assert.False(checks["Grounded titles"].Passed);
+        Assert.False(checks["My talk"].Passed);
+        Assert.False(checks["Real sessions"].Passed);
+        Assert.False(checks["No overlaps"].Passed);
         Assert.False(checks["Web links"].Passed);
-        Assert.False(SpeakerPageDemo.ValidatePage(null, 0, profile, AgendaPlanningDemo.DefaultRequest, schedule, dir.Path, null, false)
-            .Single().Passed);
     }
 
-    [Fact]
-    public async Task Photo_preparation_copies_local_images_and_falls_back_for_unsupported_files()
-    {
-        using var dir = new TempDir();
-        var source = Path.Combine(dir.Path, "me.jpg");
-        File.WriteAllBytes(source, [0xFF, 0xD8, 0xFF]);
-        var output = Path.Combine(dir.Path, "out");
+    private static string Page(SpeakerProfile profile, string photo, int[] ids, string links) => $"""
+        <!doctype html><html><body><header><img src="{photo}"><h1>{profile.Name}</h1></header>
+        {string.Join("\n", ids.Select(id => $"""<article class="session" data-session-id="{id}"></article>"""))}
+        {links}</body></html>
+        """;
 
-        Assert.Equal("speaker.jpg", await SpeakerPageDemo.PreparePhotoAsync(source, output, null, CancellationToken.None));
-        Assert.True(File.Exists(Path.Combine(output, "speaker.jpg")));
-        Assert.Null(await SpeakerPageDemo.PreparePhotoAsync(Path.Combine(dir.Path, "missing.png"), output, null, CancellationToken.None));
-        Assert.Null(await SpeakerPageDemo.PreparePhotoAsync(null, output, null, CancellationToken.None));
-    }
-
-    private static string Page(ScheduleCorpus schedule, SpeakerProfile profile, int[] ids, string extra, string links)
+    private sealed class FakeClient : IChatClient
     {
-        var talk = schedule.Sessions.Single(s => s.Id == profile.TalkId);
-        var items = string.Join("\n", ids.Select(id => schedule.Sessions.Single(s => s.Id == id))
-            .Select(s => $"""<li data-session-id="{s.Id}">{s.Start:HH\:mm} {System.Net.WebUtility.HtmlEncode(s.Title)}</li>"""));
-        return $"""
-            <!doctype html><html><head><style>body{"{"}font-family:sans-serif{"}"}</style></head><body>
-            <header>{extra}<h1>{profile.Name}</h1><p>{System.Net.WebUtility.HtmlEncode(talk.Title)}</p></header>
-            <ol>{items}</ol>{links}</body></html>
-            """;
+        public Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new ChatResponse(new ChatMessage(ChatRole.Assistant, "done")));
+        public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+        public object? GetService(Type serviceType, object? serviceKey = null) => null;
+        public void Dispose() { }
     }
 
     private sealed class TempDir : IDisposable

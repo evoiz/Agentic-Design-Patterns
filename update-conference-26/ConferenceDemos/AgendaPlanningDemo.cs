@@ -1,9 +1,9 @@
-using System.Globalization;
-using System.Text.Json;
 using Extension01.AgentHarness;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
+using System.Globalization;
+using System.Text.Json;
 
 namespace ConferenceDemos;
 
@@ -176,8 +176,13 @@ public static class AgendaPlanningDemo
 
     private static object Candidate(ScheduleSession s) => new
     {
-        s.Id, s.Title, Start = s.Start.ToString("HH:mm", CultureInfo.InvariantCulture),
-        End = s.End.ToString("HH:mm", CultureInfo.InvariantCulture), s.Room, s.Tracks, s.Speaker,
+        s.Id,
+        s.Title,
+        Start = s.Start.ToString("HH:mm", CultureInfo.InvariantCulture),
+        End = s.End.ToString("HH:mm", CultureInfo.InvariantCulture),
+        s.Room,
+        s.Tracks,
+        s.Speaker,
         Abstract = s.Abstract.Length > 280 ? s.Abstract[..280] + "…" : s.Abstract
     };
 
@@ -215,10 +220,13 @@ public static class AgendaPlanningDemo
                     """);
             var input = JsonSerializer.Serialize(new
             {
-                round.Request.Attendee, round.Request.Interests, Goals = DescribeGoals(round.Request),
+                round.Request.Attendee,
+                round.Request.Interests,
+                Goals = DescribeGoals(round.Request),
                 Slots = schedule.Sessions.Where(s => s.Day == round.Request.Day).GroupBy(s => s.Start).OrderBy(g => g.Key)
                     .Select(g => new { Start = g.Key.ToString("HH:mm", CultureInfo.InvariantCulture), Sessions = g.Select(Candidate) }),
-                PreviousAgenda = round.Previous, round.Feedback
+                PreviousAgenda = round.Previous,
+                round.Feedback
             });
             var agenda = (await planner.RunAsync<PlannedAgenda>(input, cancellationToken: cancellationToken)).Result
                 ?? throw new InvalidOperationException("The planner returned no agenda.");
@@ -254,11 +262,14 @@ public static class AgendaPlanningDemo
                     """);
             var sessions = draft.Agenda.Sessions.Select(p => new
             {
-                p.Id, p.Why, Session = schedule.Sessions.SingleOrDefault(s => s.Id == p.Id) is { } s ? Candidate(s) : null
+                p.Id,
+                p.Why,
+                Session = schedule.Sessions.SingleOrDefault(s => s.Id == p.Id) is { } s ? Candidate(s) : null
             });
             var critique = (await critic.RunAsync<FitCritique>(JsonSerializer.Serialize(new
             {
-                draft.Round.Request.Interests, Agenda = sessions
+                draft.Round.Request.Interests,
+                Agenda = sessions
             }), cancellationToken: cancellationToken)).Result ?? throw new InvalidOperationException("The critic returned no critique.");
             if (critique.Score is < 1 or > 5 || (critique.Score < 5 && string.IsNullOrWhiteSpace(critique.Feedback)))
             {

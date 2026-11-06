@@ -196,26 +196,34 @@ Missing/mismatched captures and malformed distributions fail explicitly. This is
 
 ## Follow-on 3. Harness agent: build my speaker agenda page (HTML)
 
-One `HarnessAgent` turns the schedule into a reproducible, self-contained web page: Cédric's photo, his own talk, a planned day-1 timeline, the goals it verified, and (optionally) further reading found with live web search.
+One MAF `HarnessAgent` turns the schedule into a personal web page: Cédric's photo, his own talk, a day timeline of fitting sessions, and (with `--web`) further reading found by live web search. The layout may differ between runs; the console ends with a short success summary.
 
 ```powershell
-dotnet run --project ConferenceDemos -- speaker-page --open                 # out\speaker-page\agenda.html
-dotnet run --project ConferenceDemos -- speaker-page --web --open           # + hosted web search
-dotnet run --project ConferenceDemos -- speaker-page --photo C:\me.jpg      # or --no-photo for an initials avatar
+dotnet run --project ConferenceDemos -- speaker-page --open        # out\speaker-page\agenda.html
+dotnet run --project ConferenceDemos -- speaker-page --web --open  # + hosted web search
 ```
 
-What the harness provides, and why each piece matters on stage:
+The whole agent is one options object in [SpeakerPageDemo.cs](ConferenceDemos/SpeakerPageDemo.cs). The harness already brings the agent loop, todos, skills, file tools, and web search; the demo only adds two schedule tools, a skill, and a sandbox folder:
 
-| Harness capability | Configuration in [SpeakerPageDemo.cs](ConferenceDemos/SpeakerPageDemo.cs) | Visible effect |
-|---|---|---|
-| Planning (todos + loop evaluator) | `TodoProvider` + `TodoCompletionLoopEvaluator` in `execute` mode | The agent records a todo plan and is re-prompted until every item is done |
-| Skills (progressive disclosure) | `AgentFileSkillsSource` → [Skills/speaker-agenda-page](ConferenceDemos/Skills/speaker-agenda-page/SKILL.md) | `load_skill`, then `read_skill_resource` for the design guide; the skill is the page contract |
-| Sandboxed file access | `FileSystemAgentFileStore(out\speaker-page)` | `file_access_write` / `file_access_read` can touch only that folder |
-| Domain tools | `GetSpeakerProfile`, `ListSessions`, `GetSession`, `CheckAgenda` | Facts come from the embedded schedule; `CheckAgenda` reuses the planning demo's goal monitor (6/8 → 8/8 is typical) |
-| Web search (opt-in) | `--web`: Foundry Responses API client, `DisableWebSearch = false` | `web_search` calls, then 2-3 real links in *Further reading* |
-| Guardrails & budgets | auto-approval only for read-only skill tools, one tool call per turn, 60 model calls, 8-minute deadline | Reproducible, bounded run |
+```csharp
+client.AsHarnessAgent(new HarnessAgentOptions
+{
+    Name = "SpeakerPageBuilder",
+    ChatOptions = new ChatOptions { Tools = [AIFunctionFactory.Create(ListSessions), AIFunctionFactory.Create(GetSession)] },
+    AgentSkillsSource = new AgentFileSkillsSource(SkillsDirectory),  // how to build the page
+    FileAccessStore = new FileSystemAgentFileStore(outputDirectory), // the only folder it can write to
+    DisableWebSearch = !webSearch,                                   // hosted web_search tool, run by Foundry
+    DisableAgentModeProvider = true                                  // just execute; no plan-then-approve stop
+});
+```
 
-The speaker profile is [Samples/speaker-profile.json](ConferenceDemos/Samples/speaker-profile.json). The photo defaults to the GitHub avatar, is copied into the sandbox before the run, and falls back to an initials avatar when unavailable. After the agent finishes, **code** validates the artifact: file size, self-contained HTML (no scripts, iframes, or external CSS), speaker name and talk title, agenda goals from `data-session-id` markers, exact schedule titles, photo reference, web links when `--web` is set, and completed todos. A failing check exits 1. Validation runs completed in 17-18 model calls and passed all checks with and without web search.
+The two approval settings in the file auto-approve the read-only skill tools and the sandboxed file tools; without them the harness pauses for human approval. `AllowMultipleToolCalls = false` keeps one tool call per model turn.
+
+A typical tool trace: `load_skill` → `GetSession(13)` → `ListSessions(1)` → `GetSession` per pick → `web_search` (with `--web`) → `read_skill_resource(design.md)` → `file_access_write(agenda.html)` → `file_access_read`. The [speaker-agenda-page skill](ConferenceDemos/Skills/speaker-agenda-page/SKILL.md) holds the steps, rules, and sections; its [design guide](ConferenceDemos/Skills/speaker-agenda-page/references/design.md) is loaded only when the agent writes the page.
+
+**How web search works.** `DisableWebSearch = false` adds the hosted `web_search` tool to the request. It is not a local tool: the Foundry (Azure OpenAI) Responses API runs the search server-side and returns text with URL citations to the model, so the demo uses the Responses client. Web search cannot download files such as images. The photo is simply the profile's `https://github.com/<user>.png` URL in `<img src>`, loaded by the browser when the page opens.
+
+The speaker profile is [Samples/speaker-profile.json](ConferenceDemos/Samples/speaker-profile.json). After the run, a few code checks print the success summary: page saved, speaker name, photo, own talk on the timeline, only real schedule sessions, no overlapping sessions, and web links when `--web` is set. A failing check exits 1.
 ## Rehearsal and boundaries
 
 Run the three getting-started steps first, then the follow-on demos in talk order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.

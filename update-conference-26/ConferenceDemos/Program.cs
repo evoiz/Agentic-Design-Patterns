@@ -24,7 +24,7 @@ public static class Program
                   dotnet run --project ConferenceDemos -- plan [--graph] [--rounds 1-5]
                   dotnet run --project ConferenceDemos -- decisions [openai-capture.json]
                   dotnet run --project ConferenceDemos -- decisions-record-openai <new-capture.json>
-                  dotnet run --project ConferenceDemos -- speaker-page [--web] [--open] [--photo <file|https-url> | --no-photo]
+                  dotnet run --project ConferenceDemos -- speaker-page [--web] [--open]
                   dotnet run --project ConferenceDemos -- check-data
                 See README.md for credentials, recording, and project-local hosted deployment.
                 """);
@@ -70,7 +70,7 @@ public static class Program
                 _ = SpeakerPageDemo.LoadProfile();
                 _ = AgendaPlanningDemo.BuildWorkflow(null, schedule);
                 Console.WriteLine($"{schedule.Sessions.Count} schedule sessions loaded from the embedded canonical fixture; " +
-                    "decision JSON sample, agenda workflow graph, speaker profile, and page skill resolved.");
+                    "decision JSON sample, agenda workflow graph, and speaker profile resolved.");
                 return 0;
             }
             if (command == "plan")
@@ -213,64 +213,35 @@ public static class Program
         return result.Achieved ? 0 : 2;
     }
 
-    private static async Task<int> RunSpeakerPageAsync(string[] options, CancellationToken cancellationToken)
+private static async Task<int> RunSpeakerPageAsync(string[] options, CancellationToken cancellationToken)
     {
-        var web = false;
-        var open = false;
-        var noPhoto = false;
-        string? photo = null;
-        for (var i = 0; i < options.Length; i++)
+        if (options.Except(["--web", "--open"]).Any())
         {
-            switch (options[i])
-            {
-                case "--web": web = true; break;
-                case "--open": open = true; break;
-                case "--no-photo": noPhoto = true; break;
-                case "--photo" when i + 1 < options.Length && !string.IsNullOrWhiteSpace(options[i + 1]):
-                    photo = options[++i];
-                    break;
-                default:
-                    throw new ArgumentException("speaker-page accepts --web, --open, and --photo <file|https-url> or --no-photo.");
-            }
+            throw new ArgumentException("speaker-page accepts only --web and --open.");
         }
-        if (noPhoto && photo is not null)
-        {
-            throw new ArgumentException("Use either --photo or --no-photo.");
-        }
-
+        var web = options.Contains("--web");
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
         var profile = SpeakerPageDemo.LoadProfile();
-        var request = AgendaPlanningDemo.DefaultRequest;
         var output = SpeakerPageDemo.DefaultOutputDirectory;
-        Console.WriteLine($"""
-            Harness agent: build {profile.Name}'s speaker agenda page.
-            Harness: todos + loop evaluator, skill 'speaker-agenda-page', sandboxed file tools ({output}),
-                     schedule tools, CheckAgenda goals, web search {(web ? "ON (Responses API)" : "off")},
-                     budget {SpeakerPageDemo.MaximumModelCalls} model calls / {SpeakerPageDemo.Deadline.TotalMinutes:0} min.
+        Console.WriteLine($"HarnessAgent: build {profile.Name}'s speaker page (web search {(web ? "ON" : "off")})\n\nHarness tool calls:");
 
-            """);
-        var photoFile = await SpeakerPageDemo.PreparePhotoAsync(noPhoto ? null : photo ?? profile.Photo, output, Console.WriteLine, cancellationToken);
-        var settings = FoundryChatClientFactory.LoadSettings();
-        using var client = web ? SpeakerPageDemo.CreateWebSearchClient(settings) : FoundryChatClientFactory.CreateChatClient(settings);
-        Console.WriteLine("\nTool calls:");
-        var result = await SpeakerPageDemo.RunAsync(client, profile, request, output, photoFile, web, Console.WriteLine, cancellationToken);
+        using var client = SpeakerPageDemo.CreateClient(FoundryChatClientFactory.LoadSettings());
+        var checks = await SpeakerPageDemo.RunAsync(client, profile, output, web, Console.WriteLine, cancellationToken);
 
-        Console.WriteLine("\nTodo plan (recorded by the agent):");
-        foreach (var todo in result.Todos)
+        var passed = checks.All(c => c.Passed);
+        var pagePath = Path.Combine(output, SpeakerPageDemo.PageFile);
+        Console.WriteLine($"\n{(passed ? "✅ Speaker page ready" : "❌ Speaker page incomplete")}");
+        foreach (var check in checks)
         {
-            Console.WriteLine($"  [{(todo.Done ? "x" : " ")}] {todo.Title}");
+            Console.WriteLine($"   {(check.Passed ? "✓" : "✗")} {check.Check,-14} {check.Evidence}");
         }
-        Console.WriteLine($"\nAgent summary:\n{result.Answer.Trim()}\n\nCode-owned acceptance checks:");
-        foreach (var check in result.Checks)
+        Console.WriteLine($"   → {new Uri(pagePath)}");
+        if (options.Contains("--open") && File.Exists(pagePath))
         {
-            Console.WriteLine($"  {(check.Passed ? "PASS" : "FAIL")}  {check.Check,-15} {check.Evidence}");
-        }
-        Console.WriteLine($"\nModel calls: {result.ModelCalls}/{SpeakerPageDemo.MaximumModelCalls}; tool calls: {result.ToolCalls.Count}\nPage: {result.HtmlPath}");
-        if (open && File.Exists(result.HtmlPath))
-        {
-            SpeakerPageDemo.Open(result.HtmlPath);
+            SpeakerPageDemo.Open(pagePath);
         }
         Pause();
-        return result.Passed ? 0 : 1;
+        return passed ? 0 : 1;
     }
 
     private static void Pause()

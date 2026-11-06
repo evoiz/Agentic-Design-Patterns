@@ -4,6 +4,6 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup>
-    <ActiveDebugProfile>Shopping - vegetarian</ActiveDebugProfile>
+    <ActiveDebugProfile>Harness - speaker page + web search</ActiveDebugProfile>
   </PropertyGroup>
 </Project>
