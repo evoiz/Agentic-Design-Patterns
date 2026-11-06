@@ -1,6 +1,6 @@
 # Update Conference: local C# demos
 
-Four separate demonstrations, not one integrated agenda product. All conference-specific code lives here; existing chapter implementations stay unchanged.
+Start with three small Microsoft Agent Framework (MAF) demos: **agent + tool -> workflow basics -> schedule RAG workflow**. Then explore the separate planning, decision-model, and collaboration demos. These are focused examples, not one integrated agenda product. All conference-specific code lives here; existing chapter implementations stay unchanged.
 
 ## Setup
 
@@ -14,7 +14,7 @@ dotnet user-secrets set "Foundry:ApiKey" "<your-key>" --project dotnet/src/Share
 dotnet user-secrets set "Foundry:ModelDeployment" "<chat-deployment>" --project dotnet/src/Shared
 ```
 
-Use a chat model supporting tools and structured JSON output for the shopping and speaker demos. The schedule demo needs only text generation with enough context for the complete schedule (about 75 KB). Equivalent environment variables are `Foundry__ProjectEndpoint`, `Foundry__ApiKey`, and `Foundry__ModelDeployment`. Keep keys out of code, shell recordings, captures, and Git. Local means code, tools, and fixtures run on your machine; model inference still calls Foundry.
+Use a chat model supporting function/tool calling for getting-started step 1, and tools plus structured JSON output for the shopping and speaker demos. The schedule demo needs only text generation with enough context for the complete schedule (about 75 KB). Step 2 needs no model or credentials. Equivalent environment variables are `Foundry__ProjectEndpoint`, `Foundry__ApiKey`, and `Foundry__ModelDeployment`. Keep keys out of code, shell recordings, captures, and Git. Local means code, tools, and fixtures run on your machine; model inference still calls Foundry.
 
 Then work **from this folder**:
 
@@ -22,14 +22,14 @@ Then work **from this folder**:
 Set-Location update-conference-26
 dotnet build ConferenceDemos.slnx
 dotnet run --project ConferenceDemos -- check-data
-dotnet test ConferenceDemos.Tests/ConferenceDemos.Tests.csproj
+dotnet test ConferenceDemos.Tests\ConferenceDemos.Tests.csproj
 ```
 
 `check-data` and the tests need no credentials or network model calls. The canonical [schedule](Update_Conference_Prague_2026_Schedule.md) is an embedded resource, not a second edited copy. Source IDs such as `Update_Conference_Prague_2026_Schedule.md#s13` resolve to its anchors.
 
 ### Launch profiles
 
-[ConferenceDemos/Properties/launchSettings.json](ConferenceDemos/Properties/launchSettings.json) provides IDE launch profiles for all four demos, the plain schedule baseline, day 2/no-match retrieval, shopping failure cases, OpenAI recording, and the offline data check. Select a profile in your IDE, or run one by name from this folder:
+[ConferenceDemos/Properties/launchSettings.json](ConferenceDemos/Properties/launchSettings.json) starts with **Getting started 1 - Agent and tool**, **Getting started 2 - Workflow basics**, and **Getting started 3 - RAG workflow**, in presentation order. Existing profiles remain available for the other demos, the plain schedule baseline, day 2/no-match retrieval, shopping failure cases, OpenAI recording, and the offline data check. Select a profile in your IDE, or run one by name from this folder:
 
 ```powershell
 dotnet run --project ConferenceDemos --launch-profile "Schedule - RAG day 1"
@@ -38,9 +38,57 @@ dotnet run --project ConferenceDemos --launch-profile "Check data"
 
 The **Decisions - compare** profile uses the bundled illustrative JSON sample, so no recording is needed. **Decisions - record OpenAI** and **Decisions - compare recorded OpenAI** use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
 
-Each demo prints its user question or request before inference. Shopping also shows the pantry input, and both decision commands show the shared session and attendee interest. Decision questions, choices, and the score scale are supplied directly at their respective method calls.
+Model-backed demos print their user question or request before inference. Shopping also shows the pantry input, and both decision commands show the shared session and attendee interest. Decision questions, choices, and the score scale are supplied directly at their respective method calls.
 
-## 1. Schedule RAG: same question, different evidence
+## Getting started: arrive in Prague, then choose a session
+
+Run these three commands **from this folder**, in order:
+
+```powershell
+dotnet run --project ConferenceDemos -- agent
+dotnet run --project ConferenceDemos -- workflow Alex
+dotnet run --project ConferenceDemos -- rag
+```
+
+### 1. Agent + tool: a question, then Prague weather
+
+[AgentDemo.cs](ConferenceDemos/AgentDemo.cs) creates one `ChatClientAgent` from the shared `IChatClient`, gives it short instructions, and calls `RunAsync` twice:
+
+1. "In one sentence, welcome a .NET developer to Update Conference in Prague."
+2. "What is the weather like in Prague today?"
+
+The first answer is ordinary model-generated text. For the second, MAF lets the model invoke `GetPragueWeather`, a normal C# method exposed with `[Description]` and `AIFunctionFactory.Create`. The tool prints its invocation and returns **fixed demo data, not a live forecast**. No weather service, location parser, or additional configuration is needed.
+
+Expect two question/answer pairs, with `Tool call: GetPragueWeather -> Fixed demo data, not a live forecast: Prague is cloudy, 12 C.` during the weather interaction. The exact model wording can vary. The tool result is data the model uses to compose its answer; it is not another agent.
+
+**Concepts:** `IChatClient` connects to the model; an agent adds instructions and tools; `RunAsync` runs an interaction; a tool lets the model request application code.
+
+### 2. Workflow basics: welcome an attendee
+
+[WelcomeWorkflowDemo.cs](ConferenceDemos/WelcomeWorkflowDemo.cs) builds `PrepareAttendee -> CreateWelcome`. The first executor trims and validates the attendee name; the second creates the conference welcome. This demo makes **no model calls** and works without Foundry credentials.
+
+```powershell
+dotnet run --project ConferenceDemos -- workflow " Alex "
+```
+
+```text
+Step 2: Workflow basics (no model calls)
+PrepareAttendee -> CreateWelcome
+
+ExecutorCompletedEvent: PrepareAttendee
+ExecutorCompletedEvent: CreateWelcome
+WorkflowOutputEvent: final answer
+
+Welcome, Alex, to Update Conference in Prague!
+```
+
+**Concepts:** an `Executor<TInput, TOutput>` does one piece of work; `AddEdge` passes its result to the next executor; `WithOutputFrom` selects the final output. The shared [ConferenceWorkflow.cs](ConferenceDemos/ConferenceWorkflow.cs) runs the graph with `InProcessExecution.RunAsync`, reads its events after execution, and propagates errors. Completion events identify finished steps; `WorkflowOutputEvent` carries the final result. Events are observations, not the edges that route messages.
+
+Omitting the name uses `Alex`; an explicit blank name fails. A workflow controls application execution and does not inherently need an agent or an LLM.
+
+### 3. Schedule RAG: put an agent inside a workflow
+
+Now ask "What should I attend today if I'm interested in AI and .NET?" The optional `plain` baseline demonstrates the missing-evidence problem before running the same question with grounding:
 
 ```powershell
 dotnet run --project ConferenceDemos -- plain "What should I attend today if I'm interested in AI and .NET?"
@@ -49,13 +97,19 @@ dotnet run --project ConferenceDemos -- rag --day 2 "AI and .NET"
 dotnet run --project ConferenceDemos -- rag "unicorn astrophysics"
 ```
 
-`plain` has no schedule and must disclose that limitation. `rag` uses MAF's built-in `TextSearchProvider` in `BeforeAIInvoke` mode to supply the **complete embedded schedule Markdown** as one context result before the model runs. There is no keyword ranking, chunking, retrieval tool loop, or structured JSON response. The agent makes one model call and returns a normal answer with session titles, times, rooms, and `Update_Conference_Prague_2026_Schedule.md#s...` citations. The console prints the user question followed by the final answer, not the injected document.
+`plain` has no schedule and must disclose that limitation. `rag` now runs the explicit workflow in [ScheduleWorkflowDemo.cs](ConferenceDemos/ScheduleWorkflowDemo.cs): **PrepareQuestion -> AnswerFromSchedule**. The first executor validates and passes along the question and day; the second calls the existing grounded agent. The console shows the question, graph, executor-completion labels, and one final answer, never the injected document.
+
+Inside that second executor, [ScheduleDemo.cs](ConferenceDemos/ScheduleDemo.cs) uses MAF's built-in `TextSearchProvider` in `BeforeAIInvoke` mode to supply the **complete embedded schedule Markdown** as one context result before the model runs. There is no keyword ranking, chunking, retrieval tool loop, or structured JSON response. The agent makes one model call and returns a normal answer with session titles, times, rooms, and `Update_Conference_Prague_2026_Schedule.md#s...` citations.
+
+**Concepts:** a workflow executor can call an agent; a context provider supplies knowledge before inference; grounding and citations connect the answer to conference evidence. Unlike step 1's model-selected weather tool, this provider supplies context automatically.
 
 Day 1 is November 12 and day 2 is November 13, both CET. **"Today" defaults to conference day 1**, not the computer's date; choose day 2 explicitly. Both days are supplied; instructions select the requested day. The model is instructed to disclose absent evidence instead of inventing details. Relevance, day selection, and citations are model-generated, not deterministically checked. This is full-document grounding through MAF's RAG context-provider mechanism, not semantic/vector search or a conflict-free agenda planner. It trades more input tokens for a simpler demo without retrieval-recall failures.
 
-Look at [ScheduleCorpus.cs](ConferenceDemos/ScheduleCorpus.cs) and [ScheduleDemo.cs](ConferenceDemos/ScheduleDemo.cs). The [separate Hosted Agent guide](ScheduleAgent.Hosted/README.md) covers running and deploying exactly this behavior.
+Look at [ScheduleWorkflowDemo.cs](ConferenceDemos/ScheduleWorkflowDemo.cs), [ScheduleDemo.cs](ConferenceDemos/ScheduleDemo.cs), and [ScheduleCorpus.cs](ConferenceDemos/ScheduleCorpus.cs). The [separate Hosted Agent guide](ScheduleAgent.Hosted/README.md) still runs and deploys the same reusable grounded agent; the new console workflow does not change its hosting contract.
 
-## 2. Shopping: planning with a code-owned goal check
+This is the getting-started stopping point: **an agent chooses a tool, a workflow controls steps, and a grounded agent can be one of those steps**. The examples follow the official [add-tools guide](https://learn.microsoft.com/en-us/agent-framework/get-started/add-tools?pivots=programming-language-csharp) and [first-workflow guide](https://learn.microsoft.com/en-us/agent-framework/get-started/workflows?pivots=programming-language-csharp), using this repository's pinned SDK and shared configuration.
+
+## Follow-on 1. Shopping: planning with a code-owned goal check
 
 ```powershell
 dotnet run --project ConferenceDemos -- shopping vegetarian
@@ -68,7 +122,7 @@ dotnet run --project ConferenceDemos -- shopping vegetarian --incomplete
 
 A passing run prints the meal, missing items only, and `Goal check PASS`. Unsupported preferences, unknown pantry data, or invalid choices print `FAIL`, return exit code 1, and never show a completed shopping list. `keto` intentionally demonstrates no matching recipe. No pricing, budget, route, recipe service, or deployment is involved.
 
-## 3. Decision Models: live Microsoft, sample or captured OpenAI
+## Follow-on 2. Decision Models: live Microsoft, sample or captured OpenAI
 
 Configure the Microsoft decision deployment alias from the repository root. Add the OpenAI alias only if recording real OpenAI output:
 
@@ -110,7 +164,7 @@ These are the library's normalized typed outputs, not identical raw provider wir
 
 Missing/mismatched captures and malformed distributions fail explicitly. This is an API/output illustration, **not an accuracy benchmark**; neither model scores nor probabilities are calibrated real-world certainty. Schedule existence and time lookup stay deterministic.
 
-## 4. Speaker collaboration: bounded research and review
+## Follow-on 3. Speaker collaboration: bounded research and review
 
 ```powershell
 dotnet run --project ConferenceDemos -- research
@@ -125,8 +179,8 @@ Quotes are deliberately extractive so exact claims are checkable; this is not a 
 
 ## Rehearsal and boundaries
 
-Run the four demos in talk order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.
+Run the three getting-started steps first, then the follow-on demos in talk order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.
 
-Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise the actual MAF context provider, workflows/Harness, and hosted protocol with controlled model replies. Schedule tests check complete-document injection, caller/day propagation, plain-text output, and explicit failures; live rehearsal is still needed to assess answer quality. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, recipe flow, schedule grounding, and collaboration remain here.
+Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise actual MAF function calling, workflow events, the context provider, workflows/Harness, and the hosted protocol with controlled model replies. Schedule tests check complete-document injection, caller/day propagation, plain-text output, and explicit failures; live rehearsal is still needed to assess answer quality. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, recipe flow, schedule grounding, and collaboration remain here.
 
-Implementation sequencing and outstanding presenter-only gates are tracked in the [implementation plan](ticket-demo-implementation-plan.md). Only the schedule demo has a deployment companion; deploying it does not deploy the other three demos.
+The [original implementation plan](ticket-demo-implementation-plan.md) tracks the later demos and presenter-only gates. Only the schedule demo has a deployment companion; deploying it does not deploy the getting-started weather tool or the other demos.

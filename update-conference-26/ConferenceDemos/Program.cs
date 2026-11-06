@@ -1,8 +1,9 @@
-using System.Text.Json;
 using AgenticDesignPatterns.Shared;
 using Extension02.DecisionModels;
 using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
+using System.Text.Json;
 
 namespace ConferenceDemos;
 
@@ -14,7 +15,11 @@ public static class Program
         {
             Console.WriteLine("""
                 Conference demos (run from update-conference-26):
-                  dotnet run --project ConferenceDemos -- rag [--day 1|2] [question]
+                  Getting started (in order):
+                  dotnet run --project ConferenceDemos -- agent
+                  dotnet run --project ConferenceDemos -- workflow [attendee name]
+                  dotnet run --project ConferenceDemos -- rag [question]
+                  Additional demos:
                   dotnet run --project ConferenceDemos -- plain [question]
                   dotnet run --project ConferenceDemos -- shopping [preference] [--incomplete]
                   dotnet run --project ConferenceDemos -- decisions [openai-capture.json]
@@ -32,6 +37,28 @@ public static class Program
         {
             var command = args[0];
             var options = args[1..];
+            if (command == "workflow")
+            {
+                if (options.Any(o => o.StartsWith("--", StringComparison.Ordinal)))
+                {
+                    throw new ArgumentException("workflow accepts an optional attendee name, not options.");
+                }
+                Console.WriteLine("Step 2: Workflow basics (no model calls)\nPrepareAttendee -> CreateWelcome\n");
+                var attendee = options.Length == 0 ? "Alex" : string.Join(" ", options);
+                Console.WriteLine(await WelcomeWorkflowDemo.RunAsync(attendee, cancellation.Token, PrintWorkflowEvent));
+                return 0;
+            }
+            if (command == "agent")
+            {
+                if (options.Length != 0)
+                {
+                    throw new ArgumentException("agent takes no arguments; it runs the welcome and Prague weather questions.");
+                }
+                Console.WriteLine("Step 1: Agent + tool\nWeather is fixed demo data, not a live forecast.\n");
+                using var agentClient = FoundryChatClientFactory.CreateChatClient(FoundryChatClientFactory.LoadSettings());
+                await AgentDemo.RunAsync(agentClient, Console.Out, cancellation.Token);
+                return 0;
+            }
             if (command == "check-data")
             {
                 if (options.Length != 0)
@@ -90,15 +117,6 @@ public static class Program
             {
                 throw new ArgumentException($"Unknown command '{command}'. Use --help.");
             }
-            var day = 1;
-            if (command == "rag" && options.FirstOrDefault() == "--day")
-            {
-                if (options.Length < 2 || !int.TryParse(options[1], out day) || day is not (1 or 2))
-                {
-                    throw new ArgumentException("--day requires 1 or 2.");
-                }
-                options = options[2..];
-            }
             if (options.Any(o => o.StartsWith("--", StringComparison.Ordinal) && !(command == "shopping" && o == "--incomplete")))
             {
                 throw new ArgumentException("Unsupported option. Use --help for the supported command shape.");
@@ -114,7 +132,9 @@ public static class Program
             switch (command)
             {
                 case "rag":
-                    Console.WriteLine(await ScheduleDemo.RunAsync(client, question, day, cancellation.Token));
+                    Console.WriteLine("Step 3: Schedule RAG workflow\nPrepareQuestion -> AnswerFromSchedule\n");
+                    Console.WriteLine(await ScheduleWorkflowDemo.RunAsync(
+                        client, question, cancellation.Token, PrintWorkflowEvent));
                     break;
                 case "plain":
                     var agent = new ChatClientAgent(client, name: "NoSchedule",
@@ -148,6 +168,7 @@ public static class Program
                     Console.WriteLine(SpeakerDemo.Format(await SpeakerDemo.RunAsync(client, question, cancellation.Token)));
                     break;
             }
+            Console.ReadKey();
             return 0;
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or IOException or
@@ -155,6 +176,19 @@ public static class Program
         {
             Console.Error.WriteLine($"Demo failed: {ex.Message}");
             return 1;
+        }
+    }
+
+    private static void PrintWorkflowEvent(WorkflowEvent evt)
+    {
+        switch (evt)
+        {
+            case ExecutorCompletedEvent completed:
+                Console.WriteLine($"ExecutorCompletedEvent: {completed.ExecutorId}");
+                break;
+            case WorkflowOutputEvent:
+                Console.WriteLine("WorkflowOutputEvent: final answer\n");
+                break;
         }
     }
 }

@@ -4,7 +4,8 @@ namespace ConferenceDemos;
 
 internal static class ConferenceWorkflow
 {
-    public static async Task<T> RunAsync<TInput, T>(Workflow workflow, TInput input, CancellationToken cancellationToken)
+    public static async Task<T> RunAsync<TInput, T>(
+        Workflow workflow, TInput input, CancellationToken cancellationToken, Action<WorkflowEvent>? onEvent = null)
         where TInput : notnull
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -13,6 +14,7 @@ internal static class ConferenceWorkflow
         var results = new List<T>();
         foreach (var evt in run.OutgoingEvents)
         {
+            onEvent?.Invoke(evt);
             switch (evt)
             {
                 case ExecutorFailedEvent failed:

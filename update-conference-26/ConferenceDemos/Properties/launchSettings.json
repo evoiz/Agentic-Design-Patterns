@@ -1,5 +1,17 @@
 {
   "profiles": {
+    "Getting started 1 - Agent and tool": {
+      "commandName": "Project",
+      "commandLineArgs": "agent"
+    },
+    "Getting started 2 - Workflow basics": {
+      "commandName": "Project",
+      "commandLineArgs": "workflow Alex"
+    },
+    "Getting started 3 - RAG workflow": {
+      "commandName": "Project",
+      "commandLineArgs": "rag"
+    },
     "Schedule - plain": {
       "commandName": "Project",
       "commandLineArgs": "plain"
@@ -8,9 +20,9 @@
       "commandName": "Project",
       "commandLineArgs": "rag"
     },
-    "Schedule - RAG day 2": {
+    "Schedule - RAG day 2 question": {
       "commandName": "Project",
-      "commandLineArgs": "rag --day 2 \"AI and .NET\""
+      "commandLineArgs": "rag \"What should I attend on day 2 if I'm interested in AI and .NET?\""
     },
     "Schedule - no match": {
       "commandName": "Project",

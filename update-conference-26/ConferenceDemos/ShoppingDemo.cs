@@ -1,7 +1,7 @@
-using System.Text.Json;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
+using System.Text.Json;
 
 namespace ConferenceDemos;
 
@@ -22,8 +22,14 @@ public static class ShoppingDemo
     public static ShoppingRequest Sample(string preference = "vegetarian") => new(preference,
         new Dictionary<string, bool?>
         {
-            ["chickpeas"] = true, ["tomato"] = false, ["cucumber"] = false, ["olive oil"] = true,
-            ["pasta"] = true, ["cheese"] = false, ["chicken"] = false, ["rice"] = true
+            ["chickpeas"] = true,
+            ["tomato"] = false,
+            ["cucumber"] = false,
+            ["olive oil"] = true,
+            ["pasta"] = true,
+            ["cheese"] = false,
+            ["chicken"] = false,
+            ["rice"] = true
         });
 
     public static async Task<ShoppingResult> RunAsync(
@@ -33,7 +39,10 @@ public static class ShoppingDemo
         var choose = new ChooseMeal(client);
         var pantry = new CheckPantry();
         var goal = new CheckGoal();
-        var workflow = new WorkflowBuilder(choose).AddEdge(choose, pantry).AddEdge(pantry, goal)
+
+        var workflow = new WorkflowBuilder(choose)
+            .AddEdge(choose, pantry)
+            .AddEdge(pantry, goal)
             .WithOutputFrom(goal).Build();
         return await ConferenceWorkflow.RunAsync<ShoppingRequest, ShoppingResult>(workflow, request, cancellationToken);
     }

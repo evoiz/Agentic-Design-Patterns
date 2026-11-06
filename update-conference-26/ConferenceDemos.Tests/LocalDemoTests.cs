@@ -39,12 +39,11 @@ public sealed class LocalDemoTests
         Assert.Throws<InvalidOperationException>(() => ScheduleCorpus.Parse("not a schedule"));
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(2)]
-    public async Task Schedule_provider_injects_complete_markdown_before_one_plain_text_model_call(int day)
+    [Fact]
+    public async Task Schedule_provider_selects_day_from_question_before_one_plain_text_model_call()
     {
         var calls = 0;
+        const string question = "What should I attend on day 2 if I'm interested in AI and .NET?";
         const string expected = "A normal grounded answer without a JSON contract.";
         using var client = new ScriptedChatClient((messages, options) =>
         {
@@ -52,13 +51,11 @@ public sealed class LocalDemoTests
             var request = messages.ToArray();
             AssertScheduleContext(request, options);
             Assert.Contains(request, message => message.Role == ChatRole.User &&
-                message.Text.Contains(ScheduleDemo.DefaultQuestion, StringComparison.Ordinal) &&
-                message.Text.Contains($"Conference day: {day}", StringComparison.Ordinal));
-            Assert.Contains($"Use conference day {day}", options?.Instructions);
+                message.Text.Contains(question, StringComparison.Ordinal));
             return new(new ChatMessage(ChatRole.Assistant, expected));
         });
 
-        var answer = await ScheduleDemo.RunAsync(client, ScheduleDemo.DefaultQuestion, day);
+        var answer = await ScheduleDemo.RunAsync(client, question);
 
         Assert.Equal(1, calls);
         Assert.Equal(expected, answer);
@@ -93,8 +90,6 @@ public sealed class LocalDemoTests
             ScheduleDemo.RunAsync(client, "unicorn", cancellationToken: new CancellationToken(true)));
         await Assert.ThrowsAsync<ArgumentException>(() => ScheduleDemo.RunAsync(client, new string('x', 4001)));
         await Assert.ThrowsAsync<ArgumentException>(() => ScheduleDemo.RunAsync(client, " "));
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => ScheduleDemo.RunAsync(client, "AI", 0));
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => ScheduleDemo.RunAsync(client, "AI", 3));
     }
 
     [Theory]
@@ -214,8 +209,7 @@ public sealed class LocalDemoTests
         onCall?.Invoke();
         var request = messages.ToArray();
         AssertScheduleContext(request, options);
-        var question = Assert.Single(request, message => message.Role == ChatRole.User &&
-            message.Text.StartsWith("Conference day:", StringComparison.Ordinal)).Text;
+        var question = Assert.Single(request, message => message.Role == ChatRole.User).Text;
         if (question.Contains("unicorn astrophysics", StringComparison.Ordinal))
         {
             Assert.DoesNotContain(ScheduleDemo.DefaultQuestion, question);
@@ -230,9 +224,7 @@ public sealed class LocalDemoTests
 
     private static void AssertScheduleContext(IReadOnlyList<ChatMessage> messages, ChatOptions? options)
     {
-        Assert.Contains(messages, message =>
-            message.Text.Contains(ScheduleCorpus.LoadMarkdown(), StringComparison.Ordinal));
-        Assert.Empty(options?.Tools ?? []);
+        Assert.Contains(options?.Tools ?? [], tool => tool.Name == "SearchConferenceSchedule");
         Assert.Null(options?.ResponseFormat);
         Assert.DoesNotContain(messages.SelectMany(message => message.Contents),
             content => content is FunctionCallContent or FunctionResultContent);

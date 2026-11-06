@@ -6,7 +6,7 @@
 **Slot:** 60 minutes total: 50 minutes of talk and demos, followed by 10 minutes of Q&A.  
 **Thesis:** Start with the task, then add only the structure needed to close a demonstrated gap. Models provide judgment; application code controls evidence, tools, boundaries, and execution.
 
-The story starts with one relatable question about the Update Conference schedule. The audience sees the answer improve as the request and available context grow, then sees separate, practical C# examples for planning, decision models, and collaboration. The closing returns to the schedule assistant as a conceptual composition; it must not imply that all of these demonstrations already form one integrated product.
+The motivation starts with one relatable question about the Update Conference schedule. The C# introduction then follows a three-step getting-started path: arrive in Prague with an agent and weather tool, learn workflow mechanics through a code-only attendee welcome, and put the grounded schedule agent inside a workflow. The audience then sees separate, practical C# examples for planning, decision models, and collaboration. The closing returns to the schedule assistant as a conceptual composition; it must not imply that all of these demonstrations already form one integrated product.
 
 ## Motivation: one question, growing needs
 
@@ -27,7 +27,7 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 | Segment | Slides | Time |
 |---|---:|---:|
 | Intro and motivation | 1-4 | 5 min |
-| C# Loves AI: SDK roles and local schedule demo | 5-6 | 5 min |
+| C# Loves AI: SDK roles and three-step MAF introduction | 5-6 | 5 min |
 | Foundry basics, deployment, and portal invocation | 7-8 | 7 min |
 | Agentic Design Patterns overview | 9 | 2 min |
 | Planning and Monitoring | 10-11 | 6 min |
@@ -72,12 +72,14 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
   - **Provider/platform SDKs**: service-specific capabilities and integrations, including Microsoft Foundry.
 - Mention the C# MCP SDK as a tool-integration resource later; do not add another live demo.
 
-### 6. Run the schedule assistant locally (3:30)
+### 6. Three-step MAF getting started: Prague to the conference schedule (3:30)
 
-- Show a small MAF agent using the built-in `TextSearchProvider` to inject the complete schedule Markdown before answering, without a retrieval tool loop.
-- Run it from a local .NET process with live Foundry inference. Display only the final answer; do not print retrieved passages.
-- Explain the boundary in one sentence: the model formulates the response, while the application supplies the schedule evidence.
-- The example is a focused schedule demo, not a production search system or a claim that the existing chapter sample already uses this file.
+- **Agent + tool:** run `agent`. Show `ChatClientAgent`, instructions, and `RunAsync` answering a short welcome question. Then ask about Prague weather and show the actual invocation of the `[Description]` method registered with `AIFunctionFactory.Create`. Say explicitly that the weather is fixed demo data, not a live forecast.
+- **Workflow basics:** run `workflow Alex`. Show `PrepareAttendee -> CreateWelcome`, two typed executors, `AddEdge`, and `WithOutputFrom`. Point to the printed `ExecutorCompletedEvent` labels and `WorkflowOutputEvent`. Executors do work, edges pass messages, events expose execution; this example needs no LLM or credentials.
+- **RAG inside a workflow:** run `rag` with the original AI/.NET schedule question. Show `PrepareQuestion -> AnswerFromSchedule`; the second executor invokes the existing grounded agent. Its `TextSearchProvider` injects the complete schedule Markdown before one model call, without a retrieval tool loop.
+- Keep each source excerpt small. Show only workflow event labels and the final grounded answer, never the schedule dump or hidden reasoning.
+- Close the introduction with the boundary: an agent can choose tools; code owns the workflow; a context provider supplies evidence. This is full-document grounding, not vector search or a conflict-free agenda planner.
+- The [README walkthrough](README.md#getting-started-arrive-in-prague-then-choose-a-session) provides the commands and ordered **Getting started 1/2/3** launch profiles. The next segment hosts the same reusable schedule agent, not the weather or welcome demos.
 
 ### 7. Foundry basics: model and agent are different things (1:30)
 
@@ -158,6 +160,7 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 ## Demo and accuracy guardrails
 
 - The schedule RAG demo is the only one with a Foundry Hosted Agent deployment and portal invocation. The other demos run as local .NET processes.
+- The getting-started weather tool returns labeled fixed Prague data, never a current-weather claim. The attendee welcome workflow runs offline; the agent/tool and RAG steps use live Foundry inference.
 - Local inference can use the prepared Foundry model; local tools, schedule/recipe data, and speaker source snapshots remain controlled fixtures.
 - The Foundry project and model deployment are prepared in advance. The Hosted Agent runtime's model-inference access is verified in rehearsal; no credentials or role assignments are created onstage.
 - The talk's schedule demo, shopping workflow, Decision Models story, and speaker collaboration are new conference examples. Existing chapter demos are references, not proof that these integrated examples already exist.
