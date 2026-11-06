@@ -1,6 +1,6 @@
 # Deploy the custom schedule agent from this project
 
-This is a custom **C# Hosted Agent**, not a Foundry Prompt Agent. It exposes the same [local schedule RAG](../ConferenceDemos/ScheduleDemo.cs) through Foundry's Responses protocol.
+This is a custom **C# Hosted Agent**, not a Foundry Prompt Agent. It exposes the same [local schedule RAG](../ConferenceDemos/Demos/03-ScheduleRag/ScheduleDemo.cs) through Foundry's Responses protocol.
 
 ## How this project was created
 

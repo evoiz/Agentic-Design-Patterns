@@ -58,6 +58,29 @@ Model-backed demos print their user question or request before inference. The pl
 
 ## Demos in presentation order
 
+### Code layout
+
+The source folders under `ConferenceDemos` follow the demo numbers:
+
+```text
+ConferenceDemos/
+  Program.cs
+  Demos/
+    01-PragueWeather/               AgentDemo.cs
+    02-SimpleMafWorkflow/           WelcomeWorkflowDemo.cs
+    03-ScheduleRag/                 ScheduleWorkflowDemo.cs, ScheduleDemo.cs
+    04-PlanningAndGoalMonitoring/   AgendaPlanningDemo.cs
+    05-DecisionModels/              DecisionDemo.cs (5.1-5.3)
+    06-Harness/                     SpeakerPageDemo.cs (6 and 6.1)
+  Shared/                          ConferenceWorkflow.cs, ScheduleCorpus.cs
+  Samples/
+  Skills/
+```
+
+`Program.cs` dispatches the commands. Decision and Harness variants share their
+respective implementation rather than duplicating code. Samples and skills stay
+at their existing paths so runtime content loading remains unchanged.
+
 Run these first three commands **from this folder**, in order:
 
 ```powershell
@@ -68,7 +91,7 @@ dotnet run --project ConferenceDemos -- rag
 
 ### 1. Prague weather: agent + tool
 
-[AgentDemo.cs](ConferenceDemos/AgentDemo.cs) creates one `ChatClientAgent` from the shared `IChatClient`, gives it short instructions, and calls `RunAsync` twice:
+[AgentDemo.cs](ConferenceDemos/Demos/01-PragueWeather/AgentDemo.cs) creates one `ChatClientAgent` from the shared `IChatClient`, gives it short instructions, and calls `RunAsync` twice:
 
 1. "In one sentence, welcome a .NET developer to Update Conference in Prague."
 2. "What is the weather like in Prague today?"
@@ -81,7 +104,7 @@ Expect two question/answer pairs, with `Tool call: GetPragueWeather -> Fixed dem
 
 ### 2. Simple MAF workflow: recommend a session
 
-[WelcomeWorkflowDemo.cs](ConferenceDemos/WelcomeWorkflowDemo.cs) builds `GetAttendeeProfile -> RecommendSession -> CreateRecommendation`. Three delegate executors construct a .NET/AI attendee profile, select a session with a string check, and format the recommendation. This demo makes **no model calls** and works without Foundry credentials. See the [demo 2 flow](demo-flows.md#demo-2-simple-maf-workflow).
+[WelcomeWorkflowDemo.cs](ConferenceDemos/Demos/02-SimpleMafWorkflow/WelcomeWorkflowDemo.cs) builds `GetAttendeeProfile -> RecommendSession -> CreateRecommendation`. Three delegate executors construct a .NET/AI attendee profile, select a session with a string check, and format the recommendation. This demo makes **no model calls** and works without Foundry credentials. See the [demo 2 flow](demo-flows.md#demo-2-simple-maf-workflow).
 
 ```powershell
 dotnet run --project ConferenceDemos -- workflow Alex
@@ -109,15 +132,15 @@ Ask "What should I attend today if I'm interested in AI and .NET?" with schedule
 dotnet run --project ConferenceDemos -- rag "What should I attend today if I'm interested in AI and .NET?"
 ```
 
-`rag` runs the explicit workflow in [ScheduleWorkflowDemo.cs](ConferenceDemos/ScheduleWorkflowDemo.cs): **PrepareQuestion -> AnswerFromSchedule**. The first executor validates and passes along the question; the second calls the existing grounded agent. The console shows the question, executor sequence, executor-completion labels, and one final answer, never the injected document.
+`rag` runs the explicit workflow in [ScheduleWorkflowDemo.cs](ConferenceDemos/Demos/03-ScheduleRag/ScheduleWorkflowDemo.cs): **PrepareQuestion -> AnswerFromSchedule**. The first executor validates and passes along the question; the second calls the existing grounded agent. The console shows the question, executor sequence, executor-completion labels, and one final answer, never the injected document.
 
-Inside that second executor, [ScheduleDemo.cs](ConferenceDemos/ScheduleDemo.cs) uses MAF's built-in `TextSearchProvider` in `BeforeAIInvoke` mode to supply the **complete embedded schedule Markdown** as one context result before the model runs. There is no keyword ranking, chunking, retrieval tool loop, or structured JSON response. The agent makes one model call and returns a normal answer with session titles, times, rooms, and `Update_Conference_Prague_2026_Schedule.md#s...` citations.
+Inside that second executor, [ScheduleDemo.cs](ConferenceDemos/Demos/03-ScheduleRag/ScheduleDemo.cs) uses MAF's built-in `TextSearchProvider` in `BeforeAIInvoke` mode to supply the **complete embedded schedule Markdown** as one context result before the model runs. There is no keyword ranking, chunking, retrieval tool loop, or structured JSON response. The agent makes one model call and returns a normal answer with session titles, times, rooms, and `Update_Conference_Prague_2026_Schedule.md#s...` citations.
 
 **Concepts:** a workflow executor can call an agent; a context provider supplies knowledge before inference; grounding and citations connect the answer to conference evidence. Unlike step 1's model-selected weather tool, this provider supplies context automatically.
 
 Day 1 is November 12 and day 2 is November 13, both CET. **"Today" defaults to conference day 1**, not the computer's date; choose day 2 explicitly. Both days are supplied; instructions select the requested day. The model is instructed to disclose absent evidence instead of inventing details. Relevance, day selection, and citations are model-generated, not deterministically checked. This is full-document grounding through MAF's RAG context-provider mechanism, not semantic/vector search or a conflict-free agenda planner. It trades more input tokens for a simpler demo without retrieval-recall failures.
 
-Look at [ScheduleWorkflowDemo.cs](ConferenceDemos/ScheduleWorkflowDemo.cs), [ScheduleDemo.cs](ConferenceDemos/ScheduleDemo.cs), and [ScheduleCorpus.cs](ConferenceDemos/ScheduleCorpus.cs). The [separate Hosted Agent guide](ScheduleAgent.Hosted/README.md) still runs and deploys the same reusable grounded agent; the new console workflow does not change its hosting contract.
+Look at [ScheduleWorkflowDemo.cs](ConferenceDemos/Demos/03-ScheduleRag/ScheduleWorkflowDemo.cs), [ScheduleDemo.cs](ConferenceDemos/Demos/03-ScheduleRag/ScheduleDemo.cs), and [ScheduleCorpus.cs](ConferenceDemos/Shared/ScheduleCorpus.cs). The [separate Hosted Agent guide](ScheduleAgent.Hosted/README.md) still runs and deploys the same reusable grounded agent; the new console workflow does not change its hosting contract.
 
 After demo 3, **an agent chooses a tool, a workflow controls steps, and a grounded agent can be one of those steps**. The examples follow the official [add-tools guide](https://learn.microsoft.com/en-us/agent-framework/get-started/add-tools?pivots=programming-language-csharp) and [first-workflow guide](https://learn.microsoft.com/en-us/agent-framework/get-started/workflows?pivots=programming-language-csharp), using this repository's pinned SDK and shared configuration.
 
@@ -130,7 +153,7 @@ dotnet run --project ConferenceDemos -- plan              # live run (max 3 roun
 dotnet run --project ConferenceDemos -- plan --rounds 1   # may escalate if goals remain unmet
 ```
 
-The [demo 4 flow diagram](demo-flows.md#demo-4-planning-and-goal-monitoring) documents the graph in [AgendaPlanningDemo.cs](ConferenceDemos/AgendaPlanningDemo.cs); the CLI runs the workflow without printing Mermaid.
+The [demo 4 flow diagram](demo-flows.md#demo-4-planning-and-goal-monitoring) documents the graph in [AgendaPlanningDemo.cs](ConferenceDemos/Demos/04-PlanningAndGoalMonitoring/AgendaPlanningDemo.cs); the CLI runs the workflow without printing Mermaid.
 
 | Executor | Pattern | Role |
 |---|---|---|
@@ -171,7 +194,7 @@ dotnet run --project ConferenceDemos -- decisions captures\openai-decisions.json
 
 The recording command makes three live OpenAI Decisions calls, validates the responses, and creates a new file without overwriting an existing capture. Review it before presenting. Real captures are ignored by Git; the illustrative sample is committed. With an explicit capture path, the presentation command validates the file first, then calls **Microsoft-Decision-1 live** for all three shapes and displays **Azure OpenAI Decisions - CAPTURED**, with model and capture timestamp. A missing explicit path fails; it never silently falls back to the sample.
 
-[DecisionDemo.cs](ConferenceDemos/DecisionDemo.cs) uses the same session #13 abstract and stated AI/C#/Foundry attendee interest for:
+[DecisionDemo.cs](ConferenceDemos/Demos/05-DecisionModels/DecisionDemo.cs) uses the same session #13 abstract and stated AI/C#/Foundry attendee interest for:
 
 | Shape | Library method | Displayed result |
 |---|---|---|
@@ -192,7 +215,7 @@ dotnet run --project ConferenceDemos -- speaker-page --open        # out\speaker
 dotnet run --project ConferenceDemos -- speaker-page --web --open  # + hosted web search
 ```
 
-The whole agent is one options object in [SpeakerPageDemo.cs](ConferenceDemos/SpeakerPageDemo.cs). The harness already brings the agent loop, todos, skills, file tools, and web search; the demo only adds four small tools, a skill, and a sandbox folder:
+The whole agent is one options object in [SpeakerPageDemo.cs](ConferenceDemos/Demos/06-Harness/SpeakerPageDemo.cs). The harness already brings the agent loop, todos, skills, file tools, and web search; the demo only adds four small tools, a skill, and a sandbox folder:
 
 ```csharp
 client.AsHarnessAgent(new HarnessAgentOptions

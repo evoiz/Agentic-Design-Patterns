@@ -14,7 +14,7 @@ See the [demo guide](README.md#demos-in-presentation-order) for configuration.
 
 ## Demo 2: Simple MAF workflow
 
-[WelcomeWorkflowDemo.cs](ConferenceDemos/WelcomeWorkflowDemo.cs) uses three
+[WelcomeWorkflowDemo.cs](ConferenceDemos/Demos/02-SimpleMafWorkflow/WelcomeWorkflowDemo.cs) uses three
 delegate executors. This is a deterministic workflow, not an LLM agent:
 the attendee profile is constructed in code and the recommendation is selected
 by an `AI` substring check.
@@ -35,7 +35,7 @@ flowchart TD
 
 ## Demo 4: Planning and goal monitoring
 
-[AgendaPlanningDemo.cs](ConferenceDemos/AgendaPlanningDemo.cs) owns the workflow
+[AgendaPlanningDemo.cs](ConferenceDemos/Demos/04-PlanningAndGoalMonitoring/AgendaPlanningDemo.cs) owns the workflow
 edges below. The one-round launch profile uses this same graph with a smaller
 budget; it escalates only if the goals are still unmet.
 
@@ -63,7 +63,7 @@ flowchart TD
 
 ## Demos 6 and 6.1: Harness agent
 
-[SpeakerPageDemo.cs](ConferenceDemos/SpeakerPageDemo.cs) configures one
+[SpeakerPageDemo.cs](ConferenceDemos/Demos/06-Harness/SpeakerPageDemo.cs) configures one
 `HarnessAgent`, not a fixed `WorkflowBuilder` graph. This diagram shows its
 tool-selection loop and the code-owned final verification. The model chooses
 tool order and may repeat calls; the skill guides it to check and repair the page.

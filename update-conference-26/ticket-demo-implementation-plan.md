@@ -2,7 +2,7 @@
 
 > Local implementations, deterministic checks, and the separate Hosted Agent companion are implemented. Live model rehearsal, real provider captures, and Azure/portal validation remain external acceptance gates; no deployment has been performed.
 
-> **Superseded demos:** the shopping planner (demo 2) and the speaker research collaboration (demo 4) were replaced by the goal-monitored agenda planning workflow (`plan`, [AgendaPlanningDemo.cs](ConferenceDemos/AgendaPlanningDemo.cs)) and the Harness speaker-page agent (`speaker-page`, [SpeakerPageDemo.cs](ConferenceDemos/SpeakerPageDemo.cs)). See the [README](README.md). The sections below are kept as the historical plan.
+> **Superseded demos:** the shopping planner (demo 2) and the speaker research collaboration (demo 4) were replaced by the goal-monitored agenda planning workflow (`plan`, [AgendaPlanningDemo.cs](ConferenceDemos/Demos/04-PlanningAndGoalMonitoring/AgendaPlanningDemo.cs)) and the Harness speaker-page agent (`speaker-page`, [SpeakerPageDemo.cs](ConferenceDemos/Demos/06-Harness/SpeakerPageDemo.cs)). See the [README](README.md). The sections below are kept as the historical plan.
 
 ## Current progress
 
