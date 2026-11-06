@@ -11,5 +11,6 @@
     <Compile Include="../../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/ModelCallBudgetClient.cs" Link="Shared/ModelCallBudgetClient.cs" />
     <EmbeddedResource Include="../Update_Conference_Prague_2026_Schedule.md" LogicalName="ConferenceDemos.Schedule.md" />
     <None Update="Samples/*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="Skills/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

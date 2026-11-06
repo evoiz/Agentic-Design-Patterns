@@ -1,0 +1,14 @@
+{
+  "name": "Cédric Mendelin",
+  "role": "Software Developer & Teamlead",
+  "talkId": 13,
+  "gitHub": "cedricmendelin",
+  "photo": "https://github.com/cedricmendelin.png",
+  "repository": "https://github.com/cedricmendelin/Agentic-Design-Patterns-MAF",
+  "topics": [
+    "Agentic AI design patterns",
+    "Microsoft Agent Framework",
+    "Microsoft Foundry",
+    ".NET"
+  ]
+}

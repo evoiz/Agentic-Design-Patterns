@@ -124,57 +124,6 @@ public sealed class LocalDemoTests
     }
 
     [Fact]
-    public async Task Shopping_workflow_returns_missing_items_and_goal_status()
-    {
-        using var client = new ScriptedChatClient((_, _) => Json(new MealChoice("chickpea-salad")));
-        var result = await ShoppingDemo.RunAsync(client, ShoppingDemo.Sample("vegan"));
-        Assert.True(result.Passed);
-        Assert.Equal(["tomato", "cucumber"], result.Missing);
-        Assert.DoesNotContain("olive oil", result.Missing);
-        Assert.Contains("PASS", result.Status);
-    }
-
-    [Fact]
-    public async Task Shopping_no_match_and_incomplete_pantry_do_not_return_a_completed_list()
-    {
-        var calls = 0;
-        using var client = new ScriptedChatClient((_, _) =>
-        {
-            calls++;
-            return Json(new MealChoice("chickpea-salad"));
-        });
-        var unmatched = await ShoppingDemo.RunAsync(client, ShoppingDemo.Sample("keto"));
-        Assert.False(unmatched.Passed);
-        Assert.Equal(0, calls);
-        var sample = ShoppingDemo.Sample("vegan");
-        var incomplete = sample with { Pantry = sample.Pantry.Where(p => p.Key != "tomato").ToDictionary() };
-        var result = await ShoppingDemo.RunAsync(client, incomplete);
-        Assert.False(result.Passed);
-        Assert.Empty(result.Missing);
-        Assert.Contains("incomplete", result.Status);
-        var unknown = sample with { Pantry = sample.Pantry.ToDictionary(p => p.Key, p => p.Key == "tomato" ? null : p.Value) };
-        Assert.False((await ShoppingDemo.RunAsync(client, unknown)).Passed);
-    }
-
-    [Fact]
-    public void Shopping_goal_gate_rejects_extra_missing_duplicate_and_wrong_preference_items()
-    {
-        var request = ShoppingDemo.Sample("vegan");
-        var recipe = ShoppingDemo.Recipes[0];
-        Assert.False(ShoppingDemo.Validate(request, recipe, ["tomato"]).Passed);
-        Assert.False(ShoppingDemo.Validate(request, recipe, ["tomato", "cucumber", "olive oil"]).Passed);
-        Assert.False(ShoppingDemo.Validate(request, recipe, ["tomato", "cucumber", "tomato"]).Passed);
-        Assert.False(ShoppingDemo.Validate(request, ShoppingDemo.Recipes[1], ["cheese", "tomato"]).Passed);
-    }
-
-    [Fact]
-    public async Task Shopping_model_failure_propagates()
-    {
-        using var client = new ScriptedChatClient((_, _) => throw new HttpRequestException("Inference failed."));
-        await Assert.ThrowsAsync<InvalidOperationException>(() => ShoppingDemo.RunAsync(client, ShoppingDemo.Sample()));
-    }
-
-    [Fact]
     public async Task Hosted_responses_use_same_fixture_and_return_actual_final_answer()
     {
         using var client = ScheduleClient();

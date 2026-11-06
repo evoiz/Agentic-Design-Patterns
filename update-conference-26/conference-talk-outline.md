@@ -6,7 +6,7 @@
 **Slot:** 60 minutes total: 50 minutes of talk and demos, followed by 10 minutes of Q&A.  
 **Thesis:** Start with the task, then add only the structure needed to close a demonstrated gap. Models provide judgment; application code controls evidence, tools, boundaries, and execution.
 
-The motivation starts with one relatable question about the Update Conference schedule. The C# introduction then follows a three-step getting-started path: arrive in Prague with an agent and weather tool, learn workflow mechanics through a code-only attendee welcome, and put the grounded schedule agent inside a workflow. The audience then sees separate, practical C# examples for planning, decision models, and collaboration. The closing returns to the schedule assistant as a conceptual composition; it must not imply that all of these demonstrations already form one integrated product.
+The motivation starts with one relatable question about the Update Conference schedule. The C# introduction then follows a three-step getting-started path: arrive in Prague with an agent and weather tool, learn workflow mechanics through a code-only attendee welcome, and put the grounded schedule agent inside a workflow. The audience then sees separate, practical C# examples for a goal-monitored planning workflow, decision models, and an Agent Harness that builds a verified HTML artifact. The closing returns to the schedule assistant as a conceptual composition; it must not imply that all of these demonstrations already form one integrated product.
 
 ## Motivation: one question, growing needs
 
@@ -18,9 +18,9 @@ Use the same visual language throughout: simple prompt cards, short answer excer
 | Add knowledge (RAG) | Repeat the exact same question. Context label: **Schedule available**. | The answer can now name relevant sessions, but retrieval alone does not guarantee a conflict-free, well-formed personal agenda. If showing a conflict, use an actual parallel slot from the schedule. |
 | Add a flow | "Build me a three-session agenda today focused on AI and .NET. Use only schedule entries, explain why each fits, include the times, and avoid overlaps." | The user now needs a sequence of constrained steps, not just relevant snippets. |
 | Add review | "Check that agenda against my interests, the schedule evidence, and the no-overlap requirement. Correct unsupported choices or conflicts." | A result needs an explicit check against criteria. Keep the criteria visible; do not imply that a fluent answer is proof of correctness. |
-| Need collaboration | "I can't attend [speaker]'s session because of a conflict. Based on their public profile and next announced talks, where else could I hear them? Summarize publicly discussed topics, explain the fit to my AI/.NET interests, cite sources, and say if no future talk can be verified." | This needs bounded research and evidence review. Say "publicly discussed topics," not inferred "passion." Use a speaker and future event only after verifying official or speaker-authored sources. |
+| Need a harness | "Turn my checked agenda into a page I can share: my photo, my talk, the sessions I picked, why they fit, and a few current links on agentic AI." | One agent now needs a plan, a page contract, file access, schedule tools, optional web search, and limits. A harness packages those capabilities; code still verifies the artifact. |
 
-End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded answer -> planned and checked work -> bounded collaboration**. It is not a maturity ladder or a claim that every task needs an agent. Transition with: **"How do we build only the structure we need in C#, and where does that code run?"**
+End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded answer -> planned and checked work -> a bounded agent that produces an artifact**. It is not a maturity ladder or a claim that every task needs an agent. Transition with: **"How do we build only the structure we need in C#, and where does that code run?"**
 
 ## Timing
 
@@ -32,7 +32,7 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 | Agentic Design Patterns overview | 9 | 2 min |
 | Planning and Monitoring | 10-11 | 6 min |
 | Decision Models | 12-13 | 10 min |
-| Multi-Agent Collaboration and Harness | 14-16 | 11 min |
+| Agent Harness: speaker agenda page | 14-16 | 11 min |
 | Composition, resources, and close | 17 | 4 min |
 | **Talk and demos** | **1-17** | **50 min** |
 | Q&A | 18 | 10 min |
@@ -55,13 +55,13 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 ### 3. From relevant sessions to a usable agenda (1:30)
 
 - Show the three-session, conflict-free request as a prompt card.
-- Contrast it with the prior question: the user now specifies constraints and desired structure. Show a real schedule overlap only if verified.
+- Contrast it with the prior question: the user now specifies constraints and desired structure. Show a real schedule overlap only if verified (for example #1 and #2 both run at 09:15 on day 1).
 - Use this as a visual hint toward a flow, not a workflow diagram or API explanation.
 
-### 4. Check the result; research when the question grows (1:30)
+### 4. Check the result; share it when the task grows (1:30)
 
-- Show the review prompt, then the speaker-research prompt from the motivation table.
-- End with the answer-to-collaboration spectrum and the C# transition question.
+- Show the review prompt, then the "Need a harness" speaker-page prompt from the motivation table.
+- End with the answer-to-artifact spectrum and the C# transition question.
 - Keep evidence labels subtle: use the schedule, cite sources, do not guess, and stop when a claim cannot be verified.
 
 ### 5. C# Loves AI: three SDK responsibilities (1:30)
@@ -98,20 +98,19 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 
 - Retain the existing pattern-family overview slide; do not replace or redraw it.
 - Make the point that real tasks combine different needs, so choosing and composing a pattern is not automatic.
-- Narrow the rest of the talk to Planning/Monitoring, Decision Models, and Collaboration/Harness.
+- Narrow the rest of the talk to Planning/Goal Monitoring (as a composed workflow), Decision Models, and the Agent Harness.
 
-### 10. Planning and Monitoring: choose dinner, then check the goal (2:00)
+### 10. Planning and Goal Monitoring: a self-correcting agenda (2:00)
 
-- Use the accepted everyday example: choose a simple dinner using explicit preferences and pantry data, then return only the missing shopping items.
-- Show the goal as a small checklist: selected meal fits the stated preference; every required ingredient is accounted for; the output contains only missing items.
-- Use fixed local data and fake/read-only tools. Do not add a route, budget, or other unrelated feature.
+- Return to the "Add a flow" and "Add review" beats: plan Cédric's day 1 and check it against explicit goals.
+- Show the nine SMART goals as a checklist: exactly 5 day-1 sessions, no overlaps, must attend #13 (own talk), keep 12:30 free for preparation, at least 2 AI and 1 .NET session, and a critic fit score of at least 4/5.
+- Show the graph generated by `plan --graph` (`WorkflowVisualizer.ToMermaidString`) and name the patterns it combines: **planning** (planner agent), **parallelization** (fan-out), **reflection** (critic agent), **goal monitoring** (fan-in barrier + monitor), and **routing** (revise / publish / escalate). Relate it to the Chapter 11 GoalSettingWorkflow loop.
 
-### 11. Planning and Monitoring: local MAF demo (4:00)
+### 11. Planning and Goal Monitoring: live workflow (4:00)
 
-- Show one compact `WorkflowBuilder` excerpt, then run the complete local demo.
-- Narrate only the key transitions: gather the fixed inputs, choose a meal, check pantry contents, validate the goal, return the shopping list.
-- Keep the visible result focused on the shopping list with a concise goal-check status. The shopping workflow is a new talk demo, not an existing repository sample.
-
+- Show the `WorkflowBuilder` excerpt: `AddFanOutEdge`, `AddFanInBarrierEdge`, three conditional `AddEdge<T>` routes, and `WithOutputFrom(publish, escalate)`. These build on the basic edges from step 2 of getting started.
+- Run `plan` live. Narrate each round: planner draft, two parallel checks, PASS/FAIL goal table, chosen route. If round 1 passes, run `plan --rounds 1` or point to the revise edge in the graph; keep a captured multi-round run as a fallback.
+- Emphasize the boundary: code owns the hard goals, the critic owns only the subjective fit goal, and a call budget plus `Escalate` ends the loop deterministically.
 ### 12. Decision Models: three shapes of judgment (3:00)
 
 - Reuse one session abstract and one explicitly stated attendee interest.
@@ -126,29 +125,25 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 - Point out that the APIs/contracts differ. This is an illustration, not a benchmark or accuracy comparison; do not compare scores as if they were measured on a controlled evaluation.
 - Use the provider's actual response fields and label captured output as captured.
 
-### 14. Collaboration: resolve the speaker conflict (2:00)
+### 14. From workflow to Agent Harness: the speaker page task (2:00)
 
-- Return to the agenda story: a relevant speaker's session conflicts with the attendee's chosen agenda.
-- Frame the task as finding a verifiable next announced talk and explaining fit from public evidence, not inferring a speaker's private interests.
-- Show the source pack boundary: official or speaker-authored snapshots, URLs, and retrieval dates; no live web search during the talk.
+- New request: "Turn my checked agenda into a page I can share: photo, my talk, chosen sessions, why they fit, and a few current links."
+- Contrast with slide 11: there the **code** owned the steps. Here one agent plans its own steps inside a harness, and the code owns its capabilities, limits, and final acceptance.
+- Show the finished `agenda.html` (hero with photo, my talk, timeline, verified goals, further reading) as the target.
 
-### 15. Harness and orchestration are separate (2:00)
+### 15. What the harness adds (2:00)
 
-- Show two role cards: **Researcher** and **Reviewer**, with one handoff.
-- Put the MAF Harness boundary around the Researcher only. Show the code-owned `WorkflowBuilder` outside that boundary.
-- The Researcher has bounded, read-only source tools. The Reviewer receives the draft and cited excerpts but has no search/action tools.
-- Explain that the harness constrains an agent's execution; it is not another name for multi-agent collaboration.
+- One capability card per harness feature: **todos + loop evaluator** (plan and finish), **skill** `speaker-agenda-page` (page contract via progressive disclosure), **sandboxed file tools** (`out\speaker-page` only), **domain tools** (`ListSessions`, `GetSession`, `CheckAgenda` reusing the slide-11 goal monitor), **web search** (opt-in through the Foundry Responses API), and **budgets** (60 model calls, 8 minutes, one tool call per turn).
+- Explain that the harness constrains and equips one agent. It is not multi-agent collaboration, and it does not decide whether the result is correct.
 
-### 16. Run the bounded collaboration demo locally (7:00)
+### 16. Run the Harness demo live (7:00)
 
-- Run the fixed source-pack scenario locally with live model inference.
-- Show a reviewer flagging one unsupported claim or citation, at most one researcher revision, then a final evidence/citation check.
-- If no official future talk is verifiable, the correct result says so. Use a pre-verified speaker/event fixture and a prepared capture if a live response is not presentation-safe.
-- Show observable artifacts and citations, not hidden chain-of-thought.
-
+- Run `speaker-page --web --open`. Narrate the tool trace: `load_skill`, `todos_add`, schedule tools, `CheckAgenda` going from 6/8 to 8/8, `web_search`, `read_skill_resource`, `file_access_write`, and `todos_complete`.
+- Open the generated page in the browser, then show the code-owned acceptance table: self-contained HTML, speaker and talk, agenda goals, grounded titles, photo, web links, and todos.
+- Fallback: `speaker-page` without `--web` (no search dependency), `--no-photo`, or a previously generated page.
 ### 17. Composition, resources, and close (4:00)
 
-- Return to the agenda assistant as a conceptual composition: grounded schedule data, explicit planning constraints, a bounded check, and research only when a conflict requires it.
+- Return to the agenda assistant as a conceptual composition: grounded schedule data, a goal-monitored planning workflow, and a harnessed agent that turns the result into a verified artifact.
 - Be explicit that the talk's demos are separate examples; do not claim this composition is already one integrated runnable product.
 - Close with a practical invitation: start with a real task, add a pattern only when it addresses a demonstrated gap, and keep important controls in application code.
 - Put the repository QR/link first, followed by a short list of official .NET AI, MAF, Foundry Hosted Agent, Decision Models, and MCP resources.
@@ -161,9 +156,9 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 
 - The schedule RAG demo is the only one with a Foundry Hosted Agent deployment and portal invocation. The other demos run as local .NET processes.
 - The getting-started weather tool returns labeled fixed Prague data, never a current-weather claim. The attendee welcome workflow runs offline; the agent/tool and RAG steps use live Foundry inference.
-- Local inference can use the prepared Foundry model; local tools, schedule/recipe data, and speaker source snapshots remain controlled fixtures.
+- Local inference can use the prepared Foundry model; local tools, schedule data, and the speaker profile remain controlled fixtures; web search runs only with `speaker-page --web`.
 - The Foundry project and model deployment are prepared in advance. The Hosted Agent runtime's model-inference access is verified in rehearsal; no credentials or role assignments are created onstage.
-- The talk's schedule demo, shopping workflow, Decision Models story, and speaker collaboration are new conference examples. Existing chapter demos are references, not proof that these integrated examples already exist.
+- The talk's schedule demo, agenda planning workflow, Decision Models story, and speaker-page Harness agent are new conference examples. Existing chapter demos are references, not proof that these integrated examples already exist.
 - The only provider comparison is Microsoft-Decision-1 live versus a labeled Azure OpenAI Decisions capture. It is not an evaluation or benchmark.
 - If the live deployment exceeds its time cap, use the prepared capture and a previously deployed agent invocation. Preserve Q&A time.
 

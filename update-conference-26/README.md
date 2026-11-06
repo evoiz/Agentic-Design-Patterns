@@ -1,6 +1,6 @@
 # Update Conference: local C# demos
 
-Start with three small Microsoft Agent Framework (MAF) demos: **agent + tool -> workflow basics -> schedule RAG workflow**. Then explore the separate planning, decision-model, and collaboration demos. These are focused examples, not one integrated agenda product. All conference-specific code lives here; existing chapter implementations stay unchanged.
+Start with three small Microsoft Agent Framework (MAF) demos: **agent + tool -> workflow basics -> schedule RAG workflow**. Then explore the separate planning/goal-monitoring workflow, decision-model, and Harness agent demos. These are focused examples, not one integrated agenda product. All conference-specific code lives here; existing chapter implementations stay unchanged.
 
 ## Setup
 
@@ -14,7 +14,7 @@ dotnet user-secrets set "Foundry:ApiKey" "<your-key>" --project dotnet/src/Share
 dotnet user-secrets set "Foundry:ModelDeployment" "<chat-deployment>" --project dotnet/src/Shared
 ```
 
-Use a chat model supporting function/tool calling for getting-started step 1, and tools plus structured JSON output for the shopping and speaker demos. The schedule demo needs only text generation with enough context for the complete schedule (about 75 KB). Step 2 needs no model or credentials. Equivalent environment variables are `Foundry__ProjectEndpoint`, `Foundry__ApiKey`, and `Foundry__ModelDeployment`. Keep keys out of code, shell recordings, captures, and Git. Local means code, tools, and fixtures run on your machine; model inference still calls Foundry.
+Use a chat model supporting function/tool calling for getting-started step 1, structured JSON output for the planning demo, and tool calling for the Harness page demo; `speaker-page --web` also needs a deployment that supports hosted web search through the Responses API. The schedule demo needs only text generation with enough context for the complete schedule (about 75 KB). Step 2 needs no model or credentials. Equivalent environment variables are `Foundry__ProjectEndpoint`, `Foundry__ApiKey`, and `Foundry__ModelDeployment`. Keep keys out of code, shell recordings, captures, and Git. Local means code, tools, and fixtures run on your machine; model inference still calls Foundry.
 
 Then work **from this folder**:
 
@@ -29,7 +29,7 @@ dotnet test ConferenceDemos.Tests\ConferenceDemos.Tests.csproj
 
 ### Launch profiles
 
-[ConferenceDemos/Properties/launchSettings.json](ConferenceDemos/Properties/launchSettings.json) starts with **Getting started 1 - Agent and tool**, **Getting started 2 - Workflow basics**, and **Getting started 3 - RAG workflow**, in presentation order. Existing profiles remain available for the other demos, the plain schedule baseline, day 2/no-match retrieval, shopping failure cases, OpenAI recording, and the offline data check. Select a profile in your IDE, or run one by name from this folder:
+[ConferenceDemos/Properties/launchSettings.json](ConferenceDemos/Properties/launchSettings.json) starts with **Getting started 1 - Agent and tool**, **Getting started 2 - Workflow basics**, and **Getting started 3 - RAG workflow**, in presentation order. Existing profiles remain available for the other demos, the plain schedule baseline, day 2/no-match retrieval, the planning graph and escalation path, the Harness page with and without web search, OpenAI recording, and the offline data check. Select a profile in your IDE, or run one by name from this folder:
 
 ```powershell
 dotnet run --project ConferenceDemos --launch-profile "Schedule - RAG day 1"
@@ -38,7 +38,7 @@ dotnet run --project ConferenceDemos --launch-profile "Check data"
 
 The **Decisions - compare** profile uses the bundled illustrative JSON sample, so no recording is needed. **Decisions - record OpenAI** and **Decisions - compare recorded OpenAI** use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
 
-Model-backed demos print their user question or request before inference. Shopping also shows the pantry input, and both decision commands show the shared session and attendee interest. Decision questions, choices, and the score scale are supplied directly at their respective method calls.
+Model-backed demos print their user question or request before inference. The planning demo prints its SMART goals first, and both decision commands show the shared session and attendee interest. Decision questions, choices, and the score scale are supplied directly at their respective method calls.
 
 ## Getting started: arrive in Prague, then choose a session
 
@@ -109,19 +109,49 @@ Look at [ScheduleWorkflowDemo.cs](ConferenceDemos/ScheduleWorkflowDemo.cs), [Sch
 
 This is the getting-started stopping point: **an agent chooses a tool, a workflow controls steps, and a grounded agent can be one of those steps**. The examples follow the official [add-tools guide](https://learn.microsoft.com/en-us/agent-framework/get-started/add-tools?pivots=programming-language-csharp) and [first-workflow guide](https://learn.microsoft.com/en-us/agent-framework/get-started/workflows?pivots=programming-language-csharp), using this repository's pinned SDK and shared configuration.
 
-## Follow-on 1. Shopping: planning with a code-owned goal check
+## Follow-on 1. Planning + goal monitoring: a self-correcting agenda workflow
+
+Getting started showed linear edges. This workflow combines **planning, parallelization, reflection, routing, and goal monitoring** in one graph, in the spirit of the Chapter 11 `GoalSettingWorkflow` loop: set SMART goals, plan, monitor, and revise until the goals are met or the budget is spent.
 
 ```powershell
-dotnet run --project ConferenceDemos -- shopping vegetarian
-dotnet run --project ConferenceDemos -- shopping vegan
-dotnet run --project ConferenceDemos -- shopping keto
-dotnet run --project ConferenceDemos -- shopping vegetarian --incomplete
+dotnet run --project ConferenceDemos -- plan --graph      # graph only: no model, no credentials
+dotnet run --project ConferenceDemos -- plan              # live run (max 3 rounds)
+dotnet run --project ConferenceDemos -- plan --rounds 1   # tight budget: shows the escalation path
 ```
 
-[ShoppingDemo.cs](ConferenceDemos/ShoppingDemo.cs) makes the flow visible: `ChooseMeal -> ReadPantry -> CheckGoal`. The model chooses only among recipes that satisfy the explicit preference. The pantry is a local read-only dictionary: `true` means present, `false` means missing, and absent/null means unknown. Code, not a second model, calculates missing ingredients and checks exact ingredient accounting.
+```mermaid
+flowchart TD
+  ReadGoals["ReadGoals (Start)"];
+  PlanAgenda["PlanAgenda"];
+  CheckConstraints["CheckConstraints"];
+  CritiqueFit["CritiqueFit"];
+  MonitorGoals["MonitorGoals"];
+  PublishAgenda["PublishAgenda"];
+  Escalate["Escalate"];
 
-A passing run prints the meal, missing items only, and `Goal check PASS`. Unsupported preferences, unknown pantry data, or invalid choices print `FAIL`, return exit code 1, and never show a completed shopping list. `keto` intentionally demonstrates no matching recipe. No pricing, budget, route, recipe service, or deployment is involved.
+  fan_in((fan-in))
+  CheckConstraints --> fan_in;
+  CritiqueFit --> fan_in;
+  fan_in --> MonitorGoals;
+  ReadGoals -->|SMART goals| PlanAgenda;
+  PlanAgenda -->|draft agenda| CheckConstraints;
+  PlanAgenda -->|draft agenda| CritiqueFit;
+  MonitorGoals -. goals unmet: revise .-> PlanAgenda;
+  MonitorGoals -. all goals met .-> PublishAgenda;
+  MonitorGoals -. budget exhausted .-> Escalate;
+```
 
+The graph above is produced by `WorkflowVisualizer.ToMermaidString` (`plan --graph` prints it), so the slide always matches the code in [AgendaPlanningDemo.cs](ConferenceDemos/AgendaPlanningDemo.cs).
+
+| Executor | Pattern | Role |
+|---|---|---|
+| `ReadGoals` | Goal setting | Prints nine SMART goals for Cédric's day 1: exactly 5 day-1 sessions, no overlaps, must attend #13, keep 12:30 free for talk prep, at least 2 AI and 1 .NET session, and a fit score of at least 4/5 |
+| `PlanAgenda` | Planning | `AgendaPlanner` agent returns a structured `PlannedAgenda` (ids + why) from the day's time slots, the goals, and the previous round's feedback |
+| `CheckConstraints` ‖ `CritiqueFit` | Parallelization (`AddFanOutEdge`) | Deterministic code checks the eight hard goals while an `AgendaCritic` agent scores fit 1-5 (reflection) |
+| `MonitorGoals` | Fan-in barrier + goal monitoring | `AddFanInBarrierEdge` waits for both checks, prints a PASS/FAIL goal table, and routes |
+| conditional edges | Routing | `goals unmet: revise` loops back with concrete feedback (for example `#1/#2 both at 09:15 (keep one)`); `all goals met` → `PublishAgenda`; `budget exhausted` → `Escalate` to a human with the best draft |
+
+The console streams the run (`RunStreamingAsync`) through a custom `AgendaProgressEvent`, so the audience sees each draft, the two parallel checks, the goal table, and the chosen route. Code, not the model, decides whether the hard goals are met; the critic only owns the subjective fit goal. A `ModelCallBudgetClient` caps the run at two model calls per round. Live models often satisfy all goals in round 1. In rehearsal, round 1 also produced an overlap plus a booked 12:30 slot and needed revision, so both paths are realistic. `--rounds 1` makes escalation reachable on demand. A successful run exits 0, an escalation exits 2, and failures exit 1.
 ## Follow-on 2. Decision Models: live Microsoft, sample or captured OpenAI
 
 Configure the Microsoft decision deployment alias from the repository root. Add the OpenAI alias only if recording real OpenAI output:
@@ -164,23 +194,32 @@ These are the library's normalized typed outputs, not identical raw provider wir
 
 Missing/mismatched captures and malformed distributions fail explicitly. This is an API/output illustration, **not an accuracy benchmark**; neither model scores nor probabilities are calibrated real-world certainty. Schedule existence and time lookup stay deterministic.
 
-## Follow-on 3. Speaker collaboration: bounded research and review
+## Follow-on 3. Harness agent: build my speaker agenda page (HTML)
+
+One `HarnessAgent` turns the schedule into a reproducible, self-contained web page: Cédric's photo, his own talk, a planned day-1 timeline, the goals it verified, and (optionally) further reading found with live web search.
 
 ```powershell
-dotnet run --project ConferenceDemos -- research
-dotnet run --project ConferenceDemos -- research "Which public topics in Shay Rojansky's supplied abstract fit my AI and .NET interests?"
+dotnet run --project ConferenceDemos -- speaker-page --open                 # out\speaker-page\agenda.html
+dotnet run --project ConferenceDemos -- speaker-page --web --open           # + hosted web search
+dotnet run --project ConferenceDemos -- speaker-page --photo C:\me.jpg      # or --no-photo for an initials avatar
 ```
 
-[SpeakerDemo.cs](ConferenceDemos/SpeakerDemo.cs) derives its source pack from the canonical organizer snapshot for Shay Rojansky's session #9. The pack carries the exact session URL, retrieval date, and excerpt. It is not a separately verified profile or future-event announcement; the output explicitly says **no next talk was verified**. Requests are restricted to this evidence scope, not open-ended research about arbitrary speakers.
+What the harness provides, and why each piece matters on stage:
 
-The MAF Harness wraps only the Researcher, with one read-only source tool, no web/file/skills tools, a shared eight-model-call budget across initial draft and revision, a four-source-call budget, and a three-minute deadline. `WorkflowBuilder` controls `Research -> Review -> Finalize`. The Reviewer gets the draft, excerpts, and deterministic errors but has no tools and at most one model call. Code allows **zero or one revision**, then verifies every quote/citation again; invalid final evidence fails. The final output shows review feedback, revision/call counts, cited public-topic quotes, and the explicit future-event limitation, not hidden reasoning.
+| Harness capability | Configuration in [SpeakerPageDemo.cs](ConferenceDemos/SpeakerPageDemo.cs) | Visible effect |
+|---|---|---|
+| Planning (todos + loop evaluator) | `TodoProvider` + `TodoCompletionLoopEvaluator` in `execute` mode | The agent records a todo plan and is re-prompted until every item is done |
+| Skills (progressive disclosure) | `AgentFileSkillsSource` → [Skills/speaker-agenda-page](ConferenceDemos/Skills/speaker-agenda-page/SKILL.md) | `load_skill`, then `read_skill_resource` for the design guide; the skill is the page contract |
+| Sandboxed file access | `FileSystemAgentFileStore(out\speaker-page)` | `file_access_write` / `file_access_read` can touch only that folder |
+| Domain tools | `GetSpeakerProfile`, `ListSessions`, `GetSession`, `CheckAgenda` | Facts come from the embedded schedule; `CheckAgenda` reuses the planning demo's goal monitor (6/8 → 8/8 is typical) |
+| Web search (opt-in) | `--web`: Foundry Responses API client, `DisableWebSearch = false` | `web_search` calls, then 2-3 real links in *Further reading* |
+| Guardrails & budgets | auto-approval only for read-only skill tools, one tool call per turn, 60 model calls, 8-minute deadline | Reproducible, bounded run |
 
-Quotes are deliberately extractive so exact claims are checkable; this is not a general semantic fact checker. A reviewer may approve immediately, so a live run is not guaranteed to demonstrate revision. Deterministic tests exercise rejection, one revision, invalid revision, source/tool bounds, and citation failures.
-
+The speaker profile is [Samples/speaker-profile.json](ConferenceDemos/Samples/speaker-profile.json). The photo defaults to the GitHub avatar, is copied into the sandbox before the run, and falls back to an initials avatar when unavailable. After the agent finishes, **code** validates the artifact: file size, self-contained HTML (no scripts, iframes, or external CSS), speaker name and talk title, agenda goals from `data-session-id` markers, exact schedule titles, photo reference, web links when `--web` is set, and completed todos. A failing check exits 1. Validation runs completed in 17-18 model calls and passed all checks with and without web search.
 ## Rehearsal and boundaries
 
 Run the three getting-started steps first, then the follow-on demos in talk order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.
 
-Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise actual MAF function calling, workflow events, the context provider, workflows/Harness, and the hosted protocol with controlled model replies. Schedule tests check complete-document injection, caller/day propagation, plain-text output, and explicit failures; live rehearsal is still needed to assess answer quality. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, recipe flow, schedule grounding, and collaboration remain here.
+Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise actual MAF function calling, workflow events, the context provider, workflows/Harness, and the hosted protocol with controlled model replies. Schedule tests check complete-document injection, caller/day propagation, plain-text output, and explicit failures; live rehearsal is still needed to assess answer quality. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, the agenda workflow, schedule grounding, the page skill, and the Harness setup remain here.
 
 The [original implementation plan](ticket-demo-implementation-plan.md) tracks the later demos and presenter-only gates. Only the schedule demo has a deployment companion; deploying it does not deploy the getting-started weather tool or the other demos.

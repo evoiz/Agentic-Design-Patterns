@@ -8,6 +8,20 @@ public sealed record ScheduleSession(
     string Url, string Abstract)
 {
     public string Citation => $"Update_Conference_Prague_2026_Schedule.md#s{Id}";
+    public IReadOnlyList<string> Tracks { get; init; } = [];
+    public TimeOnly Start => ParseTime(0);
+    public TimeOnly End => ParseTime(1);
+
+    public bool HasTrack(params string[] tracks) =>
+        Tracks.Any(t => tracks.Contains(t, StringComparer.OrdinalIgnoreCase));
+
+    private TimeOnly ParseTime(int index)
+    {
+        var match = Regex.Match(When, @"(?<start>\d{2}:\d{2})\s*[–-]\s*(?<end>\d{2}:\d{2})");
+        return match.Success
+            ? TimeOnly.ParseExact(match.Groups[index == 0 ? "start" : "end"].Value, "HH:mm", CultureInfo.InvariantCulture)
+            : throw new InvalidOperationException($"Session #{Id} has no time range.");
+    }
 }
 
 public sealed class ScheduleCorpus
@@ -50,7 +64,11 @@ public sealed class ScheduleCorpus
                 int.Parse(section.Groups["id"].Value, CultureInfo.InvariantCulture),
                 heading.Groups["title"].Value.Trim(),
                 int.Parse(day.Groups["day"].Value, CultureInfo.InvariantCulture),
-                when, Field(body, "Room"), Speaker(body), Field(body, "Link"), abstractText));
+                when, Field(body, "Room"), Speaker(body), Field(body, "Link"), abstractText)
+            {
+                Tracks = Regex.Matches(body[..abstractStart], @"(?m)^- \*\*Track:\*\* (?<value>[^\r\n]+)")
+                    .Select(m => m.Groups["value"].Value.Trim()).ToArray()
+            });
         }
 
         if (sessions.Count == 0 || sessions.Select(s => s.Id).Distinct().Count() != sessions.Count)

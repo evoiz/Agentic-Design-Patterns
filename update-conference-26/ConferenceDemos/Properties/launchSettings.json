@@ -28,21 +28,17 @@
       "commandName": "Project",
       "commandLineArgs": "rag \"unicorn astrophysics\""
     },
-    "Shopping - vegetarian": {
+    "Planning - agenda goal monitoring": {
       "commandName": "Project",
-      "commandLineArgs": "shopping vegetarian"
+      "commandLineArgs": "plan"
     },
-    "Shopping - vegan": {
+    "Planning - graph only": {
       "commandName": "Project",
-      "commandLineArgs": "shopping vegan"
+      "commandLineArgs": "plan --graph"
     },
-    "Shopping - unsupported preference": {
+    "Planning - one round (escalation path)": {
       "commandName": "Project",
-      "commandLineArgs": "shopping keto"
-    },
-    "Shopping - incomplete pantry": {
-      "commandName": "Project",
-      "commandLineArgs": "shopping vegetarian --incomplete"
+      "commandLineArgs": "plan --rounds 1"
     },
     "Decisions - compare": {
       "commandName": "Project",
@@ -56,9 +52,13 @@
       "commandName": "Project",
       "commandLineArgs": "decisions-record-openai captures\\openai-decisions.json"
     },
-    "Speaker - research": {
+    "Harness - speaker page": {
       "commandName": "Project",
-      "commandLineArgs": "research"
+      "commandLineArgs": "speaker-page --open"
+    },
+    "Harness - speaker page + web search": {
+      "commandName": "Project",
+      "commandLineArgs": "speaker-page --web --open"
     },
     "Check data": {
       "commandName": "Project",
