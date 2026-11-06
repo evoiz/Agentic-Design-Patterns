@@ -12,13 +12,15 @@ Produce ONE file, `agenda.html`, with the file write tool.
 1. Call `GetSession` for the speaker's own talk to learn its day, then `ListSessions` for that day.
 2. Pick 4-5 sessions that fit the speaker's topics: the own talk included. They must not overlap in time: a person can attend only one session at once.
 3. Call `GetSession` for each pick to get the exact title, abstract, and URL.
-4. Only when web search is available: find 2-3 current, reputable links on the speaker's topics (prefer learn.microsoft.com or github.com). Never invent URLs.
-5. Read `references/design.md`, write `agenda.html`, then read it back once to confirm it was saved.
+4. Get the speaker photo: find the GitHub username (with web search when it is not given), then call `DownloadGitHubAvatar`.
+5. Only when web search is available: find 2-3 current, reputable links on the speaker's topics (prefer learn.microsoft.com or github.com). Never invent URLs.
+6. Read `references/design.md` and write `agenda.html`.
+7. Call `CheckPage`. Fix every failed check (rewrite the file) and call it again until all checks pass.
 
 ## Rules
 
-- Render each picked session as `<article class="session" data-session-id="ID">` with its exact schedule title.
-- Show the speaker's full name and use the profile `photo` URL as `<img src>` (initials avatar if it is null). No other images.
+- Render each picked session as `<article class="session" data-session-id="ID">` with its exact schedule title. The speaker's own talk is one of them: it appears in the timeline too, with its `data-session-id`.
+- Show the speaker's full name and use the file name returned by `DownloadGitHubAvatar` as `<img src>` (initials avatar if no download worked). No other images.
 - Inline `<style>` only: no `<script>`, `<iframe>`, external fonts, or stylesheets.
 - Only state facts from the tools or web results; never invent sessions, times, rooms, or links.
 

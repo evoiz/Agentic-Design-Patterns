@@ -203,13 +203,13 @@ dotnet run --project ConferenceDemos -- speaker-page --open        # out\speaker
 dotnet run --project ConferenceDemos -- speaker-page --web --open  # + hosted web search
 ```
 
-The whole agent is one options object in [SpeakerPageDemo.cs](ConferenceDemos/SpeakerPageDemo.cs). The harness already brings the agent loop, todos, skills, file tools, and web search; the demo only adds two schedule tools, a skill, and a sandbox folder:
+The whole agent is one options object in [SpeakerPageDemo.cs](ConferenceDemos/SpeakerPageDemo.cs). The harness already brings the agent loop, todos, skills, file tools, and web search; the demo only adds four small tools, a skill, and a sandbox folder:
 
 ```csharp
 client.AsHarnessAgent(new HarnessAgentOptions
 {
     Name = "SpeakerPageBuilder",
-    ChatOptions = new ChatOptions { Tools = [AIFunctionFactory.Create(ListSessions), AIFunctionFactory.Create(GetSession)] },
+    ChatOptions = new ChatOptions { Tools = [ListSessions, GetSession, DownloadGitHubAvatar, CheckPage] }, // AIFunctions, shortened
     AgentSkillsSource = new AgentFileSkillsSource(SkillsDirectory),  // how to build the page
     FileAccessStore = new FileSystemAgentFileStore(outputDirectory), // the only folder it can write to
     DisableWebSearch = !webSearch,                                   // hosted web_search tool, run by Foundry
@@ -219,11 +219,11 @@ client.AsHarnessAgent(new HarnessAgentOptions
 
 The two approval settings in the file auto-approve the read-only skill tools and the sandboxed file tools; without them the harness pauses for human approval. `AllowMultipleToolCalls = false` keeps one tool call per model turn.
 
-A typical tool trace: `load_skill` → `GetSession(13)` → `ListSessions(1)` → `GetSession` per pick → `web_search` (with `--web`) → `read_skill_resource(design.md)` → `file_access_write(agenda.html)` → `file_access_read`. The [speaker-agenda-page skill](ConferenceDemos/Skills/speaker-agenda-page/SKILL.md) holds the steps, rules, and sections; its [design guide](ConferenceDemos/Skills/speaker-agenda-page/references/design.md) is loaded only when the agent writes the page.
+A typical tool trace: `load_skill` → `GetSession(13)` → `ListSessions(1)` → `GetSession` per pick → `web_search` (with `--web`) → `DownloadGitHubAvatar` → `read_skill_resource(design.md)` → `file_access_write(agenda.html)` → `CheckPage`. When `CheckPage` reports a failure (for example an overlap or the own talk missing from the timeline), the agent fixes the file and calls it again. The [speaker-agenda-page skill](ConferenceDemos/Skills/speaker-agenda-page/SKILL.md) holds the steps, rules, and sections; its [design guide](ConferenceDemos/Skills/speaker-agenda-page/references/design.md) is loaded only when the agent writes the page.
 
-**How web search works.** `DisableWebSearch = false` adds the hosted `web_search` tool to the request. It is not a local tool: the Foundry (Azure OpenAI) Responses API runs the search server-side and returns text with URL citations to the model, so the demo uses the Responses client. Web search cannot download files such as images. The photo is simply the profile's `https://github.com/<user>.png` URL in `<img src>`, loaded by the browser when the page opens.
+**How web search works.** `DisableWebSearch = false` adds the hosted `web_search` tool to the request. It is not a local tool: the Foundry (Azure OpenAI) Responses API runs the search server-side and returns text with URL citations to the model, so the demo uses the Responses client. Web search returns text, not files, so it cannot download images. With `--web` the profile is sent without the GitHub handle: the agent searches for the username, then calls `DownloadGitHubAvatar(username)`. That tool builds `https://github.com/<username>.png` in code (the model never supplies a URL, so it cannot invent someone else's picture), accepts only image responses, and saves `speaker.png` or `speaker.jpg` next to `agenda.html`. Without `--web` the prompt contains the username. The image stays a separate file instead of base64 inside the page, because the model would otherwise have to write thousands of base64 characters.
 
-The speaker profile is [Samples/speaker-profile.json](ConferenceDemos/Samples/speaker-profile.json). After the run, a few code checks print the success summary: page saved, speaker name, photo, own talk on the timeline, only real schedule sessions, no overlapping sessions, and web links when `--web` is set. A failing check exits 1.
+The speaker profile is [Samples/speaker-profile.json](ConferenceDemos/Samples/speaker-profile.json). The same code checks back the agent's `CheckPage` tool and, after the run, print the success summary: page saved, speaker name, photo, own talk on the timeline, only real schedule sessions, no overlapping sessions, and web links when `--web` is set. A failing check exits 1.
 ## Rehearsal and boundaries
 
 Run the three getting-started steps first, then the follow-on demos in talk order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.

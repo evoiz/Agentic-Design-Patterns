@@ -12,11 +12,12 @@ public sealed class SpeakerPageTests
     {
         var profile = SpeakerPageDemo.LoadProfile();
         Assert.Equal(13, profile.TalkId);
-        Assert.StartsWith("https://", profile.Photo);
+        Assert.Equal("cedricmendelin", profile.GitHub);
         var skill = File.ReadAllText(Path.Combine(SpeakerPageDemo.SkillsDirectory, "speaker-agenda-page", "SKILL.md"));
         Assert.Contains("name: speaker-agenda-page", skill);
-        Assert.Contains("Use web search", SpeakerPageDemo.Prompt(profile, webSearch: true));
-        Assert.Contains("Web search is off", SpeakerPageDemo.Prompt(profile, webSearch: false));
+        Assert.Contains("find my GitHub username", SpeakerPageDemo.Prompt(profile, webSearch: true));
+        Assert.DoesNotContain("cedricmendelin\"", SpeakerPageDemo.Prompt(profile, webSearch: true));
+        Assert.Contains("my GitHub username is cedricmendelin", SpeakerPageDemo.Prompt(profile, webSearch: false));
     }
 
     [Fact]
@@ -32,7 +33,7 @@ public sealed class SpeakerPageTests
     public void Harness_agent_is_built_from_options()
     {
         using var dir = new TempDir();
-        var agent = SpeakerPageDemo.CreateAgent(new FakeClient(), dir.Path, webSearch: true);
+        var agent = SpeakerPageDemo.CreateAgent(new FakeClient(), SpeakerPageDemo.LoadProfile(), dir.Path, webSearch: true);
         Assert.Equal("SpeakerPageBuilder", agent.Name);
     }
 
@@ -44,8 +45,10 @@ public sealed class SpeakerPageTests
         var path = Path.Combine(dir.Path, SpeakerPageDemo.PageFile);
         Assert.False(SpeakerPageDemo.Verify(path, profile, false).Single().Passed);
 
-        File.WriteAllText(path, Page(profile, profile.Photo!, [1, 6, 13], """<a href="https://learn.microsoft.com/agent-framework">MAF</a>"""));
+        File.WriteAllBytes(Path.Combine(dir.Path, "speaker.png"), [1, 2, 3]);
+        File.WriteAllText(path, Page(profile, "speaker.png", [1, 6, 13], """<a href="https://learn.microsoft.com/agent-framework">MAF</a>"""));
         Assert.All(SpeakerPageDemo.Verify(path, profile, webSearch: true), c => Assert.True(c.Passed, $"{c.Check}: {c.Evidence}"));
+        Assert.Equal("All checks passed.", SpeakerPageDemo.CheckPage(path, profile, webSearch: true));
 
         File.WriteAllText(path, Page(profile, "other.png", [1, 2, 999], ""));
         var checks = SpeakerPageDemo.Verify(path, profile, webSearch: true).ToDictionary(c => c.Check);
@@ -54,6 +57,18 @@ public sealed class SpeakerPageTests
         Assert.False(checks["Real sessions"].Passed);
         Assert.False(checks["No overlaps"].Passed);
         Assert.False(checks["Web links"].Passed);
+        Assert.Contains("overwrite: true", SpeakerPageDemo.CheckPage(path, profile, webSearch: true));
+    }
+
+    [Fact]
+    public async Task Avatar_download_accepts_only_plain_usernames()
+    {
+        using var dir = new TempDir();
+        foreach (var bad in new[] { "https://evil.example/x.png", "../secret", "a b", "" })
+        {
+            Assert.Contains("plain GitHub username", await SpeakerPageDemo.DownloadGitHubAvatarAsync(bad, dir.Path, CancellationToken.None));
+        }
+        Assert.Empty(Directory.EnumerateFiles(dir.Path));
     }
 
     private static string Page(SpeakerProfile profile, string photo, int[] ids, string links) => $"""

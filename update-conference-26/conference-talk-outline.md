@@ -133,13 +133,13 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 
 ### 15. What the harness adds (2:00)
 
-- Show the whole agent as one `AsHarnessAgent(new HarnessAgentOptions { ... })` snippet: two schedule tools, the **skill** `speaker-agenda-page` (steps and page rules, loaded on demand), a **sandbox folder** for the file tools (`out\speaker-page` only), **web search** on/off, and no plan-approval mode.
-- Point out what came for free from the harness: the agent loop, todos, skill tools, file tools, and the hosted `web_search` tool, which Foundry runs server-side and returns as text with citations.
+- Show the whole agent as one `AsHarnessAgent(new HarnessAgentOptions { ... })` snippet: four small tools (two schedule tools, `DownloadGitHubAvatar`, `CheckPage`), the **skill** `speaker-agenda-page` (steps and page rules, loaded on demand), a **sandbox folder** for the file tools (`out\speaker-page` only), **web search** on/off, and no plan-approval mode.
+- Point out what came for free from the harness: the agent loop, todos, skill tools, file tools, and the hosted `web_search` tool, which Foundry runs server-side and returns as text with citations. Search finds the GitHub username; the guarded `DownloadGitHubAvatar` tool builds the avatar URL in code and saves the photo into the sandbox.
 - Explain that the harness constrains and equips one agent. It is not multi-agent collaboration, and it does not decide whether the result is correct.
 
 ### 16. Run the Harness demo live (7:00)
 
-- Run `speaker-page --web --open`. Narrate the live tool trace: `load_skill`, `GetSession`/`ListSessions`, `web_search`, `read_skill_resource`, `file_access_write`, and `file_access_read`.
+- Run `speaker-page --web --open`. Narrate the live tool trace: `load_skill`, `GetSession`/`ListSessions`, `web_search`, `DownloadGitHubAvatar`, `read_skill_resource`, `file_access_write`, and `CheckPage`. If `CheckPage` fails, point out the self-repair: the agent edits the file and checks again.
 - Open the generated page in the browser, then show the green success summary: page saved, speaker, photo, own talk, real sessions, no overlaps, and web links.
 - Fallback: `speaker-page` without `--web` (no search dependency) or a previously generated page.
 ### 17. Composition, resources, and close (4:00)
