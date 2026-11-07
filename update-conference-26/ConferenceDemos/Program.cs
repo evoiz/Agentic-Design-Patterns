@@ -209,6 +209,8 @@ public static class Program
         Console.WriteLine($"   → {new Uri(pagePath)}");
         if (options.Contains("--open") && File.Exists(pagePath))
         {
+            // Demo only: model-generated HTML is not sanitized and opens even if checks fail.
+            // Do not use this preview behavior in production; file-tool sandboxing does not isolate the browser.
             SpeakerPageDemo.Open(pagePath);
         }
         Pause();
