@@ -20,6 +20,7 @@ public static class AgentDemo
             instructions: """
                 You are a concise, friendly assistant for Update Conference in Prague.
                 For Prague weather questions, call GetPragueWeather.
+                Clearly label the weather as fixed demo data, not a live forecast.
                 """,
             tools: [AIFunctionFactory.Create(GetPragueWeather, name: nameof(GetPragueWeather))]
             );
@@ -28,6 +29,7 @@ public static class AgentDemo
         {
             output.WriteLine($"User question: {question}");
             var response = await agent.RunAsync(question, cancellationToken: cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(response.Text))
             {
                 throw new InvalidOperationException("The Prague agent returned an empty response.");
@@ -38,7 +40,7 @@ public static class AgentDemo
         [Description("Get fixed demo weather for Prague. This is sample data, not a live forecast.")]
         string GetPragueWeather()
         {
-            const string weather = "Prague is cloudy, 6 C.";
+            const string weather = "Fixed demo data, not a live forecast: Prague is cloudy, 6 C.";
             output.WriteLine($"Tool call: GetPragueWeather -> {weather}");
             return weather;
         }

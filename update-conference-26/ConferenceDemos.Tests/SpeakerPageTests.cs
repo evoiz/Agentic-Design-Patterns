@@ -61,6 +61,43 @@ public sealed class SpeakerPageTests
     }
 
     [Fact]
+    public void Verify_requires_own_talk_in_timeline_not_only_in_a_separate_card()
+    {
+        using var dir = new TempDir();
+        var profile = SpeakerPageDemo.LoadProfile();
+        var path = Path.Combine(dir.Path, SpeakerPageDemo.PageFile);
+        File.WriteAllText(path, Page(profile, "speaker.png", [1, 6, 17, 22], "") +
+            $"""<article data-session-id="{profile.TalkId}">My talk</article>""");
+        var checks = SpeakerPageDemo.Verify(path, profile, false).ToDictionary(c => c.Check);
+        Assert.False(checks["My talk"].Passed);
+        Assert.True(checks["Real sessions"].Passed);
+        Assert.True(checks["No overlaps"].Passed);
+    }
+
+    [Theory]
+    [InlineData("https://github.com/microsoft/agent-framework", true)]
+    [InlineData("https://github.com/cedricmendelin", false)]
+    [InlineData("https://prague.updateconference.net/sessions/example", false)]
+    public void Verify_accepts_github_reading_but_not_the_speaker_profile_or_conference_link(string link, bool passed)
+    {
+        using var dir = new TempDir();
+        var profile = SpeakerPageDemo.LoadProfile();
+        var path = Path.Combine(dir.Path, SpeakerPageDemo.PageFile);
+        File.WriteAllText(path, Page(profile, "speaker.png", [1, 6, 13], $"""<a href="{link}">Reading</a>"""));
+        Assert.Equal(passed, SpeakerPageDemo.Verify(path, profile, true).Single(c => c.Check == "Web links").Passed);
+    }
+
+    [Fact]
+    public void Verify_does_not_count_the_profile_repository_as_further_reading()
+    {
+        using var dir = new TempDir();
+        var profile = SpeakerPageDemo.LoadProfile();
+        var path = Path.Combine(dir.Path, SpeakerPageDemo.PageFile);
+        File.WriteAllText(path, Page(profile, "speaker.png", [1, 6, 13], $"""<a href="{profile.Repository}">Repository</a>"""));
+        Assert.False(SpeakerPageDemo.Verify(path, profile, true).Single(c => c.Check == "Web links").Passed);
+    }
+
+    [Fact]
     public async Task Avatar_download_accepts_only_plain_usernames()
     {
         using var dir = new TempDir();
@@ -73,7 +110,7 @@ public sealed class SpeakerPageTests
 
     private static string Page(SpeakerProfile profile, string photo, int[] ids, string links) => $"""
         <!doctype html><html><body><header><img src="{photo}"><h1>{profile.Name}</h1></header>
-        {string.Join("\n", ids.Select(id => $"""<article class="session" data-session-id="{id}"></article>"""))}
+        <section id="timeline">{string.Join("\n", ids.Select(id => $"""<article class="session" data-session-id="{id}"></article>"""))}</section>
         {links}</body></html>
         """;
 

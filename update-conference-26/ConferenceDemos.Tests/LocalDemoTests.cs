@@ -40,7 +40,7 @@ public sealed class LocalDemoTests
     }
 
     [Fact]
-    public async Task Schedule_provider_selects_day_from_question_before_one_plain_text_model_call()
+    public async Task Schedule_provider_supplies_both_days_and_preserves_question_before_one_model_call()
     {
         var calls = 0;
         const string question = "What should I attend on day 2 if I'm interested in AI and .NET?";
@@ -158,7 +158,8 @@ public sealed class LocalDemoTests
         onCall?.Invoke();
         var request = messages.ToArray();
         AssertScheduleContext(request, options);
-        var question = Assert.Single(request, message => message.Role == ChatRole.User).Text;
+        var question = Assert.Single(request, message => message.Role == ChatRole.User &&
+            !message.Text.Contains(ScheduleCorpus.LoadMarkdown(), StringComparison.Ordinal)).Text;
         if (question.Contains("unicorn astrophysics", StringComparison.Ordinal))
         {
             Assert.DoesNotContain(ScheduleDemo.DefaultQuestion, question);
@@ -171,11 +172,35 @@ public sealed class LocalDemoTests
             $"A session about agentic AI. [#s13]({session.Citation})"));
     });
 
-    private static void AssertScheduleContext(IReadOnlyList<ChatMessage> messages, ChatOptions? options)
+    internal static void AssertScheduleContext(IReadOnlyList<ChatMessage> messages, ChatOptions? options)
     {
-        Assert.Contains(options?.Tools ?? [], tool => tool.Name == "SearchConferenceSchedule");
+        var context = string.Join("\n", messages.Select(message => message.Text));
+        Assert.Contains(ScheduleCorpus.LoadMarkdown(), context);
+        Assert.Contains("## Day 1", context);
+        Assert.Contains("## Day 2", context);
+        Assert.All(new ScheduleCorpus().Sessions, session => Assert.Contains($"<a id=\"s{session.Id}\"></a>", context));
+        Assert.Empty(options?.Tools ?? []);
         Assert.Null(options?.ResponseFormat);
         Assert.DoesNotContain(messages.SelectMany(message => message.Contents),
             content => content is FunctionCallContent or FunctionResultContent);
+    }
+
+    [Theory]
+    [InlineData("Show 2 AI sessions on day 1")]
+    [InlineData(".NET")]
+    [InlineData("Inside the .NET Garbage Collector")]
+    [InlineData("What about sightseeing in Prague?")]
+    public async Task Query_numbers_and_leading_dots_cannot_drop_canonical_evidence(string question)
+    {
+        var calls = 0;
+        using var client = new ScriptedChatClient((messages, options) =>
+        {
+            calls++;
+            AssertScheduleContext(messages.ToArray(), options);
+            Assert.Contains(messages, message => message.Role == ChatRole.User && message.Text == question);
+            return new(new ChatMessage(ChatRole.Assistant, "A grounded answer or explicit limitation."));
+        });
+        Assert.Equal("A grounded answer or explicit limitation.", await ScheduleDemo.RunAsync(client, question));
+        Assert.Equal(1, calls);
     }
 }

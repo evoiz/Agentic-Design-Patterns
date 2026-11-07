@@ -34,7 +34,7 @@ public sealed class GettingStartedTests
             }
             var result = Assert.Single(request.SelectMany(m => m.Contents).OfType<FunctionResultContent>());
             Assert.Equal("weather-1", result.CallId);
-            Assert.Equal("Fixed demo data, not a live forecast: Prague is cloudy, 12 C.", result.Result?.ToString());
+            Assert.Equal("Fixed demo data, not a live forecast: Prague is cloudy, 6 C.", result.Result?.ToString());
             return Text($"Prague weather: {result.Result}");
         });
 
@@ -85,32 +85,38 @@ public sealed class GettingStartedTests
     }
 
     [Fact]
-    public async Task Welcome_workflow_routes_trimmed_input_and_emits_completion_and_output_events()
+    public async Task Recommendation_workflow_routes_trimmed_input_and_emits_completion_and_output_events()
     {
         var events = new List<WorkflowEvent>();
 
         var answer = await WelcomeWorkflowDemo.RunAsync(" Alex ", onEvent: events.Add);
 
-        Assert.Equal("Welcome, Alex, to Update Conference in Prague!", answer);
-        Assert.Equal(["PrepareAttendee", "CreateWelcome"],
+        Assert.Equal("Completed workflow.", answer);
+        Assert.Equal(["GetAttendeeProfile", "RecommendSession", "CreateRecommendation"],
             events.OfType<ExecutorCompletedEvent>().Select(e => e.ExecutorId));
-        Assert.Equal("Alex", events.OfType<ExecutorCompletedEvent>().First().Data);
-        Assert.Equal(answer, Assert.Single(events.OfType<WorkflowOutputEvent>()).As<string>());
+        Assert.Equal("Alex: .NET Developer interested in AI", events.OfType<ExecutorCompletedEvent>().First().Data);
+        Assert.Equal("Building Agentic AI with Microsoft Foundry", events.OfType<ExecutorCompletedEvent>().ElementAt(1).Data);
+        Assert.Equal("Recommended session: Building Agentic AI with Microsoft Foundry",
+            Assert.Single(events.OfType<WorkflowOutputEvent>()).As<string>());
     }
 
     [Fact]
-    public async Task Welcome_workflow_has_a_default_attendee()
-        => Assert.Equal("Welcome, Alex, to Update Conference in Prague!", await WelcomeWorkflowDemo.RunAsync());
+    public async Task Recommendation_workflow_has_a_default_attendee()
+    {
+        var events = new List<WorkflowEvent>();
+        Assert.Equal("Completed workflow.", await WelcomeWorkflowDemo.RunAsync(onEvent: events.Add));
+        Assert.Equal("Peter: .NET Developer interested in AI", events.OfType<ExecutorCompletedEvent>().First().Data);
+    }
 
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task Welcome_workflow_surfaces_executor_validation_failures(string attendee)
+    public async Task Recommendation_workflow_surfaces_executor_validation_failures(string attendee)
     {
         var events = new List<WorkflowEvent>();
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             WelcomeWorkflowDemo.RunAsync(attendee, onEvent: events.Add));
-        Assert.Contains("PrepareAttendee", error.Message);
+        Assert.Contains("GetAttendeeProfile", error.Message);
         Assert.Contains(events, e => e is ExecutorFailedEvent);
         Assert.Empty(events.OfType<WorkflowOutputEvent>());
     }
@@ -142,7 +148,7 @@ public sealed class GettingStartedTests
             Assert.Contains(request, m => m.Role == ChatRole.User &&
                 m.Text.Contains(question, StringComparison.Ordinal));
             Assert.Contains("Answer only from the supplied conference schedule snapshot.", options?.Instructions);
-            Assert.Contains(options?.Tools ?? [], tool => tool.Name == "SearchConferenceSchedule");
+            LocalDemoTests.AssertScheduleContext(request, options);
             Assert.Null(options?.ResponseFormat);
             return Text(expected);
         });

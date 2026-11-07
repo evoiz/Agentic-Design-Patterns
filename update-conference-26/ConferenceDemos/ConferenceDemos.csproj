@@ -6,6 +6,7 @@
     <ProjectReference Include="../../dotnet/src/Shared/Shared.csproj" />
     <PackageReference Include="Microsoft.Agents.AI.Workflows" />
     <PackageReference Include="Microsoft.Agents.AI.Harness" />
+    <PackageReference Include="AngleSharp" />
     <PackageReference Include="ElBruno.AI.Decisions.Foundry" />
     <Compile Include="../../dotnet/src/01-Flow/Extension02.DecisionModels/DecisionConfiguration.cs" Link="Shared/DecisionConfiguration.cs" />
     <Compile Include="../../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/ModelCallBudgetClient.cs" Link="Shared/ModelCallBudgetClient.cs" />

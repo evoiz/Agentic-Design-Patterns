@@ -1,4 +1,5 @@
 using AgenticDesignPatterns.Shared;
+using AngleSharp.Html.Parser;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using OpenAI;
@@ -119,15 +120,21 @@ public static class SpeakerPageDemo
             return [new("Page saved", false, $"{PageFile} was not written")];
         }
         var html = File.ReadAllText(pagePath);
+        var document = new HtmlParser().ParseDocument(html);
         var directory = Path.GetDirectoryName(pagePath)!;
         var photo = Directory.EnumerateFiles(directory, "speaker.*").Select(Path.GetFileName).FirstOrDefault();
-        var ids = Regex.Matches(html, @"data-session-id=[""'](\d+)[""']").Select(m => int.Parse(m.Groups[1].Value)).Distinct().ToArray();
+        var ids = document.QuerySelectorAll("section#timeline article.session[data-session-id]")
+            .Select(element => int.TryParse(element.GetAttribute("data-session-id"), out var id) ? id : -1)
+            .Distinct().ToArray();
         var unknown = ids.Where(id => Schedule.Sessions.All(s => s.Id != id)).ToArray();
         var picked = Schedule.Sessions.Where(s => ids.Contains(s.Id)).ToArray();
         var clashes = picked.SelectMany(a => picked.Where(b => a.Id < b.Id && a.Day == b.Day && a.Start < b.End && b.Start < a.End)
             .Select(b => $"#{a.Id}/#{b.Id}")).ToArray();
-        var links = Regex.Matches(html, @"href=[""'](https://[^""']+)[""']").Select(m => m.Groups[1].Value)
-            .Where(u => !u.Contains("updateconference", StringComparison.OrdinalIgnoreCase) && !u.Contains("github.com", StringComparison.OrdinalIgnoreCase))
+        var links = document.QuerySelectorAll("a[href]").Select(element => element.GetAttribute("href")!)
+            .Where(link => Uri.TryCreate(link, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps &&
+                uri.Host != "prague.updateconference.net" &&
+                link.TrimEnd('/') != profile.Repository.TrimEnd('/') &&
+                link.TrimEnd('/') != $"https://github.com/{profile.GitHub}")
             .Distinct().ToArray();
         List<PageCheck> checks =
         [
