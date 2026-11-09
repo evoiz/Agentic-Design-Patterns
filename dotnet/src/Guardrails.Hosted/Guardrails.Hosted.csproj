@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>Guardrails.Hosted</AssemblyName>
+    <RootNamespace>Guardrails.Hosted</RootNamespace>
+    <UserSecretsId>fed67b2c-57c0-4f0a-b976-13f15439fa1d</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Shared.Hosting/Shared.Hosting.csproj" />
+    <ProjectReference Include="../Guardrails/Guardrails.csproj" />
+    <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry.Hosting" />
+  </ItemGroup>
+</Project>

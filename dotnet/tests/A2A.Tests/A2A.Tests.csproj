@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <AssemblyName>A2A.Tests</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/A2A/A2A.csproj" />
+    <ProjectReference Include="../../src/A2A.Hosted/A2A.Hosted.csproj" />
+    <ProjectReference Include="../TestSupport/TestSupport.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

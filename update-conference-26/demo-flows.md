@@ -36,16 +36,24 @@ flowchart TD
 ## Demo 4: Planning and goal monitoring
 
 [AgendaPlanningDemo.cs](ConferenceDemos/Demos/04-PlanningAndGoalMonitoring/AgendaPlanningDemo.cs) owns the workflow
-edges below. The one-round launch profile uses this same graph with a smaller
-budget; it escalates only if the goals are still unmet.
+edges below. Planning includes interpreting the current brief; there is no separate
+`ReadGoals` executor. The task strategy is consumed by a separate agenda builder.
+The initial brief omits overlap avoidance and the 12:30 preparation policy, which
+both reviewers know from the start. The monitor reveals failed goals and forwards
+the critic's repair advice to planning. These policies stay
+in subsequent planning inputs. First-round success remains possible.
+
+The one-round launch profile uses this same graph with a smaller budget; it
+escalates only if the goals are still unmet. An editable presentation companion
+is available in [draw.io format](planning-and-goal-monitoring.drawio).
 
 ```mermaid
 flowchart TD
-  ReadGoals["ReadGoals (Start)"];
-  PlanAgenda["PlanAgenda"];
-  CheckConstraints["CheckConstraints"];
-  CritiqueFit["CritiqueFit"];
-  MonitorGoals["MonitorGoals"];
+  PlanTasks["PlanTasks (Start): interpret brief and plan the work"];
+  BuildAgenda["BuildAgenda: execute task strategy"];
+  CheckConstraints["CheckConstraints: hard goals including overlaps / prep"];
+  CritiqueFit["CritiqueFit: reflect on all goals and relevance; suggest repairs"];
+  MonitorGoals["MonitorGoals: combine results and decide"];
   PublishAgenda["PublishAgenda"];
   Escalate["Escalate"];
 
@@ -53,10 +61,10 @@ flowchart TD
   CheckConstraints --> fan_in_MonitorGoals_1D9BB972;
   CritiqueFit --> fan_in_MonitorGoals_1D9BB972;
   fan_in_MonitorGoals_1D9BB972 --> MonitorGoals;
-  ReadGoals -->|SMART goals| PlanAgenda;
-  PlanAgenda -->|draft agenda| CheckConstraints;
-  PlanAgenda -->|draft agenda| CritiqueFit;
-  MonitorGoals -. goals unmet: revise .-> PlanAgenda;
+  PlanTasks -->|task strategy| BuildAgenda;
+  BuildAgenda -->|draft agenda| CheckConstraints;
+  BuildAgenda -->|draft agenda| CritiqueFit;
+  MonitorGoals -. goals unmet: evidence and revealed policies .-> PlanTasks;
   MonitorGoals -. all goals met .-> PublishAgenda;
   MonitorGoals -. budget exhausted .-> Escalate;
 ```

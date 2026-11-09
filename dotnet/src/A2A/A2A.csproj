@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>A2A.Demo</AssemblyName>
+    <PackageId>AgenticDesignPatterns.A2A.Demo</PackageId>
+    <RootNamespace>A2A</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Shared/Shared.csproj" />
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.A2A" />
+  </ItemGroup>
+</Project>

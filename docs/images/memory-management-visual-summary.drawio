@@ -12,7 +12,7 @@
         <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="interaction" target="short"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="short" target="policy"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="e3" value="selected writes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="policy" target="long"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e4" value="relevant retrieval" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="long" target="interaction"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" value="Relevant retrieval into active context" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#52636B;strokeWidth=2;exitX=0.5;exitY=0;entryX=0.5;entryY=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="long" target="short"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="875" y="100"/><mxPoint x="410" y="100"/></Array></mxGeometry></mxCell>
       </root>
     </mxGraphModel>
   </diagram>

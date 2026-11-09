@@ -79,7 +79,7 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 - **RAG inside a workflow:** run `rag` with the original AI/.NET schedule question. Show `PrepareQuestion -> AnswerFromSchedule`; the second executor invokes the existing grounded agent. Its `TextSearchProvider` injects the complete schedule Markdown before one model call, without a retrieval tool loop.
 - Keep each source excerpt small. Show only workflow event labels and the final grounded answer, never the schedule dump or hidden reasoning.
 - Close the introduction with the boundary: an agent can choose tools; code owns the workflow; a context provider supplies evidence. This is full-document grounding, not vector search or a conflict-free agenda planner.
-- The [README walkthrough](README.md#demos-in-presentation-order) provides the commands and ordered launch profiles, including decision variants **5.1-5.3** and Harness web search **6.1**. The next segment hosts the same reusable schedule agent, not the weather or simple workflow demos.
+- The [README walkthrough](README.md#demos-in-presentation-order) provides the commands and ordered launch profiles, including decision variants **5.1-5.2** and Harness web search **6.1**. The next segment hosts the same reusable schedule agent, not the weather or simple workflow demos.
 
 ### 7. Foundry basics: model and agent are different things (1:30)
 
@@ -103,27 +103,31 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 ### 10. Planning and Goal Monitoring: a self-correcting agenda (2:00)
 
 - Return to the "Add a flow" and "Add review" beats: plan Cédric's day 1 and check it against explicit goals.
-- Show the nine SMART goals as a checklist: exactly 5 day-1 sessions, no overlaps, must attend #13 (own talk), keep 12:30 free for preparation, at least 2 AI and 1 .NET session, and a critic fit score of at least 4/5.
-- Show the saved [demo 4 graph](demo-flows.md#demo-4-planning-and-goal-monitoring) and name the patterns it combines: **planning** (planner agent), **parallelization** (fan-out), **reflection** (critic agent), **goal monitoring** (fan-in barrier + monitor), and **routing** (revise / publish / escalate). Relate it to the Chapter 11 GoalSettingWorkflow loop.
+- Start from the brief: four interesting day-1 sessions, interests, own talk #13, and AI/.NET coverage. Disclose that the monitor additionally knows two policies: no overlaps and keep 12:30 free for preparation.
+- Show the acceptance checklist: exactly 4 distinct day-1 sessions, no overlaps, must attend #13, keep 12:30 free, at least 2 AI sessions besides #13 and 1 .NET session, and a critic fit score of at least 4/5.
+- Show the saved [demo 4 graph](demo-flows.md#demo-4-planning-and-goal-monitoring): **Planning + Reflection + Goal Monitoring + Parallelization**. Task planning produces a strategy that a separate agenda builder consumes; the agenda is the resulting artifact. Routing controls replan / publish / escalate. The outer workflow is code-defined, not an autonomous scheduler.
 
 ### 11. Planning and Goal Monitoring: live workflow (4:00)
 
 - Show the `WorkflowBuilder` excerpt: `AddFanOutEdge`, `AddFanInBarrierEdge`, three conditional `AddEdge<T>` routes, and `WithOutputFrom(publish, escalate)`. These build on the basic edges from step 2 of getting started.
-- Run `plan` live. Narrate each round: planner draft, two parallel checks, PASS/FAIL goal table, chosen route. If round 1 passes, run `plan --rounds 1` or point to the revise edge in the graph; keep a captured multi-round run as a fallback.
-- Emphasize the boundary: code owns the hard goals, the critic owns only the subjective fit goal, and a call budget plus `Escalate` ends the loop deterministically.
+- Run `plan` live. Narrate each round: task strategy, built agenda, two parallel checks, PASS/FAIL table, route. Both reviewers know all goals. On failure, show how concrete scheduling evidence and critic repair advice enter the next task plan and a fresh agenda. Relevant topics alone must not earn a perfect critique of an invalid schedule.
+- If round 1 passes, acknowledge that the model inferred good scheduling; use a captured failing run to demonstrate refinement if needed. `plan --rounds 1` does not force failure. The brief makes mistakes plausible, not guaranteed; disclose the information split rather than blame the model for missing requirements it was never given.
+- Emphasize the boundary: code owns hard-goal acceptance; the critic reviews the complete contract and supplies an overall quality score and repair advice. A call budget plus `Escalate` ends the loop deterministically.
 ### 12. Decision Models: three shapes of judgment (3:00)
 
-- Reuse one session abstract and one explicitly stated attendee interest.
+- Feed the complete two-day schedule into every task; show its source rather than dumping the document.
 - Explain the supported task shapes: **choice** among labels, **Noul** (yes/no), and **score** on an ordered scale.
-- Use "Is this about Foundry?" or "Is this about .NET performance optimization?" only as a quick agenda hook. Exact schedule facts remain deterministic lookups; do not suggest a model is needed for simple factual retrieval.
+- Start with "Is Cédric Mendelin speaking on Day 1?" and "Day 2?" for a clear yes/no contrast. The snapshot lists a named session only on Day 1; do not infer speaker Q&A participation. These illustrate Noul, not a need for model-based factual lookup.
+- Give a C# team two needs: connect an existing agent to business data and achieve colleague adoption. Choose among eleven speaker/session options, including Cédric's talk, without a hard-coded winner. Contrast implementation, adoption, and broader agent-building coverage.
+- Score three non-AI sessions against that same goal: #6 (garbage collection), #18 (HttpClient optimization), and #20 (advanced TypeScript). Use 0 = no useful coverage, 1 = adjacent, 2 = direct coverage of one need, 3 = direct coverage of both. Distinguish useful background from directly addressing agent integration/adoption; do not prescribe exact probabilities.
 - Explain that a score is an output from a decision task, not a calibrated measure of real-world accuracy.
 
 ### 13. Decision Models: local provider comparison (7:00)
 
-- Run the three decision shapes locally with **Microsoft-Decision-1 live**.
-- Show a clearly labeled, previously captured **Azure OpenAI Decisions** result for the same input and task shapes.
+- Run six calls across three scenarios with **Microsoft-Decision-1 live**: two binary assessments, one eleven-way choice, and three four-level scores. Show question/state, RUNNING, and COMPLETED/result for each call in order; avoid raw JSON and usage metadata on stage.
+- Use `decisions --compare-openai`: for each question, call Microsoft live, print its result, then call Azure OpenAI Decisions live with the same input and print its result in the same block.
 - Point out that the APIs/contracts differ. This is an illustration, not a benchmark or accuracy comparison; do not compare scores as if they were measured on a controlled evaluation.
-- Use the provider's actual response fields and label captured output as captured.
+- Label each provider and show its running/completed status; there is no sample, recording, or replay.
 
 ### 14. From workflow to Agent Harness: the speaker page task (2:00)
 
@@ -160,7 +164,7 @@ End the motivation with a brief, non-prescriptive spectrum: **answer -> grounded
 - Local inference can use the prepared Foundry model; local tools, schedule data, and the speaker profile remain controlled fixtures; web search runs only with `speaker-page --web`.
 - The Foundry project and model deployment are prepared in advance. The Hosted Agent runtime's model-inference access is verified in rehearsal; no credentials or role assignments are created onstage.
 - The talk's schedule demo, agenda planning workflow, Decision Models story, and speaker-page Harness agent are new conference examples. Existing chapter demos are references, not proof that these integrated examples already exist.
-- The only provider comparison is Microsoft-Decision-1 live versus a labeled Azure OpenAI Decisions capture. It is not an evaluation or benchmark.
+- The only provider comparison is Microsoft-Decision-1 versus Azure OpenAI Decisions, both live and sequential per question. It is not an evaluation or benchmark.
 - If the live deployment exceeds its time cap, use the prepared capture and a previously deployed agent invocation. Preserve Q&A time.
 
 ## Resources to put on the final slide or linked notes

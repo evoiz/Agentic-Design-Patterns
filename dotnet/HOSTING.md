@@ -28,7 +28,7 @@ identity, not committed keys. The local developer identity also needs inference 
 ```powershell
 $env:Foundry__ProjectEndpoint = 'https://<account>.services.ai.azure.com/api/projects/<project>'
 $env:Foundry__ModelDeployment = '<chat-deployment>'
-dotnet run --project .\dotnet\src\02-ReasonAndImprove\Chapter04.Reflection.Hosted
+dotnet run --project .\dotnet\src\Reflection.Hosted
 ```
 
 Invoke the protocol endpoint documented by the selected companion from another
@@ -42,11 +42,14 @@ companion defines three related services in its manifest. Run azd commands from 
 directory containing the manifest for the selected project. Each project has its own
 azd environment, so select or create that environment from the same directory. Replace
 sample project references, endpoints, and literal model settings in that manifest with
-reader-owned values. An azd environment variable does not override a literal manifest
-value.
+reader-owned values. Reusable manifests bind the `foundry-project` service to
+`${AZURE_AI_PROJECT_ENDPOINT}` and chat inference to `${AZURE_AI_MODEL_DEPLOYMENT_NAME}`.
+Managed-memory hosts additionally require `${AZURE_AI_EMBEDDING_DEPLOYMENT_NAME}`
+and a reader-owned `${AZURE_AI_MEMORY_STORE_ID}`.
+An azd environment variable does not override any literal manifest value you add.
 
 ```powershell
-Set-Location .\dotnet\src\02-ReasonAndImprove\Chapter04.Reflection.Hosted
+Set-Location .\dotnet\src\Reflection.Hosted
 azd env select '<environment>'
 azd env set AZURE_TENANT_ID '<tenant-id>'
 azd env set AZURE_AI_PROJECT_ID '<project-arm-id>'
@@ -96,9 +99,9 @@ Exclude `.azure`, `.env*`, `secrets.json`, credentials and unnecessary intermedi
 
 ## Costs, traces and cleanup
 
-Hosting, model calls, retries, evaluations and telemetry can incur charges. Some demos
-enable sensitive telemetry for synthetic examples; disable it before handling private
-input, and restrict trace access/retention. A call budget is not an exact billing cap.
+Hosting, model calls, retries, evaluations and telemetry can incur charges. Sensitive
+prompt/response capture is off by default; opt in only for synthetic debugging and
+restrict trace access/retention. A call budget is not an exact billing cap.
 
 Remove only agent versions/resources you own through agent-scoped Foundry controls.
 Never use `azd down` against a shared project or delete unrelated agents or shared models.

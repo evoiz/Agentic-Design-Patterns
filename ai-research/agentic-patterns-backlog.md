@@ -27,14 +27,14 @@ This is a selection guide, not a commitment to implement every entry or note. It
 | Candidate from the research | Repository evidence | Backlog decision |
 |---|---|---|
 | Original 21 book patterns | [.NET chapter catalog](../dotnet/README.md#pattern-families) | Exclude as new patterns. |
-| Agent Harness | [Extension 01](../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/README.md) and its hosted companion | Exclude. Includes todos, bounded calls, compaction, tracing, and evidence checks already. |
-| Bounded Agentic Island | [Decision Models](../dotnet/src/01-Flow/Extension02.DecisionModels/README.md): typed judgments inside deterministic policy and workflow transitions | Exclude a standalone duplicate. Reuse this architecture in future extensions. |
-| Heterogeneous model routing | [Chapter 16](../dotnet/src/05-TrustAndOperations/Chapter16.ResourceOptimization/README.md) selects fast/reasoning/quality deployments; Decision Models adds specialized judgment models | Exclude generic model routing. Local-first privacy enforcement remains a possible later distinct variant. |
+| Agent Harness | [Extension 01](../dotnet/src/AgentHarness/README.md) and its hosted companion | Exclude. Includes todos, bounded calls, compaction, tracing, and evidence checks already. |
+| Bounded Agentic Island | [Decision Models](../dotnet/src/DecisionModels/README.md): typed judgments inside deterministic policy and workflow transitions | Exclude a standalone duplicate. Reuse this architecture in future extensions. |
+| Heterogeneous model routing | [Chapter 16](../dotnet/src/ResourceOptimization/README.md) selects fast/reasoning/quality deployments; Decision Models adds specialized judgment models | Exclude generic model routing. Local-first privacy enforcement remains a possible later distinct variant. |
 | Generic bounded autonomy | Harness and chapter workflows enforce call, iteration, and deadline limits | Exclude another basic budget-loop demo. Cross-request admission/backpressure is a separate gap, B10. |
-| Basic approval and restartable approval sessions | [Chapter 13](../dotnet/src/04-Collaboration/Chapter13.HumanInTheLoop/README.md) uses approval-required functions. Its [hosted companion](../dotnet/src/04-Collaboration/Chapter13.HumanInTheLoop.Hosted/README.md) atomically persists caller-partitioned pending approvals and can resume after process restart | Approval persistence is not wholly absent. B01 adds business authorization and freshness; B03 adds distributed orchestration and event recovery. |
-| Basic memory, scope cleanup, and compaction | [Chapter 08](../dotnet/src/03-KnowledgeAndAction/Chapter08.Memory/README.md) has session serialization and managed-memory scope cleanup; Harness has compaction | Exclude basic remembering, deletion, or summarization. B05/B06 require explicit handoff and governed write/correction contracts. |
-| Reflection, structured output validation, and judging | [Chapter 04](../dotnet/src/02-ReasonAndImprove/Chapter04.Reflection/README.md), [Chapter 11](../dotnet/src/02-ReasonAndImprove/Chapter11.GoalSettingMonitoring/README.md), [Chapter 19](../dotnet/src/05-TrustAndOperations/Chapter19.Evaluation/README.md), and Harness completion checks | Do not add a generic generator-verifier loop. B09/B11 concern replayable trajectories and release decisions instead. |
-| Code Interpreter | [Chapter 05](../dotnet/src/03-KnowledgeAndAction/Chapter05.ToolUse/README.md) and [Chapter 17](../dotnet/src/02-ReasonAndImprove/Chapter17.Reasoning/README.md) already use hosted sandboxed computation | Exclude basic code execution. B08 adds isolated artifact verification and controlled promotion. |
+| Basic approval and restartable approval sessions | [Chapter 13](../dotnet/src/HumanInTheLoop/README.md) uses approval-required functions. Its [hosted companion](../dotnet/src/HumanInTheLoop.Hosted/README.md) atomically persists caller-partitioned pending approvals and can resume after process restart | Approval persistence is not wholly absent. B01 adds business authorization and freshness; B03 adds distributed orchestration and event recovery. |
+| Basic memory, scope cleanup, and compaction | [Chapter 08](../dotnet/src/Memory/README.md) has session serialization and managed-memory scope cleanup; Harness has compaction | Exclude basic remembering, deletion, or summarization. B05/B06 require explicit handoff and governed write/correction contracts. |
+| Reflection, structured output validation, and judging | [Chapter 04](../dotnet/src/Reflection/README.md), [Chapter 11](../dotnet/src/GoalSettingMonitoring/README.md), [Chapter 19](../dotnet/src/Evaluation/README.md), and Harness completion checks | Do not add a generic generator-verifier loop. B09/B11 concern replayable trajectories and release decisions instead. |
+| Code Interpreter | [Chapter 05](../dotnet/src/ToolUse/README.md) and [Chapter 17](../dotnet/src/Reasoning/README.md) already use hosted sandboxed computation | Exclude basic code execution. B08 adds isolated artifact verification and controlled promotion. |
 | Managed identity and inference RBAC | [Hosted-agent guides](../dotnet/README.md#hosted-agent-companions) already explain runtime identity and model access | Exclude another managed-identity setup sample. B07 concerns per-resource/per-operation authority and confused-deputy prevention. |
 
 ## Backlog by pattern family
@@ -111,7 +111,7 @@ B08 feasibility research can precede B01 because it performs no promotion. B03's
 
 ### B02 - Transactional Actuator
 
-**Problem and novelty:** B01 determines whether an action may run; it does not make a multi-step write recoverable. Existing [Chapter 12 recovery](../dotnet/src/05-TrustAndOperations/Chapter12.ExceptionHandling/README.md) is not a durable side-effect transaction.
+**Problem and novelty:** B01 determines whether an action may run; it does not make a multi-step write recoverable. Existing [Chapter 12 recovery](../dotnet/src/ExceptionHandling/README.md) is not a durable side-effect transaction.
 
 **Demo:** Reserve synthetic stock, create an order, and schedule a confirmation. Inject failure between operations and recover using an action ledger and predefined compensating commands.
 
@@ -153,7 +153,7 @@ B08 feasibility research can precede B01 because it performs no promotion. B03's
 
 ### B05 - Context Lifecycle and Verified Handoff
 
-**Problem and novelty:** Existing compaction reduces history, and [Chapter 07](../dotnet/src/04-Collaboration/Chapter07.MultiAgent/README.md) passes agent output downstream. The missing contract validates what must survive context replacement and who may retrieve the referenced artifacts.
+**Problem and novelty:** Existing compaction reduces history, and [Chapter 07](../dotnet/src/MultiAgent/README.md) passes agent output downstream. The missing contract validates what must survive context replacement and who may retrieve the referenced artifacts.
 
 **Demo:** An incident investigation reaches a controlled context boundary. A fresh session continues from a typed handoff containing goal, completed work, unresolved questions, evidence references, and next permitted action.
 
@@ -299,14 +299,14 @@ Our runnable Harness and Decision Models add contracts not separately named in h
 
 | External concept | Existing overlap and destination | Disposition |
 |---|---|---|
-| Awareness | [Chapter 15](../dotnet/src/04-Collaboration/Chapter15.A2A/README.md) discovers static capabilities. Live state/freshness could inform Routing or Resource Optimization, but is not routing or authority itself. | Deferred; discovery note, no registry project |
-| Stop Hook | [Harness](../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/README.md) rejects unsupported completion; post-run checks differ from intercepting a stop attempt and returning validation feedback. | Conceptual note only |
+| Awareness | [Chapter 15](../dotnet/src/A2A/README.md) discovers static capabilities. Live state/freshness could inform Routing or Resource Optimization, but is not routing or authority itself. | Deferred; discovery note, no registry project |
+| Stop Hook | [Harness](../dotnet/src/AgentHarness/README.md) rejects unsupported completion; post-run checks differ from intercepting a stop attempt and returning validation feedback. | Conceptual note only |
 | Ralph Wiggum Loop | Environment-owned success differs from model-declared completion or a todo loop. Explain immutable acceptance, finite budgets, and explicit incomplete outcomes alongside Harness and Chapters 11/19. | Conceptual note only; no new repair loop |
-| Parallel Fusion | [Chapter 03](../dotnet/src/01-Flow/Chapter03.Parallelization/README.md) already has fan-out/synthesis. Independent complete solutions to the same task differ from complementary subtasks. | Composition note; no new selector |
-| Session Isolation | Chapters [07](../dotnet/src/04-Collaboration/Chapter07.MultiAgent/README.md) and [13 hosted](../dotnet/src/04-Collaboration/Chapter13.HumanInTheLoop.Hosted/README.md) already isolate request/owner state. Scoped context (B05), authority (B07), and execution (B08) protect different boundaries. | Cross-cutting notes; no standalone project |
-| Code-Then-Execute | [Chapter 05](../dotnet/src/03-KnowledgeAndAction/Chapter05.ToolUse/README.md) and [17](../dotnet/src/02-ReasonAndImprove/Chapter17.Reasoning/README.md) use native Code Interpreter. Prewritten calculator/factorial tools are not generated-code execution. | Existing/alias; Chapter 05 is the canonical reference |
+| Parallel Fusion | [Chapter 03](../dotnet/src/Parallelization/README.md) already has fan-out/synthesis. Independent complete solutions to the same task differ from complementary subtasks. | Composition note; no new selector |
+| Session Isolation | Chapters [07](../dotnet/src/MultiAgent/README.md) and [13 hosted](../dotnet/src/HumanInTheLoop.Hosted/README.md) already isolate request/owner state. Scoped context (B05), authority (B07), and execution (B08) protect different boundaries. | Cross-cutting notes; no standalone project |
+| Code-Then-Execute | [Chapter 05](../dotnet/src/ToolUse/README.md) and [17](../dotnet/src/Reasoning/README.md) use native Code Interpreter. Prewritten calculator/factorial tools are not generated-code execution. | Existing/alias; Chapter 05 is the canonical reference |
 | Dynamic Scaffolding | Creating, invoking, and discarding a temporary task tool goes beyond prewritten functions, MCP discovery, or a one-off calculation. Consider only after B08's execution-boundary decision; distinct from B04's approved instruction packages. | Exploratory B08/Tool Use note; not a mandatory B08 requirement |
-| Spec-First Agent | Chapters [01](../dotnet/src/01-Flow/Chapter01.PromptChaining/README.md) and [11](../dotnet/src/02-ReasonAndImprove/Chapter11.GoalSettingMonitoring/README.md) illustrate shape/goals, not general external-spec compliance. Immutable semantic rules can inform B01 action policy and B11 release gates. | Composition note; no OpenAPI/SDK conformance claim |
+| Spec-First Agent | Chapters [01](../dotnet/src/PromptChaining/README.md) and [11](../dotnet/src/GoalSettingMonitoring/README.md) illustrate shape/goals, not general external-spec compliance. Immutable semantic rules can inform B01 action policy and B11 release gates. | Composition note; no OpenAPI/SDK conformance claim |
 
 Independent text candidates need independent sessions, not necessarily containers. Folders/worktrees are not OS security sandboxes, valid JSON is not semantic conformance, and passing tests or executing code does not guarantee overall correctness. Multi-agent collaboration also need not use A2A; Chapter 07 already demonstrates local collaboration.
 

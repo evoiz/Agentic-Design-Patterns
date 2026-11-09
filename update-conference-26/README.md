@@ -4,7 +4,7 @@ The six demos are presented in this order: **1. Prague weather**, **2. Simple MA
 
 ## Setup
 
-Use the .NET 10 SDK selected by [global.json](global.json). Package versions come from [the central .NET manifest](../dotnet/Directory.Packages.props), imported rather than copied: MAF/Workflows/Harness 1.22.0 and Decisions.Foundry 0.7.0. The host also uses the repository's pinned preview Foundry hosting package.
+Use the .NET 10 SDK policy in the repository's [global.json](../global.json). Package versions come from [the central .NET manifest](../dotnet/Directory.Packages.props), imported rather than copied: MAF/Workflows/Harness 1.22.0 and Decisions.Foundry 0.7.0. The host also uses the repository's pinned preview Foundry hosting package.
 
 From the repository root, configure the [shared local credentials](../dotnet/README.md) once:
 
@@ -36,9 +36,8 @@ The tests need no credentials or network model calls. The canonical [schedule](U
 | **2. Simple MAF workflow** | Deterministic session recommendation |
 | **3. Schedule RAG (TextSearchProvider)** | Schedule-grounded answers |
 | **4. Planning and goal monitoring** | Plan, check, and revise an agenda |
-| **5.1 Decision Model - compare sample** | Live Microsoft output and illustrative OpenAI sample |
-| **5.2 Decision Model - compare recorded OpenAI** | Live Microsoft output and recorded OpenAI output |
-| **5.3 Decision Model - record OpenAI** | Prepare a real OpenAI capture |
+| **5.1 Decision Model - Microsoft live** | Six live Microsoft decision calls |
+| **5.2 Decision Model - live comparison** | Microsoft then OpenAI for each question |
 | **6. Harness** | Build a speaker page without web search |
 | **6.1 Harness + web search** | Build a speaker page with web search |
 
@@ -52,9 +51,9 @@ dotnet run --project ConferenceDemos --launch-profile "3. Schedule RAG (TextSear
 dotnet run --project ConferenceDemos --launch-profile "6.1 Harness + web search"
 ```
 
-The **5.1 Decision Model - compare sample** profile uses the bundled illustrative JSON sample, so no recording is needed. **5.3 Decision Model - record OpenAI** and **5.2 Decision Model - compare recorded OpenAI** use `captures\openai-decisions.json`, relative to the process working directory; use the same working directory for recording and comparison. Recording requires the configured OpenAI decision deployment and refuses to overwrite an existing capture. Profiles contain no credentials.
+The **5.1 Decision Model - Microsoft live** profile calls Microsoft only. **5.2 Decision Model - live comparison** calls both configured decision deployments sequentially for each question. Profiles contain no credentials.
 
-Model-backed demos print their user question or request before inference. The planning demo prints its SMART goals first, and both decision commands show the shared session and attendee interest. Decision questions, choices, and the score scale are supplied directly at their respective method calls.
+Model-backed demos print their user question or request before inference. The planning demo prints its SMART goals first, and both decision commands identify the complete schedule evidence and shared attendee goal without dumping the document. Decision questions, choices, and the score scale are shown before their respective calls.
 
 ## Demos in presentation order
 
@@ -70,7 +69,7 @@ ConferenceDemos/
     02-SimpleMafWorkflow/           WelcomeWorkflowDemo.cs
     03-ScheduleRag/                 ScheduleWorkflowDemo.cs, ScheduleDemo.cs
     04-PlanningAndGoalMonitoring/   AgendaPlanningDemo.cs
-    05-DecisionModels/              DecisionDemo.cs (5.1-5.3)
+    05-DecisionModels/              DecisionDemo.cs (5.1-5.2)
     06-Harness/                     SpeakerPageDemo.cs (6 and 6.1)
   Shared/                          ConferenceWorkflow.cs, ScheduleCorpus.cs
   Samples/
@@ -146,27 +145,34 @@ After demo 3, **an agent chooses a tool, a workflow controls steps, and a ground
 
 ### 4. Planning and goal monitoring: a self-correcting agenda workflow
 
-Getting started showed linear edges. This workflow combines **planning, parallelization, reflection, routing, and goal monitoring** in one graph, in the spirit of the Chapter 11 `GoalSettingWorkflow` loop: set SMART goals, plan, monitor, and revise until the goals are met or the budget is spent.
+Getting started showed linear edges. This workflow combines **Planning + Reflection + Goal Monitoring + Parallelization**, with routing as the supporting control mechanism. A task planner interprets a brief and produces an actionable strategy; a separate builder executes that strategy to produce an agenda. The task plan is how to do the work, not the agenda itself. Review and feedback drive replanning until all goals pass or the budget is spent.
 
 ```powershell
 dotnet run --project ConferenceDemos -- plan              # live run (max 3 rounds)
 dotnet run --project ConferenceDemos -- plan --rounds 1   # may escalate if goals remain unmet
+dotnet run --project ConferenceDemos -- plan --verbose   # full task instructions, checks and final rationales
 ```
 
 The [demo 4 flow diagram](demo-flows.md#demo-4-planning-and-goal-monitoring) documents the graph in [AgendaPlanningDemo.cs](ConferenceDemos/Demos/04-PlanningAndGoalMonitoring/AgendaPlanningDemo.cs); the CLI runs the workflow without printing Mermaid.
 
 | Executor | Pattern | Role |
 |---|---|---|
-| `ReadGoals` | Goal setting | Prints nine SMART goals for Cédric's day 1: exactly 5 day-1 sessions, no overlaps, must attend #13, keep 12:30 free for talk prep, at least 2 AI and 1 .NET session, and a fit score of at least 4/5 |
-| `PlanAgenda` | Planning | `AgendaPlanner` agent returns a structured `PlannedAgenda` (ids + why) from the day's time slots, the goals, and the previous round's feedback |
-| `CheckConstraints` ‖ `CritiqueFit` | Parallelization (`AddFanOutEdge`) | Deterministic code checks the eight hard goals while an `AgendaCritic` agent scores fit 1-5 (reflection) |
+| `PlanTasks` | Planning | Interprets the current brief and returns 2-6 actionable tasks with expected outcomes; prints the acceptance contract for the audience without injecting it into the initial model input |
+| `BuildAgenda` | Execution | A separate `AgendaBuilder` consumes the task plan and a flat day schedule with actual times, returning a structured `PlannedAgenda` (ids + why) |
+| `CheckConstraints` ‖ `CritiqueFit` | Parallelization (`AddFanOutEdge`) | Deterministic code checks the eight hard goals while `AgendaCritic` reviews all acceptance goals and interest fit, scoring overall quality 1-5 and suggesting repairs (reflection). The critic uses the same inexpensive checker for authoritative evidence rather than guessing hard-goal results |
 | `MonitorGoals` | Fan-in barrier + goal monitoring | `AddFanInBarrierEdge` waits for both checks, prints a PASS/FAIL goal table, and routes |
-| conditional edges | Routing | `goals unmet: revise` loops back with concrete feedback (for example `#1/#2 both at 09:15 (keep one)`); `all goals met` → `PublishAgenda`; `budget exhausted` → `Escalate` to a human with the best draft |
+| conditional edges | Routing | `goals unmet: revise` loops back to task planning with concrete evidence and revealed policies; `all goals met` → `PublishAgenda`; `budget exhausted` → `Escalate`, reporting the need for human intervention |
 
-The console streams the run (`RunStreamingAsync`) through a custom `AgendaProgressEvent`, so the audience sees each draft, the two parallel checks, the goal table, and the chosen route. Code, not the model, decides whether the hard goals are met; the critic only owns the subjective fit goal. A `ModelCallBudgetClient` caps the run at two model calls per round. Live models often satisfy all goals in round 1. In rehearsal, round 1 also produced an overlap plus a booked 12:30 slot and needed revision, so both paths are realistic. `--rounds 1` makes escalation reachable on demand. A successful run exits 0, an escalation exits 2, and failures exit 1.
-### 5. Decision Model: live Microsoft, sample or captured OpenAI
+The initial brief asks for **four interesting sessions** on conference day 1, with interests, own talk #13, and coverage of at least two AI sessions besides the own talk and one .NET session. The monitor additionally requires no overlaps and **12:30 free for speaker preparation**. These two policies are deliberately absent from initial planner/builder instructions, but are disclosed to the audience. The schedule still supplies accurate times. A lightweight brief may produce overlapping choices or a booked preparation slot; a model can also infer sensible scheduling and pass immediately.
 
-Configure the Microsoft decision deployment alias from the repository root. Add the OpenAI alias only if recording real OpenAI output:
+On rejection, the monitor reveals concrete conflicts or preparation bookings. Subsequent rounds retain all revealed requirements, generate a new task plan, and build a fresh agenda. The critic knows the full acceptance contract from round 1, including the preparation window and overlap rules, and receives the day schedule to suggest feasible repairs. Its score covers overall agenda quality, not just topic relevance: instructions require a score of at most 3 when a hard goal fails and actionable feedback naming every violation. Repair advice reaches the planner and builder even if the critic's score passes. Model judgment can still be wrong; deterministic hard-goal checks remain authoritative. This is refinement from incomplete requirements, not proof that the planner ignored instructions. The fixed C# outer graph remains a bounded planner-to-worker workflow, not an autonomous task scheduler.
+
+The console streams `AgendaProgressEvent` narration so the audience sees task plans, drafts, parallel checks, goal results, and routes. Iteration history retains each task plan. A `ModelCallBudgetClient` caps inference at **three calls per round**. Parallelization demonstrates independent review branches, not a guaranteed speedup. `--rounds 1` escalates only when goals fail; it cannot force rejection of a valid agenda. A successful run exits 0, escalation exits 2, and errors exit 1. Escalation reports unmet goals but does not implement interactive human approval.
+
+Default output is presentation-focused: numbered short task titles, agendas with room/track details on separate lines, grouped passing checks, explicit failure evidence, a separate wrapped critic paragraph, and the next route. Full task actions and expected outcomes still reach the builder and remain in iteration history. `--verbose` adds those details, the full acceptance contract, individual passing checks, and final session rationales. Text wraps at 96 columns without truncating evidence; default output avoids repeating the final agenda that was just shown.
+### 5. Decision Model: live Microsoft and OpenAI comparison
+
+Configure the Microsoft decision deployment alias from the repository root. Add the OpenAI alias for the live comparison:
 
 ```powershell
 dotnet user-secrets set "Foundry:ModelDeployments:decision" "<Microsoft-Decision-1-deployment>" --project dotnet/src/Shared
@@ -175,36 +181,39 @@ dotnet user-secrets set "Foundry:ModelDeployments:openaiDecision" "<Azure-OpenAI
 
 Or use `Foundry__ModelDeployments__decision` and `Foundry__ModelDeployments__openaiDecision`. Deploy the selected decision models in advance; an ordinary chat deployment is not interchangeable. This demo reuses the chapter's provider configuration and the pinned Decisions client, rather than imitating a decision model with chat prompts.
 
-From this folder, run with the bundled sample (only the Microsoft deployment is called live):
+From this folder, run Microsoft live (six API calls):
 
 ```powershell
 dotnet run --project ConferenceDemos -- decisions
 ```
 
-The checked-in [openai-decisions.sample.json](ConferenceDemos/Samples/openai-decisions.sample.json) contains all three output shapes in one file. It is copied to build and publish output and resolved relative to the executable, not the working directory. Its values are **illustrative, not recorded model output**, and the console explicitly labels them that way. The decision tests validate this file offline.
-
-**Why JSON?** Only to replay the comparison output without making a second set of live model calls. Neither provider requires a JSON file for inference. The sample removes the recording prerequisite; a real capture is useful for presenting actual OpenAI behavior.
-
-Demo **5.1** uses the sample. To replace it with **real OpenAI output**, record it with **5.3** before running the comparison in **5.2**:
+For demo **5.2**, compare both providers live (twelve API calls):
 
 ```powershell
-dotnet run --project ConferenceDemos -- decisions-record-openai captures\openai-decisions.json
-dotnet run --project ConferenceDemos -- decisions captures\openai-decisions.json
+dotnet run --project ConferenceDemos -- decisions --compare-openai
 ```
 
-The recording command makes three live OpenAI Decisions calls, validates the responses, and creates a new file without overwriting an existing capture. Review it before presenting. Real captures are ignored by Git; the illustrative sample is committed. With an explicit capture path, the presentation command validates the file first, then calls **Microsoft-Decision-1 live** for all three shapes and displays **Azure OpenAI Decisions - CAPTURED**, with model and capture timestamp. A missing explicit path fails; it never silently falls back to the sample.
+For each question, Microsoft is called first and its result printed, then OpenAI is called with the exact same state, question, options or rubric. Both results appear in the same question block before moving to the next task. Both clients are configured before inference begins. All displayed results come from the APIs; there is no recording, fixture, replay, or file-path argument.
 
-[DecisionDemo.cs](ConferenceDemos/Demos/05-DecisionModels/DecisionDemo.cs) uses the same session #13 abstract and stated AI/C#/Foundry attendee interest for:
+Each question has a numbered block: question, options or rubric, shared-state summary, then provider name, API method and **RUNNING** status, **COMPLETED**, and a compact result. Noul runs first (both days), then Choice, then three separate Score calls. Probabilities are readable percentages; scores remain zero-based expected levels. Raw JSON and usage metadata are omitted. Presentation formatting lives in [DecisionPresentation.cs](ConferenceDemos/Demos/05-DecisionModels/DecisionPresentation.cs), leaving `EvaluateAsync` focused on `AssessAsync`, `ChooseAsync`, and `ScoreAsync`.
+
+[DecisionDemo.cs](ConferenceDemos/Demos/05-DecisionModels/DecisionDemo.cs) supplies the **complete schedule, both days**, to every call. `AttendeeGoal` and `ScoreRubric` are editable in that file. Keep the rubric aligned with the interests you want to assess; editing a goal changes the input to both live providers immediately.
 
 | Shape | Library method | Displayed result |
 |---|---|---|
-| Choice | `ChooseAsync` | Relevance label and label probabilities |
-| Noul (binary) | `AssessAsync` | `AssessmentDecision.Probability` |
-| Ordered score | `ScoreAsync` | Zero-based expected score and level probabilities on a four-level scale |
+| Noul (binary), two calls | `AssessAsync` | "Is Cédric Mendelin speaking on Day 1?" and "Day 2?"; separate proposition probabilities |
+| Choice | `ChooseAsync` | One session ID and probabilities across eleven speaker/session options |
+| Ordered score, three calls | `ScoreAsync` | Fit of non-AI sessions #6 (garbage collection), #18 (HttpClient), and #20 (advanced TypeScript); expected rubric level and four level probabilities |
 
-These are the library's normalized typed outputs, not identical raw provider wire formats. The Microsoft adapter uses SystemOne; the OpenAI adapter uses the Decisions endpoint. Only the session and attendee interest are shared; each question and its options or scale are inline in `EvaluateAsync`. JSON includes this shared input, all three results, and a task-contract version. Real captures also include provider/model and timestamp; the sample deliberately has no model or timestamp. Input equality, contract version, provenance fields, and result distributions are checked, but do not prove provider origin: create real captures only with the recording command. Older version-1 captures must be re-recorded for this version-2 format.
+The shortlist is sessions **#5, #9, #13, #17, #21, #22, #30, #32, #34, #43, and #46**, with titles and speaker labels taken from the schedule. Cédric's talk participates on equal terms: no winner is hard-coded. David's adoption talk and Kajetan's implementation talk illustrate a genuine trade-off; the other options cover broader agent development, operations, security, and AI-assisted work. This selects a talk, not a ranking of people or a conflict-free agenda.
 
-Missing/mismatched captures and malformed distributions fail explicitly. This is an API/output illustration, **not an accuracy benchmark**; neither model scores nor probabilities are calibrated real-world certainty. Schedule existence and time lookup stay deterministic.
+The score rubric is **0: no useful coverage**, **1: adjacent coverage**, **2: direct coverage of one need**, **3: direct coverage of both integration and colleague adoption**. The three non-AI topics provide negative or adjacent-fit examples against the agent integration/adoption goal: runtime knowledge or networking may be useful background, but should not automatically earn direct-fit scores. Judge only the abstract, not what a speaker might discuss. No exact live scores are prescribed. The expected score is not a percentage or a ranking of the shortlist.
+
+The snapshot lists Cédric as a named speaker on Day 1, not Day 2. Generic speaker Q&A participation is not inferred. These factual questions illustrate the binary API; production schedule lookup should remain deterministic. Exact live probabilities and the recommendation winner are not prescribed.
+
+These are normalized typed outputs, not identical raw provider wire formats. The Microsoft adapter uses SystemOne; the OpenAI adapter uses the Decisions endpoint. Both providers' binary probabilities, choice distributions, and expected-score consistency are validated.
+
+Missing configuration, provider errors, cancellation, and malformed distributions fail explicitly; there is no fallback result. Full context is not silently truncated; ensure the chosen deployments accept the schedule. This is an API/output illustration, **not an accuracy benchmark**; neither scores nor probabilities are calibrated real-world certainty.
 
 ### 6. Harness: build my speaker agenda page (HTML)
 
@@ -240,7 +249,7 @@ The speaker profile is [Samples/speaker-profile.json](ConferenceDemos/Samples/sp
 **Demo only, not for production:** generated HTML is not sanitized, and `--open` opens an existing page even when checks fail. The checks validate agenda content, not HTML safety; the skill's no-script instruction is not an enforced boundary. Model-generated content, including content influenced by web results, can execute in your browser outside the file-tool sandbox. Inspect the file before opening it. Production use requires an enforced HTML safety boundary and a safe preview policy.
 ## Rehearsal and boundaries
 
-Run demos 1–3 first, then demos 4–6 in order after configuring the real deployments. Separately record the OpenAI capture, rehearse live inference, and follow the hosted guide through portal invocation. Prepare captures of live-dependent demos and switch to them if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.
+Run demos 1–3 first, then demos 4–6 in order after configuring the real deployments. Rehearse both live decision providers and follow the hosted guide through portal invocation. The decision demo always uses live inference and fails explicitly if a dependency fails. Keep the 50-minute content / 10-minute Q&A budget from the [talk outline](conference-talk-outline.md); automated tests cannot establish a timed rehearsal or portal success.
 
 Tests use the repository's scripted `IChatClient` and Responses host fixtures, not credentials. They exercise actual MAF function calling, workflow events, the context provider, workflows/Harness, and the hosted protocol with controlled model replies. Schedule tests check complete-document injection, caller/day propagation, plain-text output, and explicit failures; live rehearsal is still needed to assess answer quality. The shared code comes from `dotnet/src/Shared`, `Shared.Hosting`, and linked chapter decision-configuration/call-budget source files. Conference prompts, the agenda workflow, schedule grounding, the page skill, and the Harness setup remain here.
 

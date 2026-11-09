@@ -1,6 +1,6 @@
 # Update Conference Talk Demo Implementation Plan
 
-> Local implementations, deterministic checks, and the separate Hosted Agent companion are implemented. Live model rehearsal, real provider captures, and Azure/portal validation remain external acceptance gates; no deployment has been performed.
+> Local implementations, deterministic checks, and the separate Hosted Agent companion are implemented. Live model rehearsal and Azure/portal validation remain external acceptance gates; no deployment has been performed.
 
 > **Superseded demos:** the shopping planner (demo 2) and the speaker research collaboration (demo 4) were replaced by the goal-monitored agenda planning workflow (`plan`, [AgendaPlanningDemo.cs](ConferenceDemos/Demos/04-PlanningAndGoalMonitoring/AgendaPlanningDemo.cs)) and the Harness speaker-page agent (`speaker-page`, [SpeakerPageDemo.cs](ConferenceDemos/Demos/06-Harness/SpeakerPageDemo.cs)). See the [README](README.md). The sections below are kept as the historical plan.
 
@@ -14,9 +14,9 @@ The implementation location is `update-conference-26/`, as requested, rather tha
 | 1. Schedule RAG | Full-document grounding | Canonical Markdown is embedded; the schedule agent receives the complete document through MAF's built-in `TextSearchProvider` before ordinary text generation. Session parsing remains for other demos. Relevance and citations are model-generated rather than exact-quote validated. |
 | 2. Hosted Agent | Shared schedule behavior | Separate Responses host, managed-identity configuration, tracing, bundled azd manifest, and project-local deployment/provenance guide exist. Publish must include the complete embedded fixture and referenced dependencies. The host delegates to the same full-document schedule agent. |
 | 3. Shopping workflow | Implemented and deterministically checked | `WorkflowBuilder` controls recipe choice, read-only pantry accounting, and goal validation. Tests cover supported preference, no matching recipe, absent/null pantry data, extra/duplicate/missing items, and model failure. |
-| 4. Decision Models | Implemented and deterministically checked | Choice, Noul, score, provider configuration, and real-capture recording/playback are wired. Tests verify shared context, distribution contracts, capture metadata/hash, stale inputs, cancellation, and failures. No fabricated capture is included; live provider calls and real recording remain. |
+| 4. Decision Models | Live-only complete-schedule scenarios | Two binary day checks, eleven-session choice, and three non-AI scores. Microsoft-only or sequential Microsoft/OpenAI comparison per question; no recording or replay. Tests verify shared tasks/input, provider order, distributions, cancellation, and failures. |
 | 5. Speaker collaboration | Implemented and deterministically checked | Real Harness researcher, tool-free reviewer, one-revision workflow, exact quote/citation checks, and call limits are exercised with scripted models. Organizer snapshot only; no next event is claimed to be verified. Live rehearsal remains. |
-| 6. Validation and rehearsal | Separate automated and presenter gates | Build the conference solution, run deterministic tests, and check published dependencies/fixture loading. Rehearse live answers separately from scripted checks; portal invocation, real provider captures, and timed rehearsal remain presenter gates. |
+| 6. Validation and rehearsal | Separate automated and presenter gates | Build the conference solution, run deterministic tests, and check published dependencies. Rehearse live answers separately from scripted checks; portal invocation and timed rehearsal remain presenter gates. |
 
 ### Completed implementation sequence
 
@@ -29,7 +29,7 @@ The implementation location is `update-conference-26/`, as requested, rather tha
 ### Remaining presenter rehearsal gates
 
 1. Configure the chosen Foundry chat and decision deployments and rehearse all four local commands with live inference.
-2. Record and review a real Azure OpenAI Decisions capture using the documented command; rehearse the Microsoft-Decision-1 live / OpenAI captured comparison.
+2. Rehearse `decisions --compare-openai`: Microsoft then OpenAI live for each identical task.
 3. Follow the hosted guide from its project folder, deploy with authorization, verify current runtime inference access, and obtain a grounded portal response.
 4. Prepare captures/fallbacks and rehearse the timed 50-minute content path with 10 minutes reserved for Q&A.
 
@@ -49,7 +49,7 @@ Keep existing chapter samples intact unless a specific reusable helper is clearl
 |---:|---|---|---|
 | 1 | Update schedule RAG | Local .NET app; optional custom Hosted Agent | Same question with and without event data; answer from the Markdown schedule. |
 | 2 | Shopping planner with goal check | Local .NET app | Use `WorkflowBuilder` to choose a simple dinner and return only missing ingredients. |
-| 3 | Decision Models | Local .NET app | Demonstrate choice, Noul, and score; Microsoft-Decision-1 live, Azure OpenAI Decisions captured. |
+| 3 | Decision Models | Local .NET app | Demonstrate choice, Noul, and score; Microsoft and Azure OpenAI Decisions both live. |
 | 4 | Speaker research with Harness and Reviewer | Local .NET app | Bounded collaboration over a verified source snapshot, with one evidence-focused revision. |
 
 ## Implementation layout
@@ -102,13 +102,13 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 ### 4. Build the Decision Models example
 
 - Use one schedule-session abstract and an explicitly stated attendee interest as shared context.
-- Exercise all three task shapes with the same context: **choice**, **Noul** (binary yes/no), and **score** on an ordered scale.
+- Exercise all three task shapes with the complete two-day schedule: two **Noul** day checks, **choice** among eleven sessions including Cédric's, and three non-AI session **scores** on an explicit ordered rubric. Keep API calls visible and present each call's question/state, running status, and compact result sequentially.
 - Call **Microsoft-Decision-1 live** from the local .NET demo, as selected for the talk.
-- Capture a previously verified **Azure OpenAI Decisions** response for the same inputs and task shapes. Clearly label it as captured; do not imply it is a second live call.
+- Call **Azure OpenAI Decisions** immediately after Microsoft for each identical question and show both live results together.
 - Describe the comparison as an API/output illustration. Do not compare numerical outputs as a benchmark, claim either provider is more accurate, or present a model score as calibrated certainty.
-- Keep deterministic schedule lookups outside the model. The live decision is about bounded relevance/fit, not discovering whether a session exists or when it occurs.
+- Use the Cédric Day 1/Day 2 questions only to illustrate the binary API; production fact lookup remains deterministic. Choice and score judge session fit to business-data integration and adoption, with no hard-coded live winner or probabilities.
 
-**Acceptance gate:** a rehearsal can show all three live Microsoft-Decision-1 task shapes, then the labeled Azure OpenAI Decisions capture, with matching input/context and no unsupported performance claim.
+**Acceptance gate:** a rehearsal shows both providers live, sequentially per question across all three shapes, with identical input/context and no unsupported performance claim.
 
 ### 5. Build the bounded speaker-research collaboration
 
@@ -126,7 +126,7 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 - Test each local command independently from a clean checkout; then rehearse transitions, prompts, and output framing in the exact talk order.
 - Run deterministic tests for schedule parsing/context injection, workflow goal checks, all three decision shapes, harness/tool limits, revision limits, and speaker citation validation.
 - Separately smoke-test live inference for the local demos and the portal invocation for the Hosted Agent. Keep these checks separate from deterministic tests.
-- Prepare captures for each live dependency, especially Hosted Agent deployment/invocation, Microsoft-Decision-1, and speaker research.
+- Prepare fallback material for Hosted Agent deployment/invocation and speaker research. Decision commands always call the APIs and report failures explicitly.
 - Enforce the 50-minute content budget and preserve the 10-minute Q&A. If behind, shorten explanation or switch to captures; do not add features or cut the portal invocation acceptance check from pre-talk rehearsal.
 
 ## Demo contracts and on-stage boundaries
@@ -135,7 +135,7 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 |---|---|---|---|
 | Schedule RAG | Complete canonical Markdown via MAF `TextSearchProvider` | Final plain-text answer with model-generated citations | No vector-store deployment, printed context, deterministic factuality guarantee, or broad production-search claim |
 | Shopping planner | Fixed recipes, preferences, pantry; local fake/read-only functions | Missing-items shopping list and concise goal-check status | No hosted app, live recipe lookup, route, or budget |
-| Decision Models | One session abstract and attendee interest; one live provider and one capture | Choice, Noul, and ordered score examples | No accuracy benchmark; no model for exact schedule facts |
+| Decision Models | Complete schedule and attendee goal; one or two live providers | Two binary day checks, eleven-session choice, three non-AI ordered scores | No accuracy benchmark; binary facts illustrate the API, not production lookup |
 | Speaker collaboration | Pre-verified local source snapshot; read-only researcher tools | Cited summary, bounded review, at most one revision | No live web search, unverified future-event claims, inferred "passion," or reviewer tools |
 
 ## Completion checklist
@@ -146,7 +146,7 @@ Use the existing [schedule Markdown file](Update_Conference_Prague_2026_Schedule
 - [x] The separate host and project-local step-by-step deployment/creation guide are present.
 - [ ] The Hosted Agent is deployed and invoked successfully in the portal after model-inference access is verified.
 - [x] Shopping goal checks and failure cases are covered by deterministic tests.
-- [x] Decision Models implements choice, Noul, and score with the selected live/captured provider arrangement.
-- [ ] Live Microsoft decisions and a real matching OpenAI capture are rehearsed.
+- [x] Decision Models implements choice, Noul, and score with live-only provider calls.
+- [ ] Sequential live Microsoft/OpenAI comparison is rehearsed.
 - [x] Speaker claims/citations are evidence-checked; tool and revision limits are enforced.
 - [ ] Captures/fallbacks and a 50-minute timed rehearsal are ready.

@@ -1,5 +1,5 @@
 using AgenticDesignPatterns.Shared;
-using Extension02.DecisionModels;
+using DecisionModels;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 using System.Text.Json;
@@ -18,14 +18,13 @@ public static class Program
                   1. Prague weather: dotnet run --project ConferenceDemos -- agent
                   2. Simple MAF workflow: dotnet run --project ConferenceDemos -- workflow [attendee name]
                   3. Schedule RAG: dotnet run --project ConferenceDemos -- rag [question]
-                  4. Planning and goal monitoring: dotnet run --project ConferenceDemos -- plan [--rounds 1-5]
-                  5.1 Decision Model - compare sample: dotnet run --project ConferenceDemos -- decisions
-                  5.2 Decision Model - compare recorded OpenAI: dotnet run --project ConferenceDemos -- decisions <openai-capture.json>
-                  5.3 Decision Model - record OpenAI: dotnet run --project ConferenceDemos -- decisions-record-openai <new-capture.json>
+                  4. Planning and goal monitoring: dotnet run --project ConferenceDemos -- plan [--rounds 1-5] [--verbose]
+                  5.1 Decision Model - Microsoft live: dotnet run --project ConferenceDemos -- decisions
+                  5.2 Decision Model - live comparison: dotnet run --project ConferenceDemos -- decisions --compare-openai
                   6. Harness: dotnet run --project ConferenceDemos -- speaker-page [--open]
                   6.1 Harness + web search: dotnet run --project ConferenceDemos -- speaker-page --web [--open]
                 See demo-flows.md for diagrams for demos 2, 4, 6, and 6.1.
-                See README.md for credentials, recording, and project-local hosted deployment.
+                See README.md for credentials and project-local hosted deployment.
                 """);
             return 0;
         }
@@ -66,50 +65,24 @@ public static class Program
             {
                 return await RunSpeakerPageAsync(options, cancellation.Token);
             }
-            if (command is "decisions" or "decisions-record-openai")
+            if (command == "decisions")
             {
-                if (options.Length > 1 || (command == "decisions-record-openai" && options.Length != 1) ||
-                    (options.Length == 1 && string.IsNullOrWhiteSpace(options[0])))
+                if (options.Length != 0 && options is not ["--compare-openai"])
                 {
-                    throw new ArgumentException("decisions accepts an optional JSON path; decisions-record-openai requires one new capture path.");
+                    throw new ArgumentException("decisions accepts only the optional --compare-openai flag. All results are live API responses.");
                 }
                 var state = DecisionDemo.State();
-                var demo = command == "decisions-record-openai"
-                    ? "5.3 Decision Model - record OpenAI"
-                    : options.Length == 0
-                        ? "5.1 Decision Model - compare sample"
-                        : "5.2 Decision Model - compare recorded OpenAI";
-                Console.WriteLine($"{demo}\nShared session and attendee interest:\n{state}");
-                var capture = command == "decisions"
-                    ? DecisionDemo.ReadCapture(options.SingleOrDefault() ?? DecisionDemo.SamplePath, state) : null;
-                if (capture?.Provider == DecisionDemo.SampleProvider)
-                {
-                    Console.WriteLine("\nUsing bundled ILLUSTRATIVE SAMPLE, not a recorded OpenAI response.");
-                }
+                var compare = options.Length != 0;
+                var demo = compare ? "5.2 Decision Model - live comparison" : "5.1 Decision Model - Microsoft live";
+                Console.WriteLine($"{demo}\nShared evidence: complete conference schedule (both days).\n" +
+                    $"Attendee goal: {DecisionDemo.AttendeeGoal}\n" +
+                    "Binary API illustration: the snapshot lists Cédric on Day 1, not Day 2; production fact lookup should be deterministic.\n" +
+                    "Choice and score are judgments about published session coverage, not a guaranteed winner or confidence benchmark.");
                 var settings = FoundryChatClientFactory.LoadSettings();
-                using var decisions = DecisionConfiguration.CreateClient(settings, command == "decisions" ? "microsoft" : "openai");
-                var result = await DecisionDemo.EvaluateAsync(decisions, state, cancellation.Token);
-                if (command == "decisions-record-openai")
-                {
-                    var recorded = DecisionDemo.Capture(result, state, settings.ResolveModelDeployment("openaiDecision"));
-                    DecisionDemo.ValidateCapture(recorded, state);
-                    var path = Path.GetFullPath(options[0]);
-                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                    await using var file = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
-                    await JsonSerializer.SerializeAsync(file, recorded, DecisionDemo.JsonOptions, cancellation.Token);
-                    Console.WriteLine("Recorded a live Azure OpenAI Decisions result for all three tasks. Review it before rehearsal.");
-                }
-                else
-                {
-                    Console.WriteLine("\nMicrosoft-Decision-1 - LIVE (Choice / Noul / Score):\n" +
-                        JsonSerializer.Serialize(result, DecisionDemo.JsonOptions));
-                    var label = capture!.Provider == DecisionDemo.SampleProvider
-                        ? "ILLUSTRATIVE SAMPLE - not a model response"
-                        : $"Azure OpenAI Decisions - CAPTURED ({capture.CapturedAt:O}, model {capture.ModelDeployment})";
-                    Console.WriteLine($"\n{label}:\n" +
-                        JsonSerializer.Serialize(capture.Results, DecisionDemo.JsonOptions));
-                    Console.WriteLine("\nAPI/output illustration only. Scores are not calibrated certainty or an accuracy benchmark.");
-                }
+                using var decisions = DecisionConfiguration.CreateClient(settings, "microsoft");
+                using var openai = compare ? DecisionConfiguration.CreateClient(settings, "openai") : null;
+                await DecisionDemo.EvaluateAsync(decisions, state, cancellation.Token, Console.WriteLine, openai);
+                Console.WriteLine("\nLive API/output illustration only. Scores are not calibrated certainty or an accuracy benchmark.");
                 return 0;
             }
 
@@ -142,23 +115,29 @@ public static class Program
     private static async Task<int> RunPlanAsync(string[] options, CancellationToken cancellationToken)
     {
         var request = AgendaPlanningDemo.DefaultRequest;
+        var verbose = false;
         for (var i = 0; i < options.Length; i++)
         {
             switch (options[i])
             {
+                case "--verbose":
+                    verbose = true;
+                    break;
                 case "--rounds" when i + 1 < options.Length && int.TryParse(options[i + 1], out var rounds) && rounds is >= 1 and <= 5:
                     request = request with { MaxIterations = rounds };
                     i++;
                     break;
                 default:
-                    throw new ArgumentException("plan accepts only --rounds 1-5.");
+                    throw new ArgumentException("plan accepts --rounds 1-5 and --verbose.");
             }
         }
 
         var schedule = new ScheduleCorpus();
         Console.WriteLine("4. Planning and goal monitoring\n");
 
-        Console.WriteLine($"\nGoal: plan {request.Attendee}'s day {request.Day} at Update Conference Prague 2026.\nInterests: {request.Interests}\n");
+        Console.WriteLine(AgendaPlanningDemo.WrapConsoleText(
+            $"Give me {request.SessionCount} interesting sessions on conference day {request.Day} for {request.Attendee}.", "Request: ", "         "));
+        Console.WriteLine(AgendaPlanningDemo.WrapConsoleText(request.Interests, "Interests: ", "           ") + "\n");
         using var client = FoundryChatClientFactory.CreateChatClient(FoundryChatClientFactory.LoadSettings());
         var result = await AgendaPlanningDemo.RunAsync(client, request, cancellationToken, evt =>
         {
@@ -167,17 +146,19 @@ public static class Program
                 case AgendaProgressEvent progress:
                     Console.WriteLine(progress.Message);
                     break;
-                case ExecutorInvokedEvent invoked when invoked.ExecutorId is AgendaPlanningDemo.ConstraintMonitorId or AgendaPlanningDemo.FitCriticId:
-                    Console.WriteLine($"  -> {invoked.ExecutorId} (parallel)");
-                    break;
             }
-        });
+        }, verbose);
 
-        Console.WriteLine($"\n=== {(result.Achieved ? "PUBLISHED" : "ESCALATED")} ===\n{result.Outcome}\n" +
-            $"{AgendaPlanningDemo.FormatAgenda(result.Agenda, schedule)}\n\n{result.Agenda.Summary}\n\nWhy:");
-        foreach (var session in result.Agenda.Sessions)
+        Console.WriteLine($"\n=== {(result.Achieved ? "PUBLISHED" : "ESCALATED")} ===\n" +
+            AgendaPlanningDemo.WrapConsoleText(result.Outcome) + "\n" +
+            AgendaPlanningDemo.WrapConsoleText(result.Agenda.Summary));
+        if (verbose)
         {
-            Console.WriteLine($"  #{session.Id}: {session.Why}");
+            Console.WriteLine("\nFINAL AGENDA\n" + AgendaPlanningDemo.FormatAgenda(result.Agenda, schedule) + "\n\nWHY");
+            foreach (var session in result.Agenda.Sessions)
+            {
+                Console.WriteLine(AgendaPlanningDemo.WrapConsoleText(session.Why, $"  #{session.Id}: ", "       "));
+            }
         }
         Pause();
         return result.Achieved ? 0 : 2;

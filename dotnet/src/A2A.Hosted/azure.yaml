@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+requiredVersions:
+    azd: '>=1.35.1'
+    extensions:
+        azure.ai.agents: '>=1.0.0-beta.19'
+name: chapter15-a2a
+services:
+    chapter15-a2a:
+        project: .
+        host: azure.ai.agent
+        language: csharp
+        startupCommand: dotnet run --project A2A.Hosted.csproj
+        displayName: Chapter 15 - Inter-Agent Communication (A2A)
+        description: Exposes a MAF-backed specialist through A2A agent-card discovery, JSON-RPC, and HTTP+JSON streaming.
+        uses:
+            - foundry-project
+        env:
+            Foundry__ProjectEndpoint: ${AZURE_AI_PROJECT_ENDPOINT}
+            AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
+        codeConfiguration:
+            dependencyResolution: bundled
+            entryPoint: A2A.Hosted.dll
+            runtime: dotnet_10
+        container:
+            resources:
+                cpu: "0.5"
+                memory: 1Gi
+        kind: hosted
+        name: chapter15-a2a
+        protocols:
+            - protocol: a2a
+              version: 1.0.0
+        agentEndpoint:
+            protocols:
+                - a2a
+        agentCard:
+            description: Answers weather-related questions with general guidance and clearly distinguishes it from live observations.
+            version: "1.0"
+            skills:
+                - id: weather-guidance
+                  name: Weather guidance
+                  description: Answers weather questions with general guidance, not live observations.
+                  tags:
+                      - weather
+                      - guidance
+                  examples:
+                      - What's the weather in Paris?
+    foundry-project:
+        host: azure.ai.project
+        endpoint: ${AZURE_AI_PROJECT_ENDPOINT}
+infra:
+    provider: microsoft.foundry

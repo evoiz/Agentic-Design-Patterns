@@ -6,9 +6,9 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\05-TrustAndOperations\Extension01.AgentHarness\Extension01.AgentHarness.csproj" />
-    <ProjectReference Include="..\..\src\04-Collaboration\Chapter13.HumanInTheLoop\Chapter13.HumanInTheLoop.csproj" />
-    <ProjectReference Include="..\..\src\Shared\Shared.csproj" />
+    <ProjectReference Include="../../src/AgentHarness/AgentHarness.csproj" />
+    <ProjectReference Include="../../src/HumanInTheLoop/HumanInTheLoop.csproj" />
+    <ProjectReference Include="../../src/Shared/Shared.csproj" />
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />

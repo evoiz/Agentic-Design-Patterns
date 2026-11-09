@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Reasoning.Hosted": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:61360;http://localhost:61361"
+    }
+  }
+}

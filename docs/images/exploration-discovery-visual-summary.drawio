@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" modified="2026-11-05T00:00:00.000Z" agent="GitHub Copilot" version="24.7.17" type="device">
   <diagram id="exploration-discovery" name="Exploration and Discovery">
-    <mxGraphModel dx="1080" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1080" pageHeight="500" math="0" shadow="0">
+    <mxGraphModel dx="1080" dy="620" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1080" pageHeight="620" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -14,8 +14,12 @@
         <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="generate" target="review"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="review" target="investigate"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="investigate" target="validate"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="loop" value="refine and explore again" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;dashed=1;" edge="1" parent="1" source="validate" target="generate"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="984" y="399" /><mxPoint x="336" y="399" /></Array></mxGeometry></mxCell>
-        <mxCell id="human" value="Human researcher guides goals, methods, and validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#18343B;strokeColor=#18343B;fontColor=#FFFFFF;fontSize=14;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="350" y="431" width="380" height="40" as="geometry" /></mxCell>
+        <mxCell id="loop" value="Revise only while budget remains" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#52636B;strokeWidth=2;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="validate" target="generate"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="984" y="399" /><mxPoint x="336" y="399" /></Array></mxGeometry></mxCell>
+        <mxCell id="human" value="Conceptual investigation cycle: a human guides goals and validation.&#xa;The console reviews proposals; it does not run experiments." style="text;whiteSpace=wrap;html=1;fontColor=#18343B;fontSize=14;" vertex="1" parent="1"><mxGeometry x="250" y="550" width="650" height="55" as="geometry" /></mxCell>
+        <mxCell id="finish" value="Accepted findings&#xa;or explicitly unvalidated proposal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontSize=15;" vertex="1" parent="1"><mxGeometry x="730" y="450" width="280" height="70" as="geometry" /></mxCell>
+        <mxCell id="stop" value="Incomplete&#xa;budget exhausted / unresolved gaps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE8E7;strokeColor=#D58C86;fontSize=15;" vertex="1" parent="1"><mxGeometry x="350" y="450" width="280" height="70" as="geometry" /></mxCell>
+        <mxCell id="done" value="Validation passed" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#52636B;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="validate" target="finish"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="exhausted" value="Not passed + exhausted" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#52636B;strokeWidth=2;exitX=0.2;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="validate" target="stop"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="945" y="425"/><mxPoint x="490" y="425"/></Array></mxGeometry></mxCell>
       </root>
     </mxGraphModel>
   </diagram>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>ExceptionHandling.Hosted</AssemblyName>
+    <RootNamespace>ExceptionHandling.Hosted</RootNamespace>
+    <UserSecretsId>98b178ff-0129-443b-b2d8-296fa44ed320</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ExceptionHandling/ExceptionHandling.csproj" />
+    <ProjectReference Include="../Shared.Hosting/Shared.Hosting.csproj" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry.Hosting" />
+  </ItemGroup>
+</Project>

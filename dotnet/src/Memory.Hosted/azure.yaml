@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+requiredVersions:
+    azd: '>=1.35.1'
+    extensions:
+        azure.ai.agents: '>=1.0.0-beta.19'
+name: chapter08-memory
+services:
+    chapter08-memory:
+        project: .
+        host: azure.ai.agent
+        language: csharp
+        startupCommand: dotnet run --project Memory.Hosted.csproj
+        displayName: Chapter 08 - Memory
+        description: Demonstrates managed memory with synthetic travel facts recalled in a new MAF session and a fresh scope per request.
+        uses:
+            - foundry-project
+        env:
+            Foundry__ProjectEndpoint: ${AZURE_AI_PROJECT_ENDPOINT}
+            AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
+            AZURE_AI_EMBEDDING_DEPLOYMENT_NAME: ${AZURE_AI_EMBEDDING_DEPLOYMENT_NAME}
+            AZURE_AI_MEMORY_STORE_ID: ${AZURE_AI_MEMORY_STORE_ID}
+        codeConfiguration:
+            dependencyResolution: bundled
+            entryPoint: Memory.Hosted.dll
+            runtime: dotnet_10
+        container:
+            resources:
+                cpu: "1"
+                memory: 2Gi
+        kind: hosted
+        name: chapter08-memory
+        protocols:
+            - protocol: responses
+              version: 2.0.0
+    foundry-project:
+        host: azure.ai.project
+        endpoint: ${AZURE_AI_PROJECT_ENDPOINT}
+infra:
+    provider: microsoft.foundry

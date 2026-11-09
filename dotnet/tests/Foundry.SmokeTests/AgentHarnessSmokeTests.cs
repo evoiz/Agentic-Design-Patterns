@@ -1,5 +1,5 @@
 using AgenticDesignPatterns.Shared;
-using Extension01.AgentHarness;
+using AgentHarness;
 using Xunit;
 
 namespace AgenticDesignPatterns.Foundry.SmokeTests;

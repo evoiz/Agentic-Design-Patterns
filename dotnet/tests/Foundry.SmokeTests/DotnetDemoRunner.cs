@@ -8,57 +8,57 @@ internal static class DotnetDemoRunner
 
     public static Task<DemoRunResult> RunChapter01SpecsAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter01.PromptChaining", "Chapter01.PromptChaining.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "PromptChaining", "PromptChaining.csproj"),
             ["specs"]);
 
     public static Task<DemoRunResult> RunChapter02TravelAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter02.Routing", "Chapter02.Routing.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "Routing", "Routing.csproj"),
             ["travel"]);
 
     public static Task<DemoRunResult> RunChapter03TopicAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter03.Parallelization", "Chapter03.Parallelization.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "Parallelization", "Parallelization.csproj"),
             ["topic"]);
 
     public static Task<DemoRunResult> RunChapter04FactCheckAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter04.Reflection", "Chapter04.Reflection.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "Reflection", "Reflection.csproj"),
             ["fact-check"]);
 
     public static Task<DemoRunResult> RunChapter05SearchAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter05.ToolUse", "Chapter05.ToolUse.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "ToolUse", "ToolUse.csproj"),
             ["search"]);
 
     public static Task<DemoRunResult> RunChapter06PlanWriteAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter06.Planning", "Chapter06.Planning.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "Planning", "Planning.csproj"),
             ["plan-write"]);
 
     public static Task<DemoRunResult> RunChapter07CrewAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter07.MultiAgent", "Chapter07.MultiAgent.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "MultiAgent", "MultiAgent.csproj"),
             ["crew"]);
 
     public static Task<DemoRunResult> RunChapter08SessionMemoryAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter08.Memory", "Chapter08.Memory.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "Memory", "Memory.csproj"),
             ["session"]);
 
     public static Task<DemoRunResult> RunChapter09LearningAdaptationAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter09.LearningAdaptation", "Chapter09.LearningAdaptation.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "LearningAdaptation", "LearningAdaptation.csproj"),
             ["maf"]);
 
     public static Task<DemoRunResult> RunChapter21ExplorationAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter21.ExplorationDiscovery", "Chapter21.ExplorationDiscovery.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "ExplorationDiscovery", "ExplorationDiscovery.csproj"),
             ["explore"]);
 
     public static Task<DemoRunResult> RunChapter17ReasoningAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter17.Reasoning", "Chapter17.Reasoning.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "Reasoning", "Reasoning.csproj"),
             ["all"]);
 
     public static async Task<DemoRunResult> RunChapter11GoalSettingMonitoringAsync()
@@ -69,7 +69,7 @@ internal static class DotnetDemoRunner
         try
         {
             return await RunAsync(
-                Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter11.GoalSettingMonitoring", "Chapter11.GoalSettingMonitoring.csproj"),
+                Path.Combine(RepositoryRoot, "dotnet", "src", "GoalSettingMonitoring", "GoalSettingMonitoring.csproj"),
                 ["--iterations", "1", "--output-dir", outputDirectory]);
         }
         finally
@@ -83,27 +83,27 @@ internal static class DotnetDemoRunner
 
     public static Task<DemoRunResult> RunChapter12RecoveryAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter12.ExceptionHandling", "Chapter12.ExceptionHandling.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "ExceptionHandling", "ExceptionHandling.csproj"),
             ["all"]);
 
     public static Task<DemoRunResult> RunChapter14RagAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter14.RAG", "Chapter14.RAG.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "RAG", "RAG.csproj"),
             ["rag", "What", "did", "the", "president", "say", "about", "Justice", "Breyer?"]);
 
     public static Task<DemoRunResult> RunChapter19EvaluationAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter19.Evaluation", "Chapter19.Evaluation.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "Evaluation", "Evaluation.csproj"),
             ["all"]);
 
     public static Task<DemoRunResult> RunChapter16ComplexityAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter16.ResourceOptimization", "Chapter16.ResourceOptimization.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "ResourceOptimization", "ResourceOptimization.csproj"),
             ["complexity"]);
 
     public static Task<DemoRunResult> RunChapter18PolicyAsync() =>
         RunAsync(
-            Path.Combine(RepositoryRoot, "dotnet", "src", "Chapter18.Guardrails", "Chapter18.Guardrails.csproj"),
+            Path.Combine(RepositoryRoot, "dotnet", "src", "Guardrails", "Guardrails.csproj"),
             ["policy", "--text", "Explain the benefits of unit testing."]);
 
     private static async Task<DemoRunResult> RunAsync(string projectPath, string[] demoArguments)

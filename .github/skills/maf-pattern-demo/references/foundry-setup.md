@@ -13,11 +13,10 @@ dotnet/
     ├── Shared/Shared.csproj
     │   ├── FoundrySettings.cs
     │   └── FoundryChatClientFactory.cs
-    └── 01-Flow/                       # one folder per pattern family (see docs/design-patterns.md)
-        └── Chapter01.PromptChaining/...
+    └── PromptChaining/PromptChaining.csproj
 ```
 
-Tests mirror the family folders under `dotnet/tests/<Family>/`.
+Tests live under `dotnet\tests\<PatternName>.Tests`; families are catalog metadata.
 
 ## Directory.Build.props (key parts)
 ```xml
@@ -33,16 +32,16 @@ Tests mirror the family folders under `dotnet/tests/<Family>/`.
 </Project>
 ```
 
-## Packages (central versions, use latest prerelease where noted)
+## Packages (preserve central pinned versions; verify API maturity separately)
 
 Core (MAF + model deployment, always):
 | Package | Why |
 |---|---|
-| `Microsoft.Agents.AI` (prerelease) | `AIAgent`, `ChatClientAgent` |
-| `Microsoft.Agents.AI.OpenAI` (prerelease) | OpenAI-compatible chat client → agent |
-| `Microsoft.Agents.AI.Workflows` (prerelease) | `WorkflowBuilder`, `AgentWorkflowBuilder`, executors |
+| `Microsoft.Agents.AI` | `AIAgent`, `ChatClientAgent` |
+| `Microsoft.Agents.AI.OpenAI` | OpenAI-compatible chat client → agent |
+| `Microsoft.Agents.AI.Workflows` | `WorkflowBuilder`, `AgentWorkflowBuilder`, executors |
 | `OpenAI` | `OpenAIClient` with `ApiKeyCredential` |
-| `Microsoft.Extensions.AI.OpenAI` (prerelease) | `AsIChatClient()` |
+| `Microsoft.Extensions.AI.OpenAI` | `AsIChatClient()` |
 | `Microsoft.Extensions.Configuration.UserSecrets` | read `secrets.json` |
 | `Microsoft.Extensions.Configuration.EnvironmentVariables` | CI override |
 | `Microsoft.Extensions.Configuration.Binder` | bind `FoundrySettings` |
@@ -59,8 +58,8 @@ Foundry-native variants only (add to the chapter project, not Shared core):
 {
   "Foundry:ProjectEndpoint": "https://<resource>.services.ai.azure.com/api/projects/<project>",
   "Foundry:ApiKey": "<key from Foundry portal>",
-  "Foundry:ModelDeployment": "gpt-4.1-mini",
-  "Foundry:SmallModelDeployment": "<optional, for routing/SLM demos>"
+  "Foundry:ModelDeployment": "<chat-deployment-name>",
+  "Foundry:ModelDeployments:fast": "<optional-fast-deployment-name>"
 }
 ```
 Set via (user types the key; agent never asks for it in chat):
@@ -95,7 +94,7 @@ For cloud-agent validation, do not rely on local user-secrets. Instead:
 This keeps credentials out of the repository while allowing the cloud agent and GitHub-hosted runners to validate new implementations against a live Foundry deployment.
 
 ## Shared code sketch
-The model is called through the resource's OpenAI-compatible v1 endpoint, derived from the project endpoint host: `https://<resource>.services.ai.azure.com/openai/v1/`.
+The model is called through the resource's OpenAI-compatible endpoint, derived from the project host: `https://<resource>.openai.azure.com/openai/v1/`. Prefer the actual `Shared\FoundryChatClientFactory` implementation over this illustrative sketch.
 ```csharp
 public sealed record FoundrySettings
 {
@@ -133,7 +132,7 @@ public static class FoundryChatClientFactory
 
 At the end of a chapter implementation, follow SKILL.md's hosted-companion suitability step and load `microsoft-foundry` for current scaffolding/deployment guidance. Use a separate `Chapter<NN>.<PatternName>.Hosted` project referencing shared chapter logic. Hosting a MAF workflow is distinct from a Foundry-native pattern implementation.
 
-Verify the packaging boundary: a host source folder alone does not include sibling project references or `Directory.Build.props` / `Directory.Packages.props`. Use a complete remote-build context or bundled dependencies. For .NET bundled deployment, the current azd agent extension runs `dotnet publish` locally and ZIPs its output; keep the service's `project` pointing to the source project, not an already-published DLL folder. Chapter 02 provides a bundled reference through `dotnet/src/01-Flow/Chapter02.Routing.Hosted/azure.yaml`; each hosted project has its own manifest. Verify this behavior against the installed extension rather than duplicating its packaging logic.
+Verify the packaging boundary: a host source folder alone does not include sibling project references or `Directory.Build.props` / `Directory.Packages.props`. Use a complete remote-build context or bundled dependencies. For .NET bundled deployment, the current azd agent extension runs `dotnet publish` locally and ZIPs its output; keep the service's `project` pointing to the source project, not an already-published DLL folder. Chapter 02 provides a bundled reference through `dotnet/src/Routing.Hosted/azure.yaml`; each hosted project has its own manifest. Verify this behavior against the installed extension rather than duplicating its packaging logic.
 
 Keep azd state and published artifacts ignored, configure the project/model explicitly, use managed identity in Azure, and document required inference/deployment permissions. Adding deployment artifacts does not authorize provisioning or deployment. After an authorized deployment, verify the active version and a remote protocol invocation; console smoke tests alone are insufficient.
 

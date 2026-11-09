@@ -2,7 +2,7 @@
 
 **Classification:** runtime architecture / meta-pattern. This is an enterprise extension to the book taxonomy, not Chapter 22.
 
-The [enterprise extension report](enterprise-agentic-design-patterns-2026-extension-report-2.md#1-agent-harness) already identifies Agent Harness as the operating environment around an LLM. The [runnable C# pattern guide](../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/README.md) turns that architectural description into a concrete implementation and includes when-to-use guidance, scenarios, tradeoffs, and combinations.
+The [enterprise extension report](enterprise-agentic-design-patterns-2026-extension-report-2.md#1-agent-harness) already identifies Agent Harness as the operating environment around an LLM. The [runnable C# pattern guide](../dotnet/src/AgentHarness/README.md) turns that architectural description into a concrete implementation and includes when-to-use guidance, scenarios, tradeoffs, and combinations.
 
 ## What Is a Harness?
 
@@ -59,7 +59,7 @@ The extension uses `IChatClient.AsHarnessAgent(HarnessAgentOptions)` backed by t
 - History and compaction belong to the request, not a shared user or tenant memory.
 - Tracing surrounds the harness; confidential telemetry capture is a deliberate deployment setting.
 
-The example intentionally does not provide production writes, a shell, directory-discovered skills, or durable memory. Those require authorization, isolation, persistence, and recovery designs appropriate to the workload. The [hosted companion](../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness.Hosted/README.md) preserves that contract using Responses and managed identity.
+The example intentionally does not provide production writes, a shell, directory-discovered skills, or durable memory. Those require authorization, isolation, persistence, and recovery designs appropriate to the workload. The [hosted companion](../dotnet/src/AgentHarness.Hosted/README.md) preserves that contract using Responses and managed identity.
 
 ## Pattern Composition Rules
 
@@ -67,4 +67,4 @@ Combine a harness with **planning** for progress, **RAG** for evidence, **reflec
 
 Prefer a **Bounded Agentic Island** when the business process already has a deterministic skeleton: invoke the harness only at the judgment points. Never let child agents reset task budgets, let model-generated todos replace acceptance tests, or treat a successful deployment as proof of runtime inference access.
 
-The [combination matrix](../dotnet/src/05-TrustAndOperations/Extension01.AgentHarness/README.md#combining-agent-harness-with-other-patterns) links these choices to the existing chapter implementations.
+The [combination matrix](../dotnet/src/AgentHarness/README.md#combining-agent-harness-with-other-patterns) links these choices to the existing chapter implementations.

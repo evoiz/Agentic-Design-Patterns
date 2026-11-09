@@ -1,18 +1,20 @@
 <mxfile host="app.diagrams.net" agent="GitHub Copilot" version="24.7.17" type="device">
   <diagram id="reflection-summary" name="Reflection Visual Summary">
-    <mxGraphModel dx="980" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="980" pageHeight="470" math="0" shadow="0">
+    <mxGraphModel dx="1100" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="470" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="title" value="Reflection: critique, revise, or stop" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="48" y="22" width="800" height="70" as="geometry" /></mxCell>
-        <mxCell id="draft" value="Draft&#xa;initial answer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="48" y="185" width="172" height="100" as="geometry" /></mxCell>
+        <mxCell id="draft" value="Draft / revision&#xa;use critique on retry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="48" y="185" width="172" height="100" as="geometry" /></mxCell>
         <mxCell id="critique" value="Critique&#xa;compare to criteria" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;strokeColor=#9AA8C2;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="310" y="185" width="180" height="100" as="geometry" /></mxCell>
-        <mxCell id="check" value="Pass or&#xa;limit reached?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontColor=#18343B;fontSize=15;" vertex="1" parent="1"><mxGeometry x="570" y="155" width="160" height="160" as="geometry" /></mxCell>
-        <mxCell id="return" value="Return&#xa;or escalate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="820" y="185" width="112" height="100" as="geometry" /></mxCell>
+        <mxCell id="check" value="Accepted?&#xa;Budget remains?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontColor=#18343B;fontSize=15;" vertex="1" parent="1"><mxGeometry x="570" y="155" width="160" height="160" as="geometry" /></mxCell>
+        <mxCell id="return" value="Accepted output&#xa;review passed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="840" y="130" width="210" height="80" as="geometry" /></mxCell>
+        <mxCell id="exhausted" value="Not accepted&#xa;return reviewed draft + gaps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE8E7;strokeColor=#D58C86;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="840" y="270" width="210" height="90" as="geometry" /></mxCell>
         <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="draft" target="critique"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="critique" target="check"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e3" value="pass / limit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="check" target="return"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e4" value="revise" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="check" target="critique"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" value="Accepted (also on final round)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#52636B;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="check" target="return"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" value="Revise only while budget remains" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;exitX=0.5;exitY=1;entryX=0.5;entryY=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="check" target="draft"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="650" y="400" /><mxPoint x="134" y="400" /></Array></mxGeometry></mxCell>
+        <mxCell id="e5" value="Rejected + budget exhausted" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#52636B;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="check" target="exhausted"><mxGeometry relative="1" as="geometry" /></mxCell>
       </root>
     </mxGraphModel>
   </diagram>

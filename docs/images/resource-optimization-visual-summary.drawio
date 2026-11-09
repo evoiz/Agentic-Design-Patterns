@@ -12,7 +12,7 @@
         <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="contract" target="select"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="select" target="measure"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="measure" target="adjust"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e4" value="future tasks" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="adjust" target="contract"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" value="Future tasks; conceptual improvement, not an automatic console loop" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#52636B;strokeWidth=2;exitX=0.5;exitY=1;entryX=0.5;entryY=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="adjust" target="contract"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="910" y="360"/><mxPoint x="139" y="360"/></Array></mxGeometry></mxCell>
       </root>
     </mxGraphModel>
   </diagram>

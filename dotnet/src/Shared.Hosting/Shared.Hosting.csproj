@@ -4,7 +4,7 @@
     <RootNamespace>AgenticDesignPatterns.Shared.Hosting</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <ProjectReference Include="../Shared/Shared.csproj" />
     <PackageReference Include="Microsoft.Agents.AI" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Azure.Identity" />

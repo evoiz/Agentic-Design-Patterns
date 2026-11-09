@@ -1,9 +1,10 @@
 # Agentic design patterns and pattern families
 
-This guide gives a common vocabulary for the demos in this repository. It summarises the basics of agentic systems and design patterns from Antonio Gulli's *Agentic Design Patterns* (see [`book/`](../book/)). It then introduces the **five pattern families** that the .NET solution is organised around.
+This guide gives a common vocabulary for the C#/Microsoft Agent Framework demos in this repository. It summarises concepts from Antonio Gulli's *Agentic Design Patterns* (see [`book/`](../book)). The **five pattern families** are navigation metadata, not mandatory folder boundaries: patterns compose across families.
 
 Every book chapter has an original figure in the included PDF; each chapter below links to one by its printed figure number. The visual summaries in this guide are independently drawn explanations, not reproductions of the book's artwork.
 
+- [Concepts versus executable demos](#concepts-versus-executable-demos)
 - [What is an agentic system?](#what-is-an-agentic-system)
 - [Levels of agent complexity](#levels-of-agent-complexity)
 - [What is a design pattern?](#what-is-a-design-pattern)
@@ -16,6 +17,40 @@ Every book chapter has an original figure in the included PDF; each chapter belo
 - [Mapping to Microsoft Agent Framework and Foundry](#mapping-to-microsoft-agent-framework-and-foundry)
 - [Proposed contracts by family](#proposed-contracts-by-family)
 - [Further reading](#further-reading)
+
+## Concepts versus executable demos
+
+Diagrams explain a pattern, not a promise that every capability is implemented by its console example. Solid arrows indicate execution or information flow; labeled alternatives are mutually exclusive; feedback only repeats while the stated budget remains. An exhausted budget is **not acceptance**. Protocol discovery is metadata, not a request sender or authorization grant. Broader conceptual loops are called out below and in the relevant diagram.
+
+The [C# catalog](../dotnet/README.md#pattern-families) links to each runnable example and its optional companions. Read the pattern's **default** first; `all`, managed tools and hosting can require extra services and incur additional charges.
+
+| Pattern | What the local demo establishes | Boundary / limitation |
+|---|---|---|
+| Prompt Chaining | Two model stages produce typed specifications; code validates JSON | Validation is not a third agent |
+| Routing | Exactly one booking, information or unclear path | Unclear terminates; no automatic conversational retry |
+| Parallelization | Three independent workers join before synthesis | All-or-fail; dependent synthesis is serial |
+| Reflection | Every draft is reviewed; final-round acceptance wins | Exhaustion returns not-accepted and gaps |
+| Tool Use | Application-hosted typed tools and results | Native sandbox/search variants are optional |
+| Planning | A typed 3-6-step plan becomes a writer summary | No tool execution or replanning in plan-write |
+| MultiAgent | In-process role/orchestration examples | Distributed Responses workers are not A2A |
+| Memory | Session state and serialization round-trip | Managed memory adds embeddings, identity and asynchronous lifecycle |
+| Learning Adaptation | Candidate prompts are scored against fixed phrase criteria | Best prompt is local; no weight update or deployment |
+| MCP | Greeting over HTTP or confined filesystem over stdio | A local endpoint is not reachable from Foundry by default |
+| Goal Setting | Immutable .NET deliverable criteria, checked in code | Legacy generated Python is saved, never executed |
+| Exception Handling | Bounded recoverable lookup retry and labeled degraded fallback | Model/nonrecoverable failures propagate |
+| Human-in-the-Loop | No action before explicit approval | Hosted persistence/ownership is a separate protocol contract |
+| RAG | Cited answers from a local corpus using a search tool | No hybrid index, web gap search or guaranteed truth |
+| A2A | Card discovery and separate remote requests/streams | Authentication/authorization remain endpoint responsibilities |
+| Resource Optimization | Deterministic request classification and model selection | Measures usage; does not prove savings or tune infrastructure |
+| Reasoning | Structured/model-assisted problem-solving variants | A rationale is neither hidden reasoning nor a correctness proof |
+| Guardrails | Policy screening and tool identity checks | Uncertainty requires clarification/review; native moderation optional |
+| Evaluation | Exact-match checks, timings/usage, rubric judging | Native cloud jobs create resources; timeout does not cancel them |
+| Prioritization | Validated priority/FIFO task ordering | No task execution, durability or dynamic dependency scheduler |
+| Exploration Discovery | At most two proposals with three concurrent reviewers | Proposals are not experimentally validated discoveries |
+| Agent Harness | Todos, compaction, bounded calls and service-matched evidence | Two passes / 12 calls / cooperative deadline, not a billing guarantee |
+| Decision Models | Typed judgments enter deterministic policy and routing | Separate decision deployments; probabilities do not grant authority |
+
+Editable `.drawio` files are canonical; SVGs are local draw.io Desktop exports with embedded source. After editing, run `scripts\Export-Diagrams.ps1 -DrawioPath '<draw.io executable>'`, then visually inspect arrows, labels and stopping paths. `scripts\Test-Diagrams.ps1` checks XML/edge integrity and source hashes without requiring draw.io. It detects stale exports, not conceptual correctness.
 
 ## What is an agentic system?
 
@@ -69,19 +104,19 @@ Grouping the patterns by the **architectural question they answer** gives a smal
 
 - Easier to choose: when you identify which question is unresolved, you can narrow the search to a handful of patterns.
 - Easier to compose: real systems combine one or more patterns from several families.
-- Easier to navigate: the .NET solution mirrors the families, so related demos sit next to each other.
+- Easier to navigate: the catalog groups related demos while physical paths remain pattern-only.
 
-Several groupings are possible: three architectural levels, six layers, or the book's own parts. This repository uses the **five families** from the research report [Agentic Design Patterns with Microsoft Foundry and Microsoft Agent Framework](../ai-research/agentic-design-patterns-report-1.md). They are memorable, map one-to-one to folders, and suit teaching.
+Several groupings are possible: three architectural levels, six layers, or the book's own parts. This repository uses the **five families** from the research report [Agentic Design Patterns with Microsoft Foundry and Microsoft Agent Framework](../ai-research/agentic-design-patterns-report-1.md) as teaching metadata. Families overlap in real systems; they do not dictate folder boundaries.
 
 ## The five pattern families
 
-| # | Family | Guiding question | Patterns | Folder |
+| # | Family | Guiding question | Patterns | Navigation |
 |---|---|---|---|---|
-| 1 | **Flow** | How does work move through the system? | Prompt Chaining (1), Routing (2), Parallelization (3), Planning (6), Prioritization (20), *Decision Models* | [`dotnet/src/01-Flow`](../dotnet/src/01-Flow/README.md) |
-| 2 | **Reason & Improve** | How does the agent think about and improve its work? | Reflection (4), Learning & Adaptation (9), Goal Setting & Monitoring (11), Reasoning (17), Exploration & Discovery (21) | [`dotnet/src/02-ReasonAndImprove`](../dotnet/src/02-ReasonAndImprove/README.md) |
-| 3 | **Knowledge & Action** | What does the agent know, and what can it do? | Tool Use (5), Memory (8), MCP (10), RAG (14) | [`dotnet/src/03-KnowledgeAndAction`](../dotnet/src/03-KnowledgeAndAction/README.md) |
-| 4 | **Collaboration** | Who participates in the work? | Multi-Agent Collaboration (7), Human-in-the-Loop (13), A2A (15) | [`dotnet/src/04-Collaboration`](../dotnet/src/04-Collaboration/README.md) |
-| 5 | **Trust & Operations** | How does it stay safe, reliable, and affordable in production? | Exception Handling (12), Resource Optimization (16), Guardrails (18), Evaluation & Monitoring (19), *Agent Harness* | [`dotnet/src/05-TrustAndOperations`](../dotnet/src/05-TrustAndOperations/README.md) |
+| 1 | **Flow** | How does work move through the system? | Prompt Chaining (1), Routing (2), Parallelization (3), Planning (6), Prioritization (20), *Decision Models* | [C# catalog](../dotnet/README.md#pattern-families) |
+| 2 | **Reason & Improve** | How does the agent think about and improve its work? | Reflection (4), Learning & Adaptation (9), Goal Setting & Monitoring (11), Reasoning (17), Exploration & Discovery (21) | [C# catalog](../dotnet/README.md#pattern-families) |
+| 3 | **Knowledge & Action** | What does the agent know, and what can it do? | Tool Use (5), Memory (8), MCP (10), RAG (14) | [C# catalog](../dotnet/README.md#pattern-families) |
+| 4 | **Collaboration** | Who participates in the work? | Multi-Agent Collaboration (7), Human-in-the-Loop (13), A2A (15) | [C# catalog](../dotnet/README.md#pattern-families) |
+| 5 | **Trust & Operations** | How does it stay safe, reliable, and affordable in production? | Exception Handling (12), Resource Optimization (16), Guardrails (18), Evaluation & Monitoring (19), *Agent Harness* | [C# catalog](../dotnet/README.md#pattern-families) |
 
 Numbers in brackets are book chapters. Items in *italics* are repository additions beyond the book.
 
@@ -195,7 +230,7 @@ Original book illustration: [Figure 329.1](../book/Agentic_Design_Patterns_Compl
 
 #### Decision Models (Repository addition)
 
-Decision Models provide typed, calibrated decisions that can drive routing, ranking, or gating. Keep decision criteria explicit and validate outputs before using them to change control flow.
+Decision Models provide typed choices, rankings and scores that can drive routing or gating. Their probability outputs require representative calibration measurements; being structured does not itself make a judgment calibrated. Keep criteria explicit and validate outputs before changing control flow.
 
 ![Evidence and explicit criteria produce a typed decision that deterministic validation can safely use to route or gate work.](images/decision-models-visual-summary.svg)
 
@@ -231,11 +266,11 @@ Original book illustration: [Figure 156.1](../book/Agentic_Design_Patterns_Compl
 
 #### Goal Setting and Monitoring (Chapter 11)
 
-Explicit goals turn a broad objective into intermediate steps and observable success criteria. Monitoring checks whether actions are advancing the goal and whether circumstances have changed enough to adapt or replan.
+The cycle starts with a goal, which is made actionable through explicit, observable success criteria. The agent does work, reviews it against those criteria, and revises the work when needed; adaptation is the response to a failed review, not a separate stage. It ends when the review determines that the goal is reached and output is returned, or when the iteration limit is reached and unmet criteria are reported.
 
-Use it for multi-step work with a defined outcome. A model's judgment that it has finished is not evidence of success; check outcomes independently wherever they matter.
+Use it for multi-step work with a defined outcome. Compare the work to stated criteria rather than trusting its completion claim, bound the revise loop, and report incomplete when the limit is reached.
 
-![A goal is made measurable, progress is checked against evidence, and the system completes or replans.](images/goal-setting-monitoring-visual-summary.svg)
+![Goal → Success criteria → Work → Review → Goal reached? Passing work is returned; failed work loops back to Work while budget remains, and unmet criteria are reported at the iteration limit.](images/goal-setting-monitoring-visual-summary.svg)
 
 Editable diagram: [goal-setting-monitoring-visual-summary.drawio](images/goal-setting-monitoring-visual-summary.drawio).
 
@@ -417,7 +452,17 @@ Editable diagram: [evaluation-monitoring-visual-summary.drawio](images/evaluatio
 
 Original book illustration: [Figure 304.1](../book/Agentic_Design_Patterns_Complete.pdf).
 
+#### Agent Harness (Repository addition)
+
+A harness combines agent capabilities with an application-owned runtime contract: task tracking, context compaction, permitted tools, call/deadline limits and completion verification. In this demo, success requires completed todos plus health and runbook evidence matching the requested service. A confident answer without that evidence is incomplete. Compaction keeps the current session usable; it does not replace durable memory or authorization.
+
+![The harness enforces model-call limits, gathers matching evidence, verifies completion and reports incomplete when limits are reached.](images/agent-harness-visual-summary.svg)
+
+Editable diagram: [agent-harness-visual-summary.drawio](images/agent-harness-visual-summary.drawio).
+
 ## Looking ahead
+
+The [enterprise backlog](../ai-research/agentic-patterns-backlog.md) is a selection guide, not a commitment to port more notebooks. Prefer a new pattern only when it adds a distinct, testable contract. Context lifecycle/verified handoff and governed memory writes are strong follow-on candidates; start with a small deterministic .NET core and an optional MAF adapter. [Context Management](https://agentic-design.ai/patterns/context-management) is a useful companion reading for selection, compaction, scope and lifecycle beyond immediate prompt wording.
 
 The book also sketches possible directions rather than established capabilities: generalist agents for broad goals; personalized, proactive agents; embodied agents acting in the physical world; agent-driven economic activity; and goal-driven multi-agent systems that reshape their teams or instructions. Treat these as hypotheses about future systems, not evidence that the capabilities are reliable or ready for a given application.
 
@@ -483,6 +528,8 @@ These are proposed contracts, not implemented demos. Empty primary categories re
 
 ## Further reading
 
+- [Microsoft Agent Framework documentation](https://learn.microsoft.com/agent-framework/), [first agent](https://learn.microsoft.com/agent-framework/get-started/your-first-agent), [workflows](https://learn.microsoft.com/agent-framework/get-started/workflows), and [C# samples](https://github.com/microsoft/agent-framework/tree/main/dotnet/samples).
+- [Context Management](https://agentic-design.ai/patterns/context-management).
 - [`book/Agentic_Design_Patterns_Complete.md`](../book/Agentic_Design_Patterns_Complete.md) and the [PDF](../book/Agentic_Design_Patterns_Complete.pdf): the source book.
 - [Agentic Design Patterns with Microsoft Foundry and Microsoft Agent Framework](../ai-research/agentic-design-patterns-report-1.md): the research report that defines the five families and the MAF/Foundry mapping.
 - [Agent Harness pattern research](../ai-research/agent-harness-pattern.md): background for the enterprise extension.

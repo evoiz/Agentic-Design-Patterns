@@ -4,6 +4,6 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup>
-    <ActiveDebugProfile>4. Planning and goal monitoring</ActiveDebugProfile>
+    <ActiveDebugProfile>5.2 Decision Model - live comparison</ActiveDebugProfile>
   </PropertyGroup>
 </Project>

@@ -16,17 +16,13 @@
       "commandName": "Project",
       "commandLineArgs": "plan"
     },
-    "5.1 Decision Model - compare sample": {
+    "5.1 Decision Model - Microsoft live": {
       "commandName": "Project",
       "commandLineArgs": "decisions"
     },
-    "5.2 Decision Model - compare recorded OpenAI": {
+    "5.2 Decision Model - live comparison": {
       "commandName": "Project",
-      "commandLineArgs": "decisions captures\\openai-decisions.json"
-    },
-    "5.3 Decision Model - record OpenAI": {
-      "commandName": "Project",
-      "commandLineArgs": "decisions-record-openai captures\\openai-decisions.json"
+      "commandLineArgs": "decisions --compare-openai"
     },
     "6. Harness": {
       "commandName": "Project",

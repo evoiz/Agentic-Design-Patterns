@@ -6,11 +6,27 @@ on:
       - ".github/workflows/dotnet-ci.yml"
       - ".github/workflows/live-foundry-tests.yml"
       - "dotnet/**"
+      - "update-conference-26/**"
+      - "docs/**"
+      - "ai-research/**"
+      - "scripts/**"
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "global.json"
+      - ".github/skills/maf-pattern-demo/**"
   pull_request:
     paths:
       - ".github/workflows/dotnet-ci.yml"
       - ".github/workflows/live-foundry-tests.yml"
       - "dotnet/**"
+      - "update-conference-26/**"
+      - "docs/**"
+      - "ai-research/**"
+      - "scripts/**"
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "global.json"
+      - ".github/skills/maf-pattern-demo/**"
 
 jobs:
   build-and-test:
@@ -35,3 +51,17 @@ jobs:
 
       - name: Run non-live tests
         run: dotnet test dotnet/AgenticDesignPatterns.slnx --configuration Release --no-build --filter "Category!=LiveFoundry"
+
+      - name: Build conference consumers
+        run: dotnet build update-conference-26/ConferenceDemos.slnx --configuration Release
+
+      - name: Test conference consumers
+        run: dotnet test update-conference-26/ConferenceDemos.slnx --configuration Release --no-build
+
+      - name: Check documentation and project paths
+        shell: pwsh
+        run: ./scripts/Test-Repository.ps1
+
+      - name: Check editable diagram drift
+        shell: pwsh
+        run: ./scripts/Test-Diagrams.ps1

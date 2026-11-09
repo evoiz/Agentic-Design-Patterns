@@ -1,16 +1,16 @@
-<mxfile host="app.diagrams.net" agent="GitHub Copilot" version="24.7.17" type="device">
+<mxfile host="app.diagrams.net" type="device">
   <diagram id="a2a-summary" name="A2A Visual Summary">
-    <mxGraphModel dx="980" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="980" pageHeight="470" math="0" shadow="0">
+    <mxGraphModel page="1" pageWidth="1000" pageHeight="520" adaptiveColors="auto">
       <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        <mxCell id="title" value="A2A: collaborate across agent boundaries" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="48" y="22" width="850" height="70" as="geometry" /></mxCell>
-        <mxCell id="agentA" value="Agent A&#xa;discover + authenticate&#xa;create task&#xa;consume result" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="48" y="160" width="192" height="170" as="geometry" /></mxCell>
-        <mxCell id="card" value="Agent Card&#xa;identity + endpoint&#xa;skills + auth modes&#xa;no secrets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;strokeColor=#9AA8C2;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="370" y="160" width="240" height="170" as="geometry" /></mxCell>
-        <mxCell id="agentB" value="Agent B&#xa;accept task&#xa;report status&#xa;return artifacts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontColor=#18343B;fontSize=16;" vertex="1" parent="1"><mxGeometry x="740" y="160" width="192" height="170" as="geometry" /></mxCell>
-        <mxCell id="e1" value="discover" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="agentA" target="card"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e2" value="task request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="card" target="agentB"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e3" value="status + artifacts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#52636B;strokeWidth=2;" edge="1" parent="1" source="agentB" target="agentA"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="A2A: discover, then call the remote agent&#xa;The Agent Card is metadata, not a task-sending actor or an authorization grant." style="text;html=1;align=left;whiteSpace=wrap;fontSize=24;fontColor=#18343B;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="920" height="80" as="geometry"/></mxCell>
+        <mxCell id="agentA" value="Caller agent / client&#xa;select binding&#xa;authenticate request&#xa;consume result" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;strokeColor=#76A99E;fontSize=16;" vertex="1" parent="1"><mxGeometry x="60" y="200" width="240" height="160" as="geometry"/></mxCell>
+        <mxCell id="card" value="Agent Card&#xa;endpoint + skills&#xa;bindings + auth declarations&#xa;no secrets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;strokeColor=#9AA8C2;fontSize=16;" vertex="1" parent="1"><mxGeometry x="390" y="120" width="240" height="120" as="geometry"/></mxCell>
+        <mxCell id="agentB" value="Remote agent&#xa;enforce access&#xa;execute request&#xa;return result / task status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E8;strokeColor=#D99B76;fontSize=16;" vertex="1" parent="1"><mxGeometry x="700" y="200" width="240" height="160" as="geometry"/></mxCell>
+        <mxCell id="e1" value="Discover metadata" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="agentA" target="card"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="Request (JSON-RPC or HTTP+JSON)" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;exitX=1;exitY=0.7;entryX=0;entryY=0.7;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="agentA" target="agentB"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="Response / stream / status" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;exitX=0.5;exitY=1;entryX=0.5;entryY=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="agentB" target="agentA"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="820" y="440"/><mxPoint x="180" y="440"/></Array></mxGeometry></mxCell>
       </root>
     </mxGraphModel>
   </diagram>

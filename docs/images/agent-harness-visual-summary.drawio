@@ -1,0 +1,28 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="agent-harness" name="Agent Harness Visual Summary">
+    <mxGraphModel page="1" pageWidth="1180" pageHeight="650" adaptiveColors="auto">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="Agent Harness: evidence inside bounded autonomy&#xa;The demo combines real MAF todos/compaction with application-owned budgets and completion checks." style="text;whiteSpace=wrap;html=1;fontSize=24;fontStyle=1;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="1100" height="80" as="geometry"/></mxCell>
+        <mxCell id="task" value="Task + service identity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;fontSize=16;" vertex="1" parent="1"><mxGeometry x="40" y="170" width="180" height="100" as="geometry"/></mxCell>
+        <mxCell id="agent" value="Harness agent&#xa;plan / todos / tools&#xa;compact context" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9EDF7;fontSize=16;" vertex="1" parent="1"><mxGeometry x="300" y="160" width="200" height="120" as="geometry"/></mxCell>
+        <mxCell id="budget" value="Call budget&#xa;and deadline&#xa;remain?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF0E8;fontSize=16;" vertex="1" parent="1"><mxGeometry x="600" y="150" width="180" height="140" as="geometry"/></mxCell>
+        <mxCell id="tool" value="Execute permitted tools&#xa;collect service health&#xa;+ matching runbook" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;fontSize=16;" vertex="1" parent="1"><mxGeometry x="880" y="160" width="240" height="120" as="geometry"/></mxCell>
+        <mxCell id="check" value="Completed todos +&#xa;matching evidence?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF0E8;fontSize=16;" vertex="1" parent="1"><mxGeometry x="300" y="370" width="200" height="140" as="geometry"/></mxCell>
+        <mxCell id="output" value="Verified completion" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2F1EE;fontSize=16;" vertex="1" parent="1"><mxGeometry x="40" y="400" width="180" height="80" as="geometry"/></mxCell>
+        <mxCell id="stop" value="Incomplete / explicit error&#xa;no premature success" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE8E7;fontSize=16;" vertex="1" parent="1"><mxGeometry x="620" y="400" width="270" height="80" as="geometry"/></mxCell>
+        <mxCell id="limits" value="At most 2 outer passes, 12 model calls and a 3-minute cooperative deadline.&#xa;Provider retries are not an exact billing cap. Compaction is not durable memory." style="text;whiteSpace=wrap;html=1;fontSize=15;fontColor=#18343B;" vertex="1" parent="1"><mxGeometry x="180" y="560" width="820" height="60" as="geometry"/></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="task" target="agent"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="Model call" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="agent" target="budget"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="Yes / tool request" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="budget" target="tool"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" value="Observation" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;exitX=0.5;exitY=0;entryX=0.5;entryY=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="tool" target="agent"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="Run returns" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="agent" target="check"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="Yes" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="check" target="output"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" value="No / pass exhausted" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="check" target="stop"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" value="No" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="budget" target="stop"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="No / one pass remains: corrective prompt" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;exitX=0;exitY=0.2;entryX=0;entryY=0.8;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="check" target="agent"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

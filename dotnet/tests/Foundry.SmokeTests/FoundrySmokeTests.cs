@@ -1,6 +1,6 @@
 using Xunit;
 using AgenticDesignPatterns.Shared;
-using Chapter13.HumanInTheLoop;
+using HumanInTheLoop;
 using Microsoft.Extensions.AI;
 
 namespace AgenticDesignPatterns.Foundry.SmokeTests;

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>Memory.Hosted</AssemblyName>
+    <RootNamespace>Memory.Hosted</RootNamespace>
+    <UserSecretsId>d7fc36de-99e6-45b5-a42d-11affd39daf5</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Memory/Memory.csproj" />
+    <ProjectReference Include="../Shared.Hosting/Shared.Hosting.csproj" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry.Hosting" />
+  </ItemGroup>
+</Project>

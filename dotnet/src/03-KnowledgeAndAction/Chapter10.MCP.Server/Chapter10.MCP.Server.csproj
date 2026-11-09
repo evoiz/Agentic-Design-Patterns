@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup>
-    <AssemblyName>Chapter10.MCP.Server</AssemblyName>
-    <RootNamespace>Chapter10.MCP.Server</RootNamespace>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="ModelContextProtocol.AspNetCore" />
-  </ItemGroup>
-</Project>

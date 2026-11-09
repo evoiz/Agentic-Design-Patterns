@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>LearningAdaptation.Hosted</AssemblyName>
+    <RootNamespace>LearningAdaptation.Hosted</RootNamespace>
+    <UserSecretsId>971d6ba6-5678-4bca-9fc2-17db8ef2dd91</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../LearningAdaptation/LearningAdaptation.csproj" />
+    <ProjectReference Include="../Shared.Hosting/Shared.Hosting.csproj" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry.Hosting" />
+  </ItemGroup>
+</Project>

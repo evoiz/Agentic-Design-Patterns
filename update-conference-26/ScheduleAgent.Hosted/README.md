@@ -4,7 +4,7 @@ This is a custom **C# Hosted Agent**, not a Foundry Prompt Agent. It exposes the
 
 ## How this project was created
 
-The project files were written directly, adapting the repository's [Chapter 14 hosted entry point](../../dotnet/src/03-KnowledgeAndAction/Chapter14.RAG.Hosted/Program.cs) and its `azure.yaml`. No `azd init`, Foundry scaffolding service, portal agent wizard, or special agent-generation tool created this project. The project uses the ordinary `Microsoft.NET.Sdk.Web` SDK shape (the same base as `dotnet new web`), but **the template command was not run**.
+The project files were written directly, adapting the repository's [Chapter 14 hosted entry point](../../dotnet/src/RAG.Hosted/Program.cs) and its `azure.yaml`. No `azd init`, Foundry scaffolding service, portal agent wizard, or special agent-generation tool created this project. The project uses the ordinary `Microsoft.NET.Sdk.Web` SDK shape (the same base as `dotnet new web`), but **the template command was not run**.
 
 The important agent-specific wiring is explicit:
 
