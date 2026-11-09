@@ -47,6 +47,7 @@ public static class DecisionDemo
         DecisionPresentation.Begin(showTask, "1/6 Noul - Day 1", Day1Question);
         DecisionPresentation.Provider(showTask, "Microsoft-Decision-1", "AssessAsync");
         var day1 = await client.AssessAsync(state, Day1Question, cancellationToken);
+
         DecisionPresentation.Result(showTask, day1);
         AssessmentDecision? openaiDay1 = null;
         if (openai is not null)

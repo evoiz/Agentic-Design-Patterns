@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "HumanInTheLoop.Hosted": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:56601;http://localhost:56606"
+    }
+  }
+}

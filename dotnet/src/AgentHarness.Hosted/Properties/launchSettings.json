@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "AgentHarness.Hosted": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:56587;http://localhost:56597"
+    }
+  }
+}
