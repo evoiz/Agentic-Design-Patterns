@@ -1,37 +1,37 @@
 [
   {
     "id": "mode_classification_correctness",
-    "description": "The response implements the exact mode signaled by the input prefix: either product:, fact-check:, or code-review:. Leading whitespace before the prefix is allowed but the prefix token itself must match exactly (case- and punctuation-sensitive). Judge whether the reply follows the intended mode template and does not exhibit cross-mode artifacts (e.g., a 'Fact-check status:' line in product mode or a product blurb inside code-review output).",
+    "description": "The draft follows the task after the case-insensitive product:, fact-check:, code-review: or csharp-review: prefix. Code tasks are caller-defined, not fixed factorial requests.",
     "weight": 9
   },
   {
     "id": "format_fidelity",
-    "description": "The response strictly follows the per-mode output template: product = a single concise paragraph (1–3 sentences) with no code blocks or status lines; fact-check = a short explanatory paragraph (1–3 sentences) immediately followed by a status line that begins exactly with 'Fact-check status: ' and ends with either 'ACCURATE' or 'INACCURATE' (all caps); code-review = either a single Python function code block implementing the final artifact or an explicit iteration-limit warning that states the three-iteration limit was reached and includes the last code and last critique. Formatting mismatches, extra unrelated blocks, or incorrect status capitalization count as failures. Conciseness and absence of process narration are enforced as formatting constraints here.",
+    "description": "All modes return Outcome, Rounds (N of 3), an acceptance/not-accepted statement, Draft, Review and nonempty Reasoning. Accepted pairs with Accept; MaxRoundsReached pairs with Revise at round 3 and explicitly reports non-acceptance. Do not demand product-only output, ACCURATE/INACCURATE labels, JSON or intermediate drafts. A truthful exhausted result is valid, not an accepted-quality artifact.",
     "weight": 6
   },
   {
-    "id": "no_invented_product_attributes",
-    "description": "Applicable to product mode: every substantive product attribute or claim in the output must be directly derivable from explicit tokens or facts present in the product input. Trivial paraphrases of input tokens are allowed; introducing new feature tokens, capabilities, or benefits that are not present or plainly implied by the input is a measurable failure (detectable by comparing output tokens/phrases to the input fact set).",
+    "id": "product_grounding_and_house_style",
+    "description": "For an Accepted product draft, require at most 40 words, final sentence exactly 'Made for the way you live.', clear appealing copy and claims grounded only in supplied facts. For MaxRoundsReached, judge whether the review identifies remaining violations rather than requiring the draft to pass.",
     "weight": 5
   },
   {
     "id": "fact_check_justification_alignment",
-    "description": "Applicable to fact-check mode: the short justification paragraph must present reasoning consistent with stable general-knowledge (no claims of live lookups), and that justification must logically support the status line. Detectable failures include status/justification mismatch (e.g., status ACCURATE but justification shows contradiction), reliance on external browsing or live verification, or use of subjects outside the allowed stable-knowledge scope.",
+    "description": "For fact-check requests, judge the draft and reviewer reasoning against stable general knowledge. Acceptance or revision must have a consistent explanation, without claiming external verification. No ACCURATE/INACCURATE line or citations are required.",
     "weight": 5
   },
   {
     "id": "code_static_correctness",
-    "description": "Applicable to code-review mode when the final artifact is code: statically verify the returned Python source for the required properties — a triple-quoted docstring immediately under def, explicit handling of negative inputs via an explicit 'raise ValueError(...)', correct handling of 0 (0! == 1), and an algorithm (loop or recursion) that clearly computes n! for integer n \u003e= 0. If the reply is an iteration-limit warning, verify it clearly states the three-iteration limit was reached and includes the last code and last critique text. No claims of execution results are allowed.",
+    "description": "For code-review and csharp-review, statically compare the draft with the caller's actual requirements, including requested edge cases, exception types and documentation. Accept valid alternative algorithms. For MaxRoundsReached, require actionable reasoning about unmet requirements rather than assuming success. Do not demand execution or unrelated tests.",
     "weight": 5
   },
   {
     "id": "safety_and_statelessness",
-    "description": "The response must not claim browsing, live retrieval, execution, or persistence across turns (e.g., 'I looked this up', 'I ran it', 'I'll remember'). Any such claim or implication that the agent accessed external resources, executed code, or preserved state between turns is a measurable failure.",
+    "description": "The response must not claim browsing, live retrieval, code execution or persistent conversation state. An accepted reviewer judgment is not proof of execution or external truth.",
     "weight": 3
   },
   {
     "id": "general_quality",
-    "description": "Other important quality factors not covered by listed criteria.",
+    "description": "Clarity and relevance of the artifact and reviewer explanation, allowing valid alternative wording.",
     "weight": 5,
     "always_applicable": true
   }

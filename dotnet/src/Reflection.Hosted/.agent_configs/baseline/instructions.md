@@ -1,1 +1,33 @@
-Evaluate the public Responses contract of chapter04-reflection, a stateless hosted Microsoft Agent Framework reflection demo. Generate a balanced 15-case smoke dataset covering its three modes, always using one of these explicit prefixes. product: followed by caller product facts returns only a concise, appealing final revised product description, grounded in supplied facts, after internal generation, critique, and refinement. fact-check: followed by a subject returns a generated short paragraph plus Fact-check status: ACCURATE or INACCURATE and explanatory reasoning. This verifier uses model knowledge only: it has no browsing, retrieval, citations, or external verification; judge factual plausibility on stable general-knowledge subjects, not live or obscure facts, and do not require external citations. code-review: requests the chapter's Python calculate_factorial example: one integer n, returns n!, 0! equals 1, clear docstring, ValueError for negative n. It reviews/refines at most three iterations, may accept on the first iteration, and returns final code or an explicit iteration-limit warning with code and last critique. Code is not executed by the agent. The code mode implements this fixed factorial task, not arbitrary coding requests. Assess final observable behavior only. Do not require intermediate drafts, critiques for product mode, proof of internal iteration counts, tool calls, telemetry, timing, JSON envelopes, execution proofs, persistent conversations, or a guaranteed quality improvement. Do not demand tests or type validation absent from the requirements. Product input must specify all material features so unsupported additions can be detected. Include differing product details, ordinary educational fact-check subjects, and factorial requests. Each row must provide an appropriate query and expected behavior specific to that mode. Use rubrics that reward valid alternatives rather than exact wording. This setup generates artifacts only; do not execute evaluation runs or modify the agent.
+Evaluate the public Responses contract of chapter04-reflection, a stateless hosted
+MAF reflection demo. Generate a balanced 15-case smoke dataset using explicit
+product:, fact-check:, code-review: and csharp-review: prefixes (case-insensitive,
+at the start of the request). Each row must include a query and mode-specific
+expected behavior. Judge valid alternatives, not exact draft wording.
+
+Every mode returns the same text envelope: Outcome: Accepted or MaxRoundsReached;
+Rounds: N of 3; an acceptance or not-accepted statement; Draft: followed by the
+latest artifact; Review: Accept or Revise; and Reasoning: with nonempty reviewer
+explanation. Accepted must correspond to Accept. MaxRoundsReached must correspond
+to Revise at round 3 and must not claim acceptance. Do not penalize the envelope as
+extra commentary, demand a JSON envelope or require intermediate drafts. A valid
+not-accepted result is allowed; do not score its draft as accepted quality.
+
+product: supplies complete product facts. An accepted draft is at most 40 words,
+ends with exactly "Made for the way you live.", reads clearly and appealingly,
+and invents no attributes. Include distinct facts and explicit prohibited claims.
+fact-check: supplies a stable educational subject. The draft is a short informative
+paragraph and the review explains accuracy or needed corrections using model
+knowledge only. There is no ACCURATE/INACCURATE status line, browsing, retrieval or
+external verification. Do not demand citations or treat acceptance as proof of truth.
+code-review: supplies the actual Python coding task, not a fixed task selected by
+the host. Include factorial cases with calculate_factorial, a docstring, 0! = 1
+and ValueError for negatives, plus a small different task with explicit requirements.
+csharp-review: supplies a C# task. Include arithmetic mean cases with explicit
+null/empty rejection, non-finite value rejection and XML documentation.
+Judge code statically against that query's requirements; the agent does not execute it.
+
+Do not require all requests to use three rounds, guaranteed improvement, tool
+calls, timing, telemetry, execution proofs or persistent state. Include accepted
+and budget-exhausted example envelopes when preparing reference responses.
+This setup creates local artifacts only; do not execute evaluation runs or modify
+the agent.

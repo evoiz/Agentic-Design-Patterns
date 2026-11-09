@@ -5,42 +5,12 @@ using ResourceOptimization.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 
-string? demoSelection = null;
-string? deploymentSelection = null;
-var invalidArguments = false;
-
-for (var index = 0; index < args.Length; index++)
+ResourceOptimizationCommandLineOptions options;
+try
 {
-    if (string.Equals(args[index], "--deployment", StringComparison.OrdinalIgnoreCase))
-    {
-        if (deploymentSelection is not null ||
-            index + 1 >= args.Length ||
-            string.IsNullOrWhiteSpace(args[index + 1]))
-        {
-            invalidArguments = true;
-            break;
-        }
-
-        deploymentSelection = args[++index];
-    }
-    else if (demoSelection is null)
-    {
-        demoSelection = args[index];
-    }
-    else
-    {
-        invalidArguments = true;
-        break;
-    }
+    options = ResourceOptimizationCommandLineOptions.Parse(args);
 }
-
-var runAllDemos = string.Equals(demoSelection, "all", StringComparison.OrdinalIgnoreCase);
-var runComplexity = runAllDemos ||
-    string.Equals(demoSelection, "complexity", StringComparison.OrdinalIgnoreCase);
-var runIntent = runAllDemos ||
-    string.Equals(demoSelection, "research", StringComparison.OrdinalIgnoreCase);
-
-if (invalidArguments || (!runComplexity && !runIntent))
+catch (ArgumentException)
 {
     Console.Error.WriteLine(
         "Usage: dotnet run --project dotnet/src/ResourceOptimization " +
@@ -48,10 +18,16 @@ if (invalidArguments || (!runComplexity && !runIntent))
     return 1;
 }
 
+var runAllDemos = string.Equals(options.Mode, "all", StringComparison.OrdinalIgnoreCase);
+var runComplexity = runAllDemos ||
+    string.Equals(options.Mode, "complexity", StringComparison.OrdinalIgnoreCase);
+var runIntent = runAllDemos ||
+    string.Equals(options.Mode, "research", StringComparison.OrdinalIgnoreCase);
+
 try
 {
     var settings = FoundryChatClientFactory.LoadSettings();
-    var fallbackDeployment = settings.ResolveModelDeployment(deploymentSelection);
+    var fallbackDeployment = settings.ResolveModelDeployment(options.Deployment);
     var routeDeployments = Enum.GetValues<OptimizationCategory>()
         .ToDictionary(category => category, category => ResolveRouteDeployment(settings, category, fallbackDeployment));
     var clientsByDeployment = routeDeployments.Values
