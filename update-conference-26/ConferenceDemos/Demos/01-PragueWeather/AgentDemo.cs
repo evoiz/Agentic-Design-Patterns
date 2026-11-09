@@ -29,7 +29,6 @@ public static class AgentDemo
         {
             output.WriteLine($"User question: {question}");
             var response = await agent.RunAsync(question, cancellationToken: cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(response.Text))
             {
                 throw new InvalidOperationException("The Prague agent returned an empty response.");

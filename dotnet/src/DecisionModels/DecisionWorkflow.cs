@@ -1,6 +1,6 @@
+using ElBruno.AI.Decisions;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using ElBruno.AI.Decisions;
 
 namespace DecisionModels;
 

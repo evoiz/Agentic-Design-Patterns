@@ -1,6 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <DefaultItemExcludes>$(DefaultItemExcludes);.azure/**;.env*;**/secrets.json;publish/**</DefaultItemExcludes>
+    <UserSecretsId>5a94b6f1-957d-45a5-9e85-0c03c06dafd9</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../ConferenceDemos/ConferenceDemos.csproj" />

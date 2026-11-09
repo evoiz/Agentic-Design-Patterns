@@ -10,11 +10,12 @@ services:
         host: azure.ai.agent
         language: csharp
         startupCommand: dotnet run --project ScheduleAgent.Hosted.csproj
-        displayName: Update Conference Schedule
+        displayName: Update Conference Schedule Rag Agent
         description: Answers caller questions using the bundled canonical conference schedule.
         uses:
             - conference-project
         env:
+            Foundry__ProjectEndpoint: ${AZURE_AI_PROJECT_ENDPOINT}
             AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
             EnableSensitiveTelemetry: ${ENABLE_SENSITIVE_TELEMETRY}
         codeConfiguration:

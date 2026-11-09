@@ -44,6 +44,7 @@ public static class Program
                 Console.WriteLine("2. Simple MAF workflow (no model calls)\nGetAttendeeProfile -> RecommendSession -> CreateRecommendation\n");
                 var attendee = options.Length == 0 ? "Alex" : string.Join(" ", options);
                 Console.WriteLine(await WelcomeWorkflowDemo.RunAsync(attendee, cancellation.Token, PrintWorkflowEvent));
+                Pause();
                 return 0;
             }
             if (command == "agent")
@@ -55,6 +56,7 @@ public static class Program
                 Console.WriteLine("1. Prague weather: agent + tool\nWeather is fixed demo data, not a live forecast.\n");
                 using var agentClient = FoundryChatClientFactory.CreateChatClient(FoundryChatClientFactory.LoadSettings());
                 await AgentDemo.RunAsync(agentClient, Console.Out, cancellation.Token);
+                Pause();
                 return 0;
             }
             if (command == "plan")
@@ -83,6 +85,7 @@ public static class Program
                 using var openai = compare ? DecisionConfiguration.CreateClient(settings, "openai") : null;
                 await DecisionDemo.EvaluateAsync(decisions, state, cancellation.Token, Console.WriteLine, openai);
                 Console.WriteLine("\nLive API/output illustration only. Scores are not calibrated certainty or an accuracy benchmark.");
+                Pause();
                 return 0;
             }
 
