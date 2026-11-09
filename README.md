@@ -2,9 +2,29 @@
 
 This is my **C# / Microsoft Agent Framework (MAF)** focused fork: runnable examples, explicit workflow contracts and editable diagrams for learning how agentic patterns work. It builds on Antonio Gulli's *Agentic Design Patterns* and the work in [evoiz/Agentic-Design-Patterns](https://github.com/evoiz/Agentic-Design-Patterns). The goal here is a useful starting point that continues to evolve with additional, testable MAF patterns.
 
-Start locally with one Foundry chat deployment. Hosting, managed tools and additional Azure services are optional—not prerequisites for understanding the patterns.
+## Understand the patterns
+
+**Start with the [design guide](docs/design-patterns.md)** for agent complexity levels, visual explanations of each pattern, tradeoffs and guidance on choosing and combining them. No Azure setup or code execution is needed to explore the docs.
+
+To make the collection easier to navigate, **I defined my own five families of patterns**: **Flow**, **Reason & Improve**, **Knowledge & Action**, **Collaboration**, and **Trust & Operations**. This is my organizational lens across the book patterns and repository additions—not the book's chapter structure or an official MAF taxonomy. Families answer different architectural questions and can be combined at any agent complexity level.
+
+[![Agentic design pattern families: Flow, Reason & Improve, Knowledge & Action and Collaboration, supported by Trust & Operations across all levels.](docs/images/agentic-design-pattern-families.png)](docs/design-patterns.md#the-five-pattern-families)
+
+Explore [the five families](docs/design-patterns.md#the-five-pattern-families), [the pattern-by-pattern guide](docs/design-patterns.md#pattern-guide-by-family), or [control before autonomy](docs/design-patterns.md#control-before-autonomy).
+
+Each family has its own illustrated guide, with pattern-to-pattern navigation and links to the C# demos:
+
+[Flow](docs/flow.md) | [Reason & Improve](docs/reason-and-improve.md) | [Knowledge & Action](docs/knowledge-and-action.md) | [Collaboration](docs/collaboration.md) | [Trust & Operations](docs/trust-and-operations.md)
 
 ## Get started
+
+| Start with the docs | Start with code |
+|---|---|
+| Read the [design guide](docs/design-patterns.md), choose the architectural problem you want to solve, then follow its links to a demo. | Run [PromptChaining](dotnet/src/PromptChaining/README.md) using the quickstart below. The [C# setup guide](dotnet/README.md) covers shared configuration and optional services. |
+
+### Run your first C# demo
+
+Start locally with one Foundry chat deployment. Hosting, managed tools and additional Azure services are optional.
 
 You need Git, the **.NET 10 SDK**, NuGet access, and an accessible **Microsoft Foundry resource/project with one deployed chat model**. The deployment must support structured JSON output for the first example; tool-using patterns also need tool calling. You need that model-hosting resource's API key. No hosted agent, container registry, embedding model, Azure AI Search, Content Safety, Node or Python is needed for this first run.
 
@@ -87,6 +107,6 @@ The [C# guide](dotnet/README.md) covers optional services and the protected live
 
 ## Attribution and reference material
 
-Thanks to **Antonio Gulli** for the book and **evoiz** for the upstream repository this fork builds on. [`chapter_notebooks`](chapter_notebooks) and [`book`](book) remain historical/source references; they are not the setup path for this MAF-focused fork. Diagrams under [`docs\images`](docs/images) are independently drawn explanations with canonical editable sources.
+Thanks to **Antonio Gulli** for the book and **evoiz** for the upstream repository this fork builds on. [`chapter_notebooks`](chapter_notebooks) and [`book`](book) remain historical/source references; they are not the setup path for this MAF-focused fork. Workflow diagrams under [`docs\images`](docs/images) are independently drawn explanations with canonical editable sources; the presentation overviews are supplied PNG illustrations.
 
 No repository-wide license grant is asserted here. Original materials retain their authors' rights; consult their applicable terms before reuse. Adding a license requires confirmation of the rights to the relevant material.

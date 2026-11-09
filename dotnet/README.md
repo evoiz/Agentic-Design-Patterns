@@ -39,11 +39,11 @@ Patterns live flat under `src\<PatternName>`; tests mirror them under `tests\<Pa
 
 | Family | Demos |
 |---|---|
-| Flow | [PromptChaining](src/PromptChaining/README.md), [Routing](src/Routing/README.md), [Parallelization](src/Parallelization/README.md), [Planning](src/Planning/README.md), [Prioritization](src/Prioritization/README.md), [DecisionModels](src/DecisionModels/README.md) |
-| Reason & Improve | [Reflection](src/Reflection/README.md), [LearningAdaptation](src/LearningAdaptation/README.md), [GoalSettingMonitoring](src/GoalSettingMonitoring/README.md), [Reasoning](src/Reasoning/README.md), [ExplorationDiscovery](src/ExplorationDiscovery/README.md) |
-| Knowledge & Action | [ToolUse](src/ToolUse/README.md), [Memory](src/Memory/README.md), [MCP](src/MCP/README.md), [RAG](src/RAG/README.md) |
-| Collaboration | [MultiAgent](src/MultiAgent/README.md), [HumanInTheLoop](src/HumanInTheLoop/README.md), [A2A](src/A2A/README.md) |
-| Trust & Operations | [ExceptionHandling](src/ExceptionHandling/README.md), [ResourceOptimization](src/ResourceOptimization/README.md), [Guardrails](src/Guardrails/README.md), [Evaluation](src/Evaluation/README.md), [AgentHarness](src/AgentHarness/README.md) |
+| [Flow](../docs/flow.md) | [PromptChaining](src/PromptChaining/README.md), [Routing](src/Routing/README.md), [Parallelization](src/Parallelization/README.md), [Planning](src/Planning/README.md), [Prioritization](src/Prioritization/README.md), [DecisionModels](src/DecisionModels/README.md) |
+| [Reason & Improve](../docs/reason-and-improve.md) | [Reflection](src/Reflection/README.md), [LearningAdaptation](src/LearningAdaptation/README.md), [GoalSettingMonitoring](src/GoalSettingMonitoring/README.md), [Reasoning](src/Reasoning/README.md), [ExplorationDiscovery](src/ExplorationDiscovery/README.md) |
+| [Knowledge & Action](../docs/knowledge-and-action.md) | [ToolUse](src/ToolUse/README.md), [Memory](src/Memory/README.md), [MCP](src/MCP/README.md), [RAG](src/RAG/README.md) |
+| [Collaboration](../docs/collaboration.md) | [MultiAgent](src/MultiAgent/README.md), [HumanInTheLoop](src/HumanInTheLoop/README.md), [A2A](src/A2A/README.md) |
+| [Trust & Operations](../docs/trust-and-operations.md) | [ExceptionHandling](src/ExceptionHandling/README.md), [ResourceOptimization](src/ResourceOptimization/README.md), [Guardrails](src/Guardrails/README.md), [Evaluation](src/Evaluation/README.md), [AgentHarness](src/AgentHarness/README.md) |
 
 Begin with one named local variant. `all` can cost multiple calls or require optional features; the default path is intentionally small. Structured .NET examples are primary; original scenarios and Python-generating examples remain secondary where applicable. Generated Python is saved for inspection, never executed by the demos.
 

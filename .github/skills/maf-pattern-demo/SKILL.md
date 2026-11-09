@@ -162,7 +162,9 @@ paper figures and no stale Mermaid-only substitute. Label conceptual versus exec
 flows. Inspect arrow direction, exclusive branches, joins, tool-result returns and
 accepted/incomplete/exhausted paths visually as well as structurally.
 
-Register a new pattern in the root catalog, C# family navigation and design guide;
+Register a new pattern in the root catalog, C# family navigation, design guide index
+and the matching family page linked from `docs\design-patterns.md`. Keep the family's
+pattern index and Previous / Next links consistent, including cross-family links;
 add source metadata to the appropriate mapping only when applicable. Update an
 existing variant's guide without creating a duplicate pattern entry. Do not create
 family folders. Link common setup to `dotnet\README.md` and hosting to
