@@ -135,6 +135,89 @@ public sealed class LocalDemoTests
         Assert.DoesNotContain("## Day 1", answer);
     }
 
+    [Theory]
+    [InlineData("When is Cédric speaking on DAy 2?")]
+    [InlineData("When is Cedric speaking on day 1?")]
+    [InlineData("When is Cédric speaking on November 13?")]
+    public async Task Hosted_speaker_questions_receive_the_complete_speaker_day_index(string question)
+    {
+        var corpus = new ScheduleCorpus();
+        var calls = 0;
+        using var client = new ScriptedChatClient((messages, options) =>
+        {
+            calls++;
+            var request = messages.ToArray();
+            Assert.Contains(request, message => message.Role == ChatRole.User && message.Text == question);
+            AssertScheduleContext(request, options);
+            var context = string.Join("\n", request.Select(message => message.Text)).ReplaceLineEndings("\n");
+            const string marker = "Complete speaker/day index, derived from every session in the snapshot:\n";
+            var indexStart = context.IndexOf(marker, StringComparison.Ordinal);
+            Assert.True(indexStart >= 0);
+            var indexJson = context[(indexStart + marker.Length)..].Split('\n', 2)[0];
+            using var index = JsonDocument.Parse(indexJson);
+            Assert.Equal(corpus.Sessions.Count, index.RootElement.GetArrayLength());
+            foreach (var entry in index.RootElement.EnumerateArray())
+            {
+                var session = Assert.Single(corpus.Sessions, s => s.Id == entry.GetProperty("Id").GetInt32());
+                Assert.Equal(session.Day, entry.GetProperty("Day").GetInt32());
+                Assert.Equal(session.Speaker, entry.GetProperty("Speaker").GetString());
+            }
+            var speaker = Assert.Single(index.RootElement.EnumerateArray(),
+                entry => entry.GetProperty("Speaker").GetString()?.Contains("Cédric", StringComparison.Ordinal) == true);
+            Assert.Equal(1, speaker.GetProperty("Day").GetInt32());
+            Assert.Equal(13, speaker.GetProperty("Id").GetInt32());
+            return new(new ChatMessage(ChatRole.Assistant, "Scripted response; no live accuracy claim."));
+        });
+
+        await using var host = await HostedResponses.StartAsync(new ScheduleHostedAgent(client));
+        using var result = await host.InvokeAsync(question, "update-schedule");
+        Assert.Equal("completed", result.RootElement.GetProperty("status").GetString());
+        Assert.Equal(1, calls);
+    }
+
+    [Theory]
+    [InlineData("Is Cédric speaking on DAy 2?", "No.", "Day 2", true)]
+    [InlineData("Is Cedric speaking on day 1?", "Yes.", "Day 1", true)]
+    [InlineData("Is CÉDRIC MENDELIN speaking on November 13, 2026?", "No.", "Day 2", true)]
+    [InlineData("Is Cedric speaking on November 12?", "Yes.", "Day 1", true)]
+    [InlineData("Is Nonexistent Speaker speaking on day 2?", "No.", "Day 2", false)]
+    public async Task Hosted_speaker_day_facts_are_answered_from_records_without_model_judgment(
+        string question, string expectedStart, string requestedDay, bool hasAppearance)
+    {
+        using var client = new ScriptedChatClient((_, _) =>
+            throw new InvalidOperationException("A speaker/day fact must not invoke the model."));
+        await using var host = await HostedResponses.StartAsync(new ScheduleHostedAgent(client));
+        using var result = await host.InvokeAsync(question, "update-schedule");
+        Assert.Equal("completed", result.RootElement.GetProperty("status").GetString());
+        var answer = HostedResponses.OutputText(result.RootElement);
+        Assert.StartsWith(expectedStart, answer);
+        Assert.Contains(requestedDay, answer);
+        Assert.Equal(hasAppearance, answer.Contains("#s13", StringComparison.Ordinal));
+        if (hasAppearance)
+        {
+            Assert.Contains("Day 1, November 12, 13:45", answer);
+        }
+        if (hasAppearance && expectedStart == "No.")
+        {
+            Assert.Contains("Listed on a different day:", answer);
+            Assert.DoesNotContain("Yes.", answer);
+        }
+    }
+
+    [Theory]
+    [InlineData("Is Stefan Polz speaking on day 2?", "Yes.", "#s47")]
+    [InlineData("Is Nilsson speaking on day 2?", "The name", "full speaker name")]
+    [InlineData("Is Ced speaking on day 1?", "No.", "No appearance")]
+    public async Task Speaker_lookup_handles_other_speakers_ambiguity_and_partial_names(
+        string question, string expectedStart, string expectedDetail)
+    {
+        using var client = new ScriptedChatClient((_, _) =>
+            throw new InvalidOperationException("No model judgment expected."));
+        var answer = await ScheduleDemo.RunAsync(client, question);
+        Assert.StartsWith(expectedStart, answer);
+        Assert.Contains(expectedDetail, answer);
+    }
+
     [Fact]
     public async Task Hosted_requests_are_isolated_and_stream_completed_results()
     {

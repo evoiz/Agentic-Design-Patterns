@@ -4,6 +4,6 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup>
-    <ActiveDebugProfile>5.1 Decision Model - Microsoft live</ActiveDebugProfile>
+    <ActiveDebugProfile>6.1 Harness + web search</ActiveDebugProfile>
   </PropertyGroup>
 </Project>
