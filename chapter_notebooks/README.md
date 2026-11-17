@@ -2,7 +2,7 @@
 
 ## About
 Code notebooks for the book **"Agentic Design Patterns"** by Antonio Gulli.
-All 21 chapters have complete, runnable code examples — 58 notebooks covering multiple frameworks per chapter.
+All 21 chapters have complete, runnable code examples — 66 notebooks covering multiple frameworks per chapter.
 
 ## Book Information
 - **Title**: Agentic Design Patterns: A Hands-On Guide to Building Intelligent Systems
@@ -84,6 +84,7 @@ Each chapter may have multiple notebooks for different framework implementations
 - `Chapter_14_Knowledge_Retrieval_(RAG_Google_Search).ipynb`
 - `Chapter_14_Knowledge_Retrieval_(RAG_LangChain).ipynb`
 - `Chapter_14_Knowledge_Retrieval_(RAG_VertexAI).ipynb`
+- [Public web retrieval with source links (ADK + MCP)](Chapter_14_Knowledge_Retrieval_%28RAG_Parallel_MCP%29.ipynb) — optional anonymous Parallel search with plan, evidence, and cited answer handoffs.
 
 ### Chapter 15: Inter-Agent Communication
 - `Chapter_15_Inter_Agent_(A2A).ipynb`
